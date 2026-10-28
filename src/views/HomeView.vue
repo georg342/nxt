@@ -1,32 +1,38 @@
 <script setup>
-// Temporary placeholder view for setup validation.
+import AppLayout from '../components/layout/AppLayout.vue'
+import BrutalCard from '../components/ui/BrutalCard.vue'
 </script>
 
 <template>
-  <main class="home-view">
-    <h1 class="home-view__title">WNXT</h1>
-  </main>
+  <AppLayout>
+    <div class="home-view">
+      <BrutalCard>
+        <h1 class="home-view__title">WNXT</h1>
+        <p class="home-view__text">
+          Electronic music event calendar. Layout foundation ready.
+        </p>
+      </BrutalCard>
+    </div>
+  </AppLayout>
 </template>
 
 <style scoped>
 .home-view {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100dvh;
+  height: 100%;
+  overflow-y: auto;
   padding: var(--space-4);
 }
 
 .home-view__title {
-  font-size: clamp(2.5rem, 12vw, 6rem);
+  font-size: clamp(2rem, 8vw, 3.5rem);
   font-weight: 900;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  padding: var(--space-4) var(--space-6);
-  background-color: var(--accent-color);
-  color: var(--accent-contrast);
-  border: var(--border-width-strong) solid var(--border-color);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-2);
+  margin-bottom: var(--space-2);
+}
+
+.home-view__text {
+  color: var(--text-muted);
+  font-size: 0.95rem;
 }
 </style>
