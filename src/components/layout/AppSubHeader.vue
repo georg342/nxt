@@ -1,6 +1,6 @@
 <script setup>
 import { nextTick, ref, watch } from 'vue'
-import { PhMagnifyingGlass, PhX } from '@phosphor-icons/vue'
+import { PhCaretLeft, PhMagnifyingGlass, PhX } from '@phosphor-icons/vue'
 import { useUIStore } from '../../stores/uiStore'
 
 const uiStore = useUIStore()
@@ -23,6 +23,16 @@ function handleClose() {
 
 <template>
   <div class="app-subheader">
+    <button
+      v-if="!uiStore.isSearchOpen"
+      type="button"
+      class="app-subheader__action app-subheader__action--left"
+      :aria-label="$t('nav.previous')"
+      @click="uiStore.goToPrevious()"
+    >
+      <PhCaretLeft :size="20" weight="bold" />
+    </button>
+
     <Transition name="fade-text" mode="out-in">
       <input
         v-if="uiStore.isSearchOpen"
@@ -44,6 +54,12 @@ function handleClose() {
         {{ uiStore.contextLabel }}
       </span>
     </Transition>
+
+    <span
+      v-if="!uiStore.isSearchOpen"
+      class="app-subheader__spacer"
+      aria-hidden="true"
+    />
 
     <button
       v-if="uiStore.isSearchOpen"
@@ -83,6 +99,18 @@ function handleClose() {
   letter-spacing: 0.02em;
   color: var(--text-color);
   flex: 1;
+  text-align: center;
+}
+
+.app-subheader__spacer {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.app-subheader__action--left {
+  margin-left: 0;
+  margin-right: var(--space-2);
 }
 
 .app-subheader__input {

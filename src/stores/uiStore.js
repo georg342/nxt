@@ -363,6 +363,27 @@ export const useUIStore = defineStore(
     }
 
     /**
+     * Navigates to the previous period based on the active view.
+     * year -> -1 year, month -> -1 month, week -> -7 days, day -> -1 day.
+     */
+    function goToPrevious() {
+      const next = new Date(currentDate.value)
+
+      if (activeView.value === 'year') {
+        next.setFullYear(next.getFullYear() - 1)
+      } else if (activeView.value === 'month') {
+        next.setMonth(next.getMonth() - 1)
+      } else if (activeView.value === 'week') {
+        next.setDate(next.getDate() - 7)
+      } else if (activeView.value === 'day') {
+        next.setDate(next.getDate() - 1)
+        selectedDate.value = new Date(next)
+      }
+
+      currentDate.value = next
+    }
+
+    /**
      * Selects a specific date and opens the day view.
      * @param {Date} date
      */
@@ -434,6 +455,7 @@ export const useUIStore = defineStore(
       isSearchOpen,
       setActiveView,
       nextWeek,
+      goToPrevious,
       selectDate,
       goToToday,
       goToCurrentWeek,
