@@ -2,9 +2,11 @@
 import { computed, ref } from 'vue'
 import BrutalButton from '../ui/BrutalButton.vue'
 import { useUIStore } from '../../stores/uiStore'
+import { useAuthStore } from '../../stores/authStore'
 import { PhEye, PhCalendar, PhCalendarDots, PhCalendarDot } from '@phosphor-icons/vue'
 
 const uiStore = useUIStore()
+const authStore = useAuthStore()
 
 const activeView = computed(() => uiStore.activeView)
 const isViewMenuOpen = ref(false)
@@ -12,6 +14,14 @@ const isViewMenuOpen = ref(false)
 function switchView(viewName) {
   uiStore.setActiveView(viewName)
   isViewMenuOpen.value = false
+}
+
+function handleCreate() {
+  if (!authStore.user) {
+    authStore.openAuthModal()
+    return
+  }
+  console.log('Open Create Event Form')
 }
 </script>
 
@@ -61,7 +71,9 @@ function switchView(viewName) {
       >
         {{ $t('nav.today') }}
       </BrutalButton>
-      <BrutalButton class="nav-btn" color="var(--accent-color)">{{ $t('nav.add') }}</BrutalButton>
+      <BrutalButton class="nav-btn" color="var(--accent-color)" @click="handleCreate()">
+        {{ $t('nav.add') }}
+      </BrutalButton>
     </div>
   </nav>
 </template>

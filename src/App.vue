@@ -1,9 +1,18 @@
 <script setup>
-// Root component. O Vue Router irá injetar as views aqui.
+import { onMounted } from 'vue'
+import AuthModal from './components/auth/AuthModal.vue'
+import { useAuthStore } from './stores/authStore'
+
+const authStore = useAuthStore()
+
+onMounted(() => {
+  authStore.initAuth()
+})
 </script>
 
 <template>
   <router-view />
+  <AuthModal />
 </template>
 
 <style>
