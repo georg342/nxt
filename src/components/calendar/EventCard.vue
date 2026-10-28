@@ -11,6 +11,10 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  time: {
+    type: String,
+    default: '',
+  },
   expanded: {
     type: Boolean,
     default: false,
@@ -22,6 +26,14 @@ defineEmits(['toggle'])
 const uiStore = useUIStore()
 
 const formattedDate = computed(() => uiStore.formatEventDate(props.event.date))
+
+function formatTime(dateString) {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
+const displayTime = computed(() => props.time || formatTime(props.event.start_date))
 </script>
 
 <template>
@@ -39,10 +51,14 @@ const formattedDate = computed(() => uiStore.formatEventDate(props.event.date))
           <PhCalendarBlank :size="18" weight="duotone" />
           {{ formattedDate }}
         </span>
-        <span class="event-card__meta-item">
+        <div
+          v-if="displayTime"
+          class="event-time"
+          style="display: flex; align-items: center; gap: 4px; margin-top: 4px; font-weight: 600;"
+        >
           <PhClock :size="18" weight="duotone" />
-          {{ event.time }}
-        </span>
+          <span>{{ displayTime }}</span>
+        </div>
         <span class="event-card__meta-item">
           <PhMapPin :size="18" weight="duotone" />
           {{ event.location }}
