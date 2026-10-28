@@ -23,25 +23,27 @@ function goToAdmin() {
 
     <div class="app-header__controls">
       <BrutalButton
+        class="app-header__control-btn"
         :aria-label="uiStore.theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'"
         @click="uiStore.toggleTheme()"
       >
         <PhSun
           v-if="uiStore.theme === 'dark'"
-          :size="24"
+          :size="18"
           weight="duotone"
         />
         <PhMoon
           v-else
-          :size="24"
+          :size="18"
           weight="duotone"
         />
       </BrutalButton>
       <BrutalButton
+        class="app-header__control-btn"
         :aria-label="uiStore.locale === 'pt' ? 'Switch to English' : 'Mudar para Português'"
         @click="uiStore.toggleLocale()"
       >
-        <PhGlobe :size="24" weight="duotone" />
+        <PhGlobe :size="18" weight="duotone" />
         <span class="app-header__locale-label">
           {{ uiStore.locale === 'pt' ? $t('locale.toEn') : $t('locale.toPt') }}
         </span>
@@ -77,10 +79,17 @@ function goToAdmin() {
   gap: var(--space-2);
 }
 
+.app-header__control-btn {
+  min-height: 32px;
+  min-width: 32px;
+  padding: var(--space-1) var(--space-2);
+  box-shadow: 2px 2px 0px var(--shadow-color);
+}
+
 .app-header__locale-label {
   margin-left: var(--space-1);
   font-weight: 900;
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   letter-spacing: 0.05em;
 }
 </style>
