@@ -85,7 +85,7 @@ export const useEventStore = defineStore('events', () => {
 
     try {
       const repository = new SupabaseEventRepository()
-      await repository.updateEventStatus(eventId, 'published')
+      await repository.updateEventStatus(eventId, 'approved')
       pendingEvents.value = pendingEvents.value.filter((event) => event.id !== eventId)
       Logger.info('EventStore', 'Event approved', eventId)
       uiStore.showToast('Evento aprovado', 'success')
