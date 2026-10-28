@@ -53,18 +53,23 @@ export class SupabaseEventRepository extends EventService {
    * @returns {Promise<Array>}
    */
   async getPendingEvents() {
-    const { data, error } = await supabase
-      .from('events')
-      .select('*')
-      .eq('status', 'pending')
-      .order('created_at', { ascending: true })
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .eq('status', 'pending')
+        .order('created_at', { ascending: true })
 
-    if (error) {
-      console.error('[SupabaseEventRepository] getPendingEvents error:', error)
+      if (error) {
+        console.error('Supabase RLS Error:', error)
+        return []
+      }
+
+      return data ?? []
+    } catch (err) {
+      console.error('Supabase RLS Error:', err)
       return []
     }
-
-    return data ?? []
   }
 
   /**
@@ -81,6 +86,44 @@ export class SupabaseEventRepository extends EventService {
 
     if (error) {
       console.error('[SupabaseEventRepository] updateEventStatus error:', error)
+      throw error
+    }
+
+    return { error: null }
+  }
+
+  /**
+   * Updates the status of multiple events at once.
+   * @param {Array<string>} eventIds
+   * @param {string} newStatus
+   * @returns {Promise<{ error: Object|null }>}
+   */
+  async bulkUpdateEventsStatus(eventIds, newStatus) {
+    const { error } = await supabase
+      .from('events')
+      .update({ status: newStatus })
+      .in('id', eventIds)
+
+    if (error) {
+      console.error('[SupabaseEventRepository] bulkUpdateEventsStatus error:', error)
+      throw error
+    }
+
+    return { error: null }
+  }
+
+  /**
+   * Inserts a new admin user into the admin_users table.
+   * @param {string} newAdminId
+   * @returns {Promise<{ error: Object|null }>}
+   */
+  async addAdminUser(newAdminId) {
+    const { error } = await supabase
+      .from('admin_users')
+      .insert([{ user_id: newAdminId }])
+
+    if (error) {
+      console.error('[SupabaseEventRepository] addAdminUser error:', error)
       throw error
     }
 

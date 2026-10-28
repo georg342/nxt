@@ -194,6 +194,7 @@ export const useUIStore = defineStore(
     const searchQuery = ref('')
     const isSearchOpen = ref(false)
     const isCreateEventModalOpen = ref(false)
+    const isAdminPanelOpen = ref(false)
     const toast = ref({ show: false, message: '', type: 'success' })
     let toastTimeoutId = null
 
@@ -508,6 +509,20 @@ export const useUIStore = defineStore(
       isCreateEventModalOpen.value = false
     }
 
+    /**
+     * Opens the admin CMS panel.
+     */
+    function openAdminPanel() {
+      isAdminPanelOpen.value = true
+    }
+
+    /**
+     * Closes the admin CMS panel.
+     */
+    function closeAdminPanel() {
+      isAdminPanelOpen.value = false
+    }
+
     return {
       theme,
       locale,
@@ -529,6 +544,7 @@ export const useUIStore = defineStore(
       searchQuery,
       isSearchOpen,
       isCreateEventModalOpen,
+      isAdminPanelOpen,
       toast,
       setActiveView,
       nextWeek,
@@ -541,6 +557,8 @@ export const useUIStore = defineStore(
       toggleSearch,
       openCreateEventModal,
       closeCreateEventModal,
+      openAdminPanel,
+      closeAdminPanel,
       showToast,
       hideToast,
     }

@@ -2,11 +2,16 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { supabase } from '../lib/supabase'
 
+const MASTER_EMAIL = 'YOUR_EMAIL_HERE'
+
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
   const isAuthModalOpen = ref(false)
 
   const isAdmin = computed(() => Boolean(user.value))
+  const isSuperAdmin = computed(
+    () => Boolean(user.value) && user.value.email === MASTER_EMAIL
+  )
 
   function initAuth() {
     supabase.auth.getSession().then(({ data }) => {
@@ -52,6 +57,7 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     user,
     isAdmin,
+    isSuperAdmin,
     isAuthModalOpen,
     initAuth,
     loginWithGoogle,

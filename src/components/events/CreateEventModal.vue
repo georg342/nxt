@@ -84,7 +84,7 @@ function handleClose() {
       <form class="create-event__card" @submit.prevent="handleSubmit()">
         <button
           type="button"
-          class="create-event__close"
+          class="absolute top-4 right-4 z-50 w-8 h-8 flex items-center justify-center border-2 border-black bg-white hover:bg-gray-200 shadow-[2px_2px_0_0_rgba(0,0,0,1)] cursor-pointer rounded-md"
           :aria-label="t('createEvent.close')"
           @click="handleClose()"
         >

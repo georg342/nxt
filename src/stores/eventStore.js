@@ -8,6 +8,7 @@ import { Logger } from '../utils/logger.js'
 export const useEventStore = defineStore('events', () => {
   const events = ref([])
   const pendingEvents = ref([])
+  const selectedPendingEventIds = ref([])
   const isLoading = ref(false)
   const error = ref(null)
 
@@ -109,6 +110,43 @@ export const useEventStore = defineStore('events', () => {
     }
   }
 
+  async function bulkUpdatePendingEvents(status) {
+    const uiStore = useUIStore()
+    const ids = [...selectedPendingEventIds.value]
+
+    if (ids.length === 0) return
+
+    try {
+      const repository = new SupabaseEventRepository()
+      await repository.bulkUpdateEventsStatus(ids, status)
+      pendingEvents.value = pendingEvents.value.filter(
+        (event) => !ids.includes(event.id)
+      )
+      selectedPendingEventIds.value = []
+      Logger.info('EventStore', 'Bulk update completed', { ids, status })
+      uiStore.showToast('Eventos atualizados', 'success')
+    } catch (err) {
+      Logger.error('EventStore', 'Failed to bulk update events', err)
+      uiStore.showToast('Falha ao atualizar eventos', 'error')
+    }
+  }
+
+  async function addAdminUser(newAdminId) {
+    const uiStore = useUIStore()
+
+    try {
+      const repository = new SupabaseEventRepository()
+      await repository.addAdminUser(newAdminId)
+      Logger.info('EventStore', 'Admin user added', newAdminId)
+      uiStore.showToast('Admin adicionado', 'success')
+      return { success: true }
+    } catch (err) {
+      Logger.error('EventStore', 'Failed to add admin user', err)
+      uiStore.showToast('Falha ao adicionar admin', 'error')
+      return { success: false }
+    }
+  }
+
   async function loadEvents() {
     isLoading.value = true
     error.value = null
@@ -128,6 +166,7 @@ export const useEventStore = defineStore('events', () => {
   return {
     events,
     pendingEvents,
+    selectedPendingEventIds,
     isLoading,
     error,
     addEvent,
@@ -135,5 +174,7 @@ export const useEventStore = defineStore('events', () => {
     fetchPendingEvents,
     approveEvent,
     rejectEvent,
+    bulkUpdatePendingEvents,
+    addAdminUser,
   }
 })
