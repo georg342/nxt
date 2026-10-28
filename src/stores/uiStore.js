@@ -11,6 +11,33 @@ const DEFAULT_VIEW = 'year'
 
 const MIN_SEARCH_LENGTH = 3
 
+const MOCK_EVENTS = [
+  {
+    id: 1,
+    title: 'Neon Warehouse',
+    time: '22:00',
+    location: 'Vila Madalena, SP',
+    genres: ['Techno', 'House'],
+    lineup: ['DJ Vertex', 'Luna Flux', 'Kairo'],
+  },
+  {
+    id: 2,
+    title: 'Basement Sessions',
+    time: '23:30',
+    location: 'Centro, SP',
+    genres: ['Minimal', 'Deep House'],
+    lineup: ['Sublevel', 'Mara Vex'],
+  },
+  {
+    id: 3,
+    title: 'Sunrise Rooftop',
+    time: '05:00',
+    location: 'Pinheiros, SP',
+    genres: ['Melodic Techno'],
+    lineup: ['Aurora', 'Nyx'],
+  },
+]
+
 const VIEW_DEPTH = {
   year: 1,
   month: 2,
@@ -75,6 +102,32 @@ export const useUIStore = defineStore(
     const isSearchOpen = ref(false)
 
     const intlLocale = computed(() => LOCALE_MAP[locale.value] ?? 'en-US')
+
+    const normalizedSearchQuery = computed(() =>
+      searchQuery.value.trim().toLowerCase()
+    )
+
+    const hasMinSearchLength = computed(
+      () => normalizedSearchQuery.value.length >= MIN_SEARCH_LENGTH
+    )
+
+    const searchResults = computed(() => {
+      if (!hasMinSearchLength.value) return []
+      const q = normalizedSearchQuery.value
+
+      return MOCK_EVENTS.filter((event) => {
+        const haystack = [
+          event.title,
+          event.time,
+          event.location,
+          ...event.genres,
+          ...event.lineup,
+        ]
+          .join(' ')
+          .toLowerCase()
+        return haystack.includes(q)
+      })
+    })
 
     const contextLabel = computed(() => {
       const date = currentDate.value
@@ -257,6 +310,8 @@ export const useUIStore = defineStore(
       transitionDirection,
       contextLabel,
       weekDaysData,
+      hasMinSearchLength,
+      searchResults,
       setTheme,
       toggleTheme,
       toggleLocale,

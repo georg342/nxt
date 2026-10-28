@@ -1,66 +1,11 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import { PhMagnifyingGlass } from '@phosphor-icons/vue'
 import EventCard from './EventCard.vue'
 import { useUIStore } from '../../stores/uiStore'
 
-const MIN_SEARCH_LENGTH = 3
-
 const uiStore = useUIStore()
 const expandedEventId = ref(null)
-
-const MOCK_EVENTS = [
-  {
-    id: 1,
-    title: 'Neon Warehouse',
-    time: '22:00',
-    location: 'Vila Madalena, SP',
-    genres: ['Techno', 'House'],
-    lineup: ['DJ Vertex', 'Luna Flux', 'Kairo'],
-  },
-  {
-    id: 2,
-    title: 'Basement Sessions',
-    time: '23:30',
-    location: 'Centro, SP',
-    genres: ['Minimal', 'Deep House'],
-    lineup: ['Sublevel', 'Mara Vex'],
-  },
-  {
-    id: 3,
-    title: 'Sunrise Rooftop',
-    time: '05:00',
-    location: 'Pinheiros, SP',
-    genres: ['Melodic Techno'],
-    lineup: ['Aurora', 'Nyx'],
-  },
-]
-
-const normalizedQuery = computed(() =>
-  uiStore.searchQuery.trim().toLowerCase()
-)
-
-const hasMinLength = computed(
-  () => normalizedQuery.value.length >= MIN_SEARCH_LENGTH
-)
-
-const results = computed(() => {
-  if (!hasMinLength.value) return []
-  const q = normalizedQuery.value
-
-  return MOCK_EVENTS.filter((event) => {
-    const haystack = [
-      event.title,
-      event.time,
-      event.location,
-      ...event.genres,
-      ...event.lineup,
-    ]
-      .join(' ')
-      .toLowerCase()
-    return haystack.includes(q)
-  })
-})
 
 function toggleEvent(id) {
   expandedEventId.value = expandedEventId.value === id ? null : id
@@ -70,7 +15,7 @@ function toggleEvent(id) {
 <template>
   <div class="search-results">
     <div
-      v-if="!hasMinLength"
+      v-if="!uiStore.hasMinSearchLength"
       class="search-results__hint"
     >
       <PhMagnifyingGlass :size="32" weight="duotone" />
@@ -78,7 +23,7 @@ function toggleEvent(id) {
     </div>
 
     <div
-      v-else-if="results.length === 0"
+      v-else-if="uiStore.searchResults.length === 0"
       class="search-results__hint"
     >
       <PhMagnifyingGlass :size="32" weight="duotone" />
@@ -86,7 +31,7 @@ function toggleEvent(id) {
     </div>
 
     <EventCard
-      v-for="event in results"
+      v-for="event in uiStore.searchResults"
       v-else
       :key="event.id"
       :event="event"
