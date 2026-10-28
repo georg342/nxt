@@ -97,6 +97,18 @@ function toggleEvent(id) {
   scrollbar-width: none;
   -ms-overflow-style: none;
   box-sizing: border-box;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0,
+    #000 calc(100% - 48px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0,
+    #000 calc(100% - 48px),
+    transparent 100%
+  );
 }
 
 .day-feed::-webkit-scrollbar {

@@ -49,6 +49,7 @@ function setView(viewName) {
   padding: 12px;
   background-color: var(--bg-color);
   border: var(--border-width) solid var(--border-color);
+  border-top-width: 1px;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-2);
   align-items: center;
