@@ -691,6 +691,7 @@ onKeyStroke('Escape', () => {
 
 .status-dropdown__item:hover {
   background: var(--accent-color, #a3e635);
+  color: var(--accent-contrast, #fff);
 }
 
 .status-dropdown__item.is-active {

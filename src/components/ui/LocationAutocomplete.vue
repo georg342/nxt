@@ -222,6 +222,7 @@ function onBlur() {
 
 .location-autocomplete__item:hover {
   background: var(--accent-color);
+  color: var(--accent-contrast);
 }
 
 .location-autocomplete__item--state {
@@ -232,6 +233,7 @@ function onBlur() {
 
 .location-autocomplete__item--state:hover {
   background: transparent;
+  color: var(--text-muted);
 }
 
 .dropdown-enter-active,
