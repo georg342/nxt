@@ -37,6 +37,7 @@ export default {
       title: 'Nome do Evento',
       startDate: 'Data e Hora',
       location: 'Localização',
+      link: 'Link do Evento',
       lineup: 'Lineup (separado por vírgula)',
       genres: 'Gêneros (separado por vírgula)',
     },

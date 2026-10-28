@@ -74,22 +74,24 @@ function removeTag(index) {
 
 <template>
   <div class="tag-input">
-    <span
-      v-for="(tag, index) in modelValue"
-      :key="`${tag.label}-${index}`"
-      class="tag-input__pill"
-      :style="{ backgroundColor: tag.color }"
-    >
-      {{ tag.label }}
-      <button
-        type="button"
-        class="tag-input__remove"
-        :aria-label="`Remove ${tag.label}`"
-        @click="removeTag(index)"
+    <div v-if="modelValue.length > 0" class="tag-input__pills">
+      <span
+        v-for="(tag, index) in modelValue"
+        :key="`${tag.label}-${index}`"
+        class="tag-input__pill"
+        :style="{ backgroundColor: tag.color }"
       >
-        <PhX :size="12" weight="bold" />
-      </button>
-    </span>
+        {{ tag.label }}
+        <button
+          type="button"
+          class="tag-input__remove"
+          :aria-label="`Remove ${tag.label}`"
+          @click="removeTag(index)"
+        >
+          <PhX :size="12" weight="bold" />
+        </button>
+      </span>
+    </div>
     <div class="tag-input__field-wrap">
       <input
         :value="inputValue"
@@ -108,13 +110,19 @@ function removeTag(index) {
 <style scoped>
 .tag-input {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  flex-direction: column;
   gap: 6px;
   padding: 8px;
   background: var(--bg-color);
   border: 2px solid var(--border-color);
   border-radius: var(--radius-md);
+}
+
+.tag-input__pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-bottom: 4px;
 }
 
 .tag-input__pill {
@@ -145,8 +153,7 @@ function removeTag(index) {
 
 .tag-input__field-wrap {
   position: relative;
-  flex: 1;
-  min-width: 120px;
+  width: 100%;
 }
 
 .tag-input__field {

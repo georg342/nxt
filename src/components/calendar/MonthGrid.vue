@@ -1,23 +1,35 @@
 <script setup>
+import { computed } from 'vue'
 import { useUIStore } from '../../stores/uiStore'
 
 const uiStore = useUIStore()
 
-const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
-const DAYS_IN_MONTH = 30
+const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 
-const dayNumbers = Array.from({ length: DAYS_IN_MONTH }, (_, i) => i + 1)
-const totalCells = Math.ceil(dayNumbers.length / 7) * 7
-const days = [
-  ...dayNumbers.map((num) => ({ type: 'day', value: num })),
-  ...Array.from({ length: totalCells - dayNumbers.length }, () => ({
-    type: 'empty',
-    value: null,
-  })),
-]
+const days = computed(() => {
+  const base = uiStore.currentDate ?? new Date()
+  const year = base.getFullYear()
+  const month = base.getMonth()
+  const firstDay = new Date(year, month, 1).getDay()
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
 
-function handleDayClick() {
-  uiStore.setActiveView('week')
+  const cells = []
+  for (let i = 0; i < firstDay; i += 1) {
+    cells.push({ type: 'empty', value: null, date: null })
+  }
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    cells.push({ type: 'day', value: day, date: new Date(year, month, day) })
+  }
+  const totalCells = Math.ceil(cells.length / 7) * 7
+  while (cells.length < totalCells) {
+    cells.push({ type: 'empty', value: null, date: null })
+  }
+  return cells
+})
+
+function handleDayClick(cell) {
+  if (!cell.date) return
+  uiStore.selectDate(cell.date)
 }
 </script>
 
@@ -43,7 +55,7 @@ function handleDayClick() {
           type="button"
           class="month-grid__day"
           :aria-label="`Day ${cell.value}`"
-          @click="handleDayClick"
+          @click="handleDayClick(cell)"
         >
           {{ cell.value }}
         </button>
@@ -86,13 +98,10 @@ function handleDayClick() {
 .month-grid__days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
   flex: 1;
-  gap: 0;
   min-height: 0;
-  border-top: var(--border-width) solid var(--border-color);
-  border-left: var(--border-width) solid var(--border-color);
-  border-radius: var(--radius-grid);
-  overflow: hidden;
+  align-content: start;
 }
 
 .month-grid__day,
@@ -100,29 +109,31 @@ function handleDayClick() {
   display: flex;
   align-items: center;
   justify-content: center;
+  aspect-ratio: 1 / 1;
   background-color: var(--surface-color);
   color: var(--text-color);
-  border: none;
-  border-right: var(--border-width) solid var(--border-color);
-  border-bottom: var(--border-width) solid var(--border-color);
-  border-radius: 0;
-  font-weight: 700;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-weight: 900;
   font-size: 0.875rem;
   min-height: 0;
 }
 
 .month-grid__day {
   cursor: pointer;
-  transition: background-color var(--transition-fast);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 }
 
 .month-grid__empty {
-  background-color: var(--bg-color);
+  background-color: transparent;
+  border-color: transparent;
 }
 
 .month-grid__day:hover,
 .month-grid__day:active {
   background-color: var(--accent-color);
   color: var(--accent-contrast);
+  transform: translate(-2px, -2px);
+  box-shadow: 2px 2px 0 0 var(--border-color);
 }
 </style>

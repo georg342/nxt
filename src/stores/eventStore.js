@@ -26,6 +26,7 @@ export const useEventStore = defineStore('events', () => {
         title: eventData.title,
         start_date: eventData.start_date,
         location: eventData.location,
+        link: eventData.link || null,
         lineup: Array.isArray(eventData.lineup)
           ? eventData.lineup
           : (eventData.lineup || '')

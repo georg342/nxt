@@ -37,6 +37,7 @@ export default {
       title: 'Title',
       startDate: 'Date & Time',
       location: 'Location',
+      link: 'Event Link',
       lineup: 'Lineup (comma-separated)',
       genres: 'Genres (comma-separated)',
     },

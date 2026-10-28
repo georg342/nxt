@@ -20,6 +20,7 @@ const form = ref({
   title: '',
   start_date: '',
   location: '',
+  link: '',
   lineup: [],
   genres: [],
 })
@@ -29,6 +30,7 @@ function resetForm() {
     title: '',
     start_date: '',
     location: '',
+    link: '',
     lineup: [],
     genres: [],
   }
@@ -45,6 +47,7 @@ async function handleSubmit() {
       title: form.value.title.trim(),
       start_date: form.value.start_date,
       location: form.value.location.trim(),
+      link: form.value.link.trim(),
       lineup: form.value.lineup,
       genres: form.value.genres,
     }
@@ -116,6 +119,18 @@ function handleClose() {
               v-model="form.location"
               :label="t('createEvent.fields.location')"
             />
+          </div>
+
+          <div class="create-event__field">
+            <div class="create-event__field-wrap">
+              <input
+                v-model="form.link"
+                type="url"
+                class="peer"
+                placeholder=" "
+              />
+              <label class="create-event__label">{{ t('createEvent.fields.link') }}</label>
+            </div>
           </div>
 
           <div class="create-event__field">
