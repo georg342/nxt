@@ -13,6 +13,7 @@ const emit = defineEmits(['update:modelValue'])
 const searchQuery = ref(props.modelValue)
 const results = ref([])
 const isOpen = ref(false)
+const isSearching = ref(false)
 let debounceId = null
 
 watch(
@@ -33,9 +34,13 @@ function onInput(event) {
 
   if (value.trim().length < 3) {
     results.value = []
-    isOpen.value = false
+    isSearching.value = false
+    isOpen.value = true
     return
   }
+
+  isSearching.value = true
+  isOpen.value = true
 
   debounceId = setTimeout(async () => {
     try {
@@ -44,13 +49,19 @@ function onInput(event) {
       )
       const data = await response.json()
       results.value = Array.isArray(data) ? data : []
-      isOpen.value = results.value.length > 0
+      isOpen.value = true
     } catch (err) {
       console.error('[LocationAutocomplete] fetch error:', err)
       results.value = []
-      isOpen.value = false
+      isOpen.value = true
+    } finally {
+      isSearching.value = false
     }
   }, 500)
+}
+
+function onFocus() {
+  isOpen.value = true
 }
 
 function selectResult(result) {
@@ -58,6 +69,7 @@ function selectResult(result) {
   emit('update:modelValue', result.display_name)
   isOpen.value = false
   results.value = []
+  isSearching.value = false
 }
 
 function onBlur() {
@@ -68,25 +80,46 @@ function onBlur() {
 </script>
 
 <template>
-  <div class="location-autocomplete">
+  <div class="location-autocomplete" :class="{ 'is-open': isOpen }">
     <input
       type="text"
       class="location-autocomplete__input"
       :value="searchQuery"
       @input="onInput"
-      @focus="isOpen = results.length > 0"
+      @focus="onFocus"
       @blur="onBlur"
     />
-    <ul v-if="isOpen" class="location-autocomplete__dropdown">
-      <li
-        v-for="(result, index) in results"
-        :key="index"
-        class="location-autocomplete__item"
-        @mousedown.prevent="selectResult(result)"
-      >
-        {{ result.display_name }}
-      </li>
-    </ul>
+    <Transition name="dropdown">
+      <ul v-if="isOpen" class="location-autocomplete__dropdown">
+        <li
+          v-if="isSearching"
+          class="location-autocomplete__item location-autocomplete__item--state"
+        >
+          Buscando...
+        </li>
+        <li
+          v-else-if="searchQuery.trim().length < 3"
+          class="location-autocomplete__item location-autocomplete__item--state"
+        >
+          Aguardando entrada...
+        </li>
+        <li
+          v-else-if="results.length === 0"
+          class="location-autocomplete__item location-autocomplete__item--state"
+        >
+          Nenhum resultado encontrado.
+        </li>
+        <li
+          v-for="(result, index) in results"
+          v-else
+          :key="index"
+          class="location-autocomplete__item"
+          @mousedown.prevent="selectResult(result)"
+        >
+          {{ result.display_name }}
+        </li>
+      </ul>
+    </Transition>
   </div>
 </template>
 
@@ -106,16 +139,23 @@ function onBlur() {
   border: 2px solid var(--border-color);
   border-radius: var(--radius-md);
   outline: none;
-  transition: box-shadow 0.15s ease;
+  transition: box-shadow 0.15s ease, border-radius 0.15s ease;
 }
 
 .location-autocomplete__input:focus {
   box-shadow: var(--shadow-1);
 }
 
+.location-autocomplete.is-open .location-autocomplete__input {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom-color: transparent;
+  box-shadow: none;
+}
+
 .location-autocomplete__dropdown {
   position: absolute;
-  top: calc(100% + 4px);
+  top: 100%;
   left: 0;
   right: 0;
   z-index: 50;
@@ -124,7 +164,9 @@ function onBlur() {
   list-style: none;
   background: var(--surface-color);
   border: 2px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-top: none;
+  border-bottom-left-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
   box-shadow: var(--shadow-1);
   max-height: 200px;
   overflow-y: auto;
@@ -136,7 +178,7 @@ function onBlur() {
   font-weight: 700;
   color: var(--text-color);
   cursor: pointer;
-  border-bottom: 2px solid var(--border-color);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
 }
 
 .location-autocomplete__item:last-child {
@@ -145,5 +187,26 @@ function onBlur() {
 
 .location-autocomplete__item:hover {
   background: var(--accent-color);
+}
+
+.location-autocomplete__item--state {
+  cursor: default;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.location-autocomplete__item--state:hover {
+  background: transparent;
+}
+
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
 }
 </style>

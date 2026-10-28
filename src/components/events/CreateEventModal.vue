@@ -155,7 +155,7 @@ function handleClose() {
   flex-direction: column;
   width: 100%;
   max-width: 420px;
-  max-height: 85dvh;
+  max-height: 95dvh;
   margin-top: 5vh;
   background: var(--surface-color);
   border: 2px solid var(--border-color);
@@ -171,6 +171,21 @@ function handleClose() {
   flex: 1;
   padding: var(--space-4);
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+}
+
+.create-event__body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.create-event__body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.create-event__body::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
 }
 
 .create-event__footer {

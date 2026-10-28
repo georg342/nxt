@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { PhCaretLeft, PhCaretRight } from '@phosphor-icons/vue'
 
 const props = defineProps({
@@ -30,6 +30,7 @@ const selectedMinute = ref(initial ? initial.getMinutes() : 0)
 
 const isOpen = ref(false)
 const rootRef = ref(null)
+const calendarPopup = ref(null)
 const displayValue = ref('')
 const draftDate = ref(selectedDate.value ? new Date(selectedDate.value) : null)
 const draftHour = ref(selectedHour.value)
@@ -112,6 +113,9 @@ function openPicker() {
     currentDate.value = new Date(draftDate.value.getFullYear(), draftDate.value.getMonth(), 1)
   }
   isOpen.value = true
+  nextTick(() => {
+    calendarPopup.value?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  })
 }
 
 function confirmSelection() {
@@ -189,7 +193,7 @@ onBeforeUnmount(() => {
       @blur="onDisplayBlur()"
     />
 
-    <div v-if="isOpen" class="dtp__popover">
+    <div v-if="isOpen" ref="calendarPopup" class="dtp__popover">
       <div class="dtp__header">
         <button type="button" class="dtp__nav" aria-label="Previous month" @click="prevMonth()">
           <PhCaretLeft :size="16" weight="bold" />
@@ -240,11 +244,10 @@ onBeforeUnmount(() => {
           :value="draftMinute"
           @input="onMinuteInput"
         />
+        <button type="button" class="dtp__confirm" @click="confirmSelection()">
+          OK
+        </button>
       </div>
-
-      <button type="button" class="dtp__confirm" @click="confirmSelection()">
-        OK
-      </button>
     </div>
   </div>
 </template>
@@ -402,7 +405,8 @@ onBeforeUnmount(() => {
 }
 
 .dtp__confirm {
-  padding: 8px 12px;
+  margin-left: auto;
+  padding: 6px 10px;
   font: inherit;
   font-size: 0.75rem;
   font-weight: 900;
