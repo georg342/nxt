@@ -27,7 +27,7 @@ export default {
     close: 'Fechar',
   },
   createEvent: {
-    title: 'ESugestão de Evento',
+    title: 'Sugestão de Evento',
     close: 'Fechar',
     submit: 'Enviar',
     submitting: 'Enviando...',
