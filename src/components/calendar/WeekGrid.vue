@@ -34,7 +34,7 @@ const days = computed(() =>
         <BrutalCard
           v-for="day in days"
           :key="day.label"
-          class="week-grid__day"
+          class="week-grid__day day-card"
         >
           <span class="week-grid__label">{{ day.label }}</span>
           <span class="week-grid__date">{{ day.date }}</span>
