@@ -30,6 +30,12 @@ const messages = {
       hint: 'Type at least 3 characters to search.',
       empty: 'No events found.',
     },
+    auth: {
+      title: 'Welcome',
+      description: 'Sign in to suggest and manage events.',
+      signInWithGoogle: 'Sign in with Google',
+      close: 'Close',
+    },
   },
   pt: {
     nav: {
@@ -59,6 +65,12 @@ const messages = {
       placeholder: 'Buscar eventos...',
       hint: 'Digite ao menos 3 caracteres para buscar.',
       empty: 'Nenhum evento encontrado.',
+    },
+    auth: {
+      title: 'Bem-vindo',
+      description: 'Faça login para sugerir e gerenciar festas.',
+      signInWithGoogle: 'Entrar com Google',
+      close: 'Fechar',
     },
   },
 }
