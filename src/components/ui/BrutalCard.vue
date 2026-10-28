@@ -3,7 +3,11 @@
 </script>
 
 <template>
-  <div class="brutal-card">
+  <div
+    v-motion
+    class="brutal-card"
+    :tapped="{ scale: 0.98 }"
+  >
     <slot />
   </div>
 </template>
@@ -15,6 +19,5 @@
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-2);
   padding: var(--space-4);
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 </style>

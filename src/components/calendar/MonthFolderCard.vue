@@ -21,9 +21,11 @@ function handleClick() {
 
 <template>
   <button
+    v-motion
     type="button"
     class="month-folder"
     :aria-label="`${month}, ${eventCount} events`"
+    :tapped="{ scale: 0.95 }"
     @click="handleClick"
   >
     <span class="month-folder__tab">{{ month }}</span>
@@ -46,14 +48,6 @@ function handleClick() {
   border: none;
   cursor: pointer;
   filter: drop-shadow(4px 4px 0px var(--shadow-color));
-  transition: transform var(--transition-fast),
-    filter var(--transition-fast);
-}
-
-.month-folder:hover,
-.month-folder:active {
-  transform: translate(2px, 2px);
-  filter: drop-shadow(2px 2px 0px var(--shadow-color));
 }
 
 .month-folder__tab {

@@ -8,6 +8,15 @@ const DEFAULT_THEME = THEME_LIGHT
 const VALID_VIEWS = ['year', 'month', 'week', 'day']
 const DEFAULT_VIEW = 'year'
 
+const VIEW_DEPTH = {
+  year: 1,
+  month: 2,
+  week: 3,
+  day: 4,
+}
+
+const DEFAULT_TRANSITION = 'slide-left'
+
 /**
  * Applies the given theme to the <html> element via the data-theme attribute.
  * @param {'light' | 'dark'} theme
@@ -23,6 +32,7 @@ export const useUIStore = defineStore(
     const theme = ref(DEFAULT_THEME)
     const activeView = ref(DEFAULT_VIEW)
     const weekOffset = ref(0)
+    const transitionDirection = ref(DEFAULT_TRANSITION)
 
     /**
      * Sets the theme and applies it to the document.
@@ -54,6 +64,14 @@ export const useUIStore = defineStore(
      */
     function setActiveView(viewName) {
       if (!VALID_VIEWS.includes(viewName)) return
+      if (viewName === activeView.value) return
+
+      const currentDepth = VIEW_DEPTH[activeView.value] ?? 0
+      const nextDepth = VIEW_DEPTH[viewName] ?? 0
+
+      transitionDirection.value =
+        nextDepth >= currentDepth ? 'slide-left' : 'slide-right'
+
       activeView.value = viewName
     }
 
@@ -68,6 +86,7 @@ export const useUIStore = defineStore(
       theme,
       activeView,
       weekOffset,
+      transitionDirection,
       setTheme,
       toggleTheme,
       initTheme,

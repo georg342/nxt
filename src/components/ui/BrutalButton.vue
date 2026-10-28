@@ -19,9 +19,11 @@ const buttonStyle = computed(() => ({
 
 <template>
   <button
+    v-motion
     :type="type"
     class="brutal-button"
     :style="buttonStyle"
+    :tapped="{ scale: 0.95 }"
   >
     <slot />
   </button>
@@ -43,13 +45,6 @@ const buttonStyle = computed(() => ({
   font-size: 0.875rem;
   line-height: 1;
   cursor: pointer;
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
-}
-
-.brutal-button:hover,
-.brutal-button:active {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0px var(--shadow-color);
 }
 
 .brutal-button:focus-visible {
