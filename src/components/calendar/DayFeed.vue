@@ -13,20 +13,26 @@ function toggleEvent(id) {
   expandedEventId.value = expandedEventId.value === id ? null : id
 }
 
-function toDateKey(date) {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
+function formatTime(dateString) {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
 const filteredEvents = computed(() => {
   const referenceDate = uiStore.selectedDate ?? new Date()
-  const targetKey = toDateKey(referenceDate)
+  const targetYear = referenceDate.getFullYear()
+  const targetMonth = referenceDate.getMonth()
+  const targetDay = referenceDate.getDate()
 
   return eventStore.events.filter((event) => {
     if (!event.start_date) return false
-    return event.start_date.slice(0, 10) === targetKey
+    const eventDate = new Date(event.start_date)
+    return (
+      eventDate.getFullYear() === targetYear &&
+      eventDate.getMonth() === targetMonth &&
+      eventDate.getDate() === targetDay
+    )
   })
 })
 
@@ -46,6 +52,7 @@ onMounted(() => {
       v-else
       :key="event.id"
       :event="event"
+      :time="formatTime(event.start_date)"
       :expanded="expandedEventId === event.id"
       @toggle="toggleEvent(event.id)"
     />
