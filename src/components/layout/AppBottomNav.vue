@@ -16,12 +16,16 @@ function switchView(viewName) {
 </script>
 
 <template>
-  <Transition name="fade-up">
-    <nav
-      v-if="isViewMenuOpen"
-      class="app-bottom-nav__view-menu"
+  <nav class="bottom-nav-pill" :aria-label="$t('nav.viewOptions')">
+    <BrutalButton
       :aria-label="$t('nav.viewOptions')"
+      :aria-pressed="isViewMenuOpen"
+      @click="isViewMenuOpen = !isViewMenuOpen"
     >
+      <PhEye :size="18" weight="duotone" />
+    </BrutalButton>
+
+    <div class="view-options" :class="{ 'is-open': isViewMenuOpen }">
       <BrutalButton
         :color="activeView === 'year' ? 'var(--accent-color)' : undefined"
         aria-label="Year View"
@@ -43,83 +47,72 @@ function switchView(viewName) {
       >
         <PhCalendarDot :size="28" weight="duotone" />
       </BrutalButton>
-    </nav>
-  </Transition>
+    </div>
 
-  <nav class="app-bottom-nav">
-    <BrutalButton
-      :aria-label="$t('nav.viewOptions')"
-      :aria-pressed="isViewMenuOpen"
-      @click="isViewMenuOpen = !isViewMenuOpen"
-    >
-      <PhEye :size="18" weight="duotone" />
-    </BrutalButton>
-    <BrutalButton
-      :color="uiStore.isTodaySelected ? 'var(--accent-color)' : undefined"
-      @click="uiStore.goToToday()"
-    >
-      {{ $t('nav.today') }}
-    </BrutalButton>
-    <BrutalButton color="var(--accent-color)">{{ $t('nav.add') }}</BrutalButton>
+    <div class="quick-actions" :class="{ 'is-hidden': isViewMenuOpen }">
+      <BrutalButton
+        :color="uiStore.isTodaySelected ? 'var(--accent-color)' : undefined"
+        @click="uiStore.goToToday()"
+      >
+        {{ $t('nav.today') }}
+      </BrutalButton>
+      <BrutalButton color="var(--accent-color)">{{ $t('nav.add') }}</BrutalButton>
+    </div>
   </nav>
 </template>
 
 <style scoped>
-.app-bottom-nav__view-menu {
-  position: fixed;
-  bottom: 96px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1000;
-  display: flex;
-  gap: 8px;
-  padding: 12px;
-  background-color: var(--bg-color);
-  border: var(--border-width) solid var(--border-color);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-2);
-  align-items: center;
-  justify-content: center;
-  width: max-content;
-  max-width: 90%;
-}
-
-.fade-up-enter-active,
-.fade-up-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-.fade-up-enter-from,
-.fade-up-leave-to {
-  opacity: 0;
-  transform: translateX(-50%) translateY(8px);
-}
-
-.app-bottom-nav {
+.bottom-nav-pill {
   position: fixed;
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
   display: flex;
+  align-items: center;
   gap: 8px;
   padding: 12px;
-  background-color: var(--bg-color);
-  border: var(--border-width) solid var(--border-color);
-  border-top-width: 1px;
+  background: var(--bg-color);
+  border: 2px solid var(--border-color);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-2);
-  align-items: center;
-  justify-content: center;
-  width: max-content;
-  max-width: 90%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  overflow: hidden;
+  transition: all 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+  white-space: nowrap;
 }
 
-.app-bottom-nav::-webkit-scrollbar {
-  display: none;
+.view-options {
+  display: flex;
+  gap: 8px;
+  max-width: 0px;
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: all 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.view-options.is-open {
+  max-width: 200px;
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.quick-actions {
+  display: flex;
+  gap: 8px;
+  max-width: 200px;
+  opacity: 1;
+  transform: translateX(0);
+  transition: all 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+  overflow: hidden;
+}
+
+.quick-actions.is-hidden {
+  max-width: 0px;
+  opacity: 0;
+  transform: translateX(40px);
+  pointer-events: none;
 }
 </style>
