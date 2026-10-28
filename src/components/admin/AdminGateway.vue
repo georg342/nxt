@@ -140,8 +140,13 @@ function parsePills(data) {
   return []
 }
 
-onMounted(() => {
-  eventStore.fetchAllEvents()
+onMounted(async () => {
+  console.log('[AdminGateway] mounted — starting fetchAllEvents')
+  await eventStore.fetchAllEvents()
+  console.log('[AdminGateway] fetch complete', {
+    count: eventStore.allEvents.length,
+    error: eventStore.error,
+  })
 })
 </script>
 
@@ -362,6 +367,16 @@ onMounted(() => {
         </div>
 
         <p v-if="eventStore.isLoading" class="cms-state">Carregando...</p>
+        <div v-else-if="eventStore.error" class="cms-state cms-state--error">
+          <span>Erro ao carregar eventos: {{ eventStore.error }}</span>
+          <button
+            type="button"
+            class="cms-btn cms-btn--bulk"
+            @click="eventStore.fetchAllEvents()"
+          >
+            Tentar Novamente
+          </button>
+        </div>
         <p v-else-if="filteredEvents.length === 0" class="cms-state">
           Nenhum evento encontrado.
         </p>
@@ -379,7 +394,7 @@ onMounted(() => {
   inset: 0;
   z-index: 200;
   overflow-y: auto;
-  background: var(--surface-color, #fff);
+  background: var(--bg-color, #f5f1e8);
   padding: 24px;
   box-sizing: border-box;
 }
@@ -449,7 +464,7 @@ onMounted(() => {
   align-items: center;
   padding: 16px;
   border: 2px solid var(--border-color, #000);
-  background: #f9f9f9;
+  background: var(--surface-color, #fff);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-1, 4px 4px 0 0 #000);
   flex-wrap: wrap;
@@ -558,7 +573,7 @@ onMounted(() => {
 .cms-row {
   border: 2px solid var(--border-color, #000);
   border-radius: var(--radius-md);
-  background: white;
+  background: var(--surface-color, #fff);
   transition: all 0.2s ease;
   overflow: hidden;
 }
@@ -624,7 +639,7 @@ onMounted(() => {
 .cms-row-expanded {
   padding: 16px;
   border-top: 2px dashed var(--border-color, #000);
-  background: #fafafa;
+  background: var(--bg-color, #fafafa);
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -722,9 +737,21 @@ onMounted(() => {
   font-size: 0.875rem;
   font-weight: 900;
   text-transform: uppercase;
-  background: #fff;
+  background: var(--surface-color, #fff);
   border: 2px solid var(--border-color, #000);
   border-radius: var(--radius-md);
+}
+
+.cms-state--error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #991b1b;
+  text-transform: none;
+  font-weight: 700;
 }
 
 /* ============================================================
