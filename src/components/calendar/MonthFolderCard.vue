@@ -15,7 +15,7 @@ defineProps({
 const uiStore = useUIStore()
 
 function handleClick() {
-  uiStore.setActiveView('week')
+  uiStore.setActiveView('month')
 }
 </script>
 

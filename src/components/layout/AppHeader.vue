@@ -34,7 +34,12 @@ function setView(viewName) {
       >
         12M
       </BrutalButton>
-      <BrutalButton>30D</BrutalButton>
+      <BrutalButton
+        :color="activeView === 'month' ? 'var(--accent-color)' : undefined"
+        @click="setView('month')"
+      >
+        30D
+      </BrutalButton>
       <BrutalButton
         :color="activeView === 'week' ? 'var(--accent-color)' : undefined"
         @click="setView('week')"

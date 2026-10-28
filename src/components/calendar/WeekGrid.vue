@@ -39,18 +39,20 @@ const DAYS = [
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: repeat(4, 1fr);
   height: 100%;
-  gap: 8px;
-  padding: 8px;
+  gap: 12px;
+  padding: 16px 16px 24px 16px;
   box-sizing: border-box;
 }
 
 .week-grid__day {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
   min-height: 0;
   overflow: hidden;
+  text-align: center;
 }
 
 .week-grid__label {
@@ -63,7 +65,7 @@ const DAYS = [
 
 .week-grid__date {
   font-weight: 900;
-  font-size: clamp(1.25rem, 5vw, 2rem);
+  font-size: 2.5rem;
   line-height: 1;
 }
 
