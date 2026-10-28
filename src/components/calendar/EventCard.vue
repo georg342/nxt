@@ -24,22 +24,30 @@ const uiStore = useUIStore()
 
 const isExpanded = ref(false)
 
-function parsePills(data) {
+const parsePills = (data) => {
   if (!data) return []
-  if (Array.isArray(data)) return data
+  if (Array.isArray(data)) {
+    return data.map((item) => {
+      if (typeof item === 'string') {
+        try {
+          return JSON.parse(item)
+        } catch (e) {
+          return { LABEL: item, COLOR: '#e5e7eb' }
+        }
+      }
+      return item
+    })
+  }
   if (typeof data === 'string') {
     try {
       const parsed = JSON.parse(data)
-      return Array.isArray(parsed) ? parsed : []
-    } catch {
+      return Array.isArray(parsed) ? parsed : [parsed]
+    } catch (e) {
       return []
     }
   }
   return []
 }
-
-const parsedGenres = computed(() => parsePills(props.event.genres))
-const parsedLineup = computed(() => parsePills(props.event.lineup))
 
 function getShortAddress(address) {
   if (!address) return ''
@@ -89,7 +97,8 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
         </div>
         <span class="event-card__meta-item">
           <PhMapPin :size="18" weight="duotone" />
-          {{ isExpanded ? event.location : getShortAddress(event.location) }}
+          <span v-show="!isExpanded" class="address-short">{{ getShortAddress(event.location) }}</span>
+          <span v-show="isExpanded" class="address-full">{{ event.location }}</span>
         </span>
       </div>
     </div>
@@ -100,25 +109,36 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
         class="event-card__body"
       >
         <div
-          v-if="parsedGenres.length"
+          v-if="parsePills(event.genres).length"
           class="event-card__genres"
         >
           <span
-            v-for="(pill, index) in parsedGenres"
+            v-for="(pill, index) in parsePills(event.genres)"
             :key="`genre-${index}`"
-            class="event-card__pill"
-            :style="{ backgroundColor: pill.color || pill.COLOR }"
+            class="pill"
+            :style="{ backgroundColor: pill?.COLOR || pill?.color || '#e5e7eb' }"
           >
-            {{ pill.label || pill.LABEL }}
+            {{ pill?.LABEL || pill?.label || pill }}
           </span>
         </div>
-        <p
-          v-if="parsedLineup.length"
+        <div
+          v-if="parsePills(event.lineup).length"
           class="event-card__lineup"
         >
-          {{ parsedLineup.map((p) => p.label || p.LABEL).join(' · ') }}
-        </p>
-        <BrutalButton color="var(--accent-color)">
+          <span
+            v-for="(pill, index) in parsePills(event.lineup)"
+            :key="`lineup-${index}`"
+            class="pill"
+            :style="{ backgroundColor: pill?.COLOR || pill?.color || '#e5e7eb' }"
+          >
+            {{ pill?.LABEL || pill?.label || pill }}
+          </span>
+        </div>
+        <BrutalButton
+          v-show="isExpanded"
+          color="var(--accent-color)"
+          @click.stop
+        >
           Tickets
         </BrutalButton>
       </div>
@@ -175,20 +195,20 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
   gap: var(--space-2);
 }
 
-.event-card__pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px var(--space-2);
-  color: var(--accent-contrast);
-  border: var(--border-width) solid var(--border-color);
-  border-radius: var(--radius-md);
-  font-size: 0.75rem;
-  font-weight: 900;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+.pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border: 2px solid var(--border-color);
+  border-radius: 9999px;
+  font-weight: bold;
+  margin-right: 8px;
+  margin-bottom: 8px;
+  color: black;
 }
 
 .event-card__lineup {
+  display: flex;
+  flex-wrap: wrap;
   font-size: 0.875rem;
   font-weight: 700;
   color: var(--text-color);
