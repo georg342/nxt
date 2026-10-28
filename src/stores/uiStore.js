@@ -18,7 +18,7 @@ const MOCK_EVENTS = [
     date: '2026-10-31',
     time: '22:00',
     location: 'Vila Madalena, SP',
-    genres: ['Techno', 'House'],
+    genres: ['Techno', 'Deep House', 'Breaks'],
     lineup: ['DJ Vertex', 'Luna Flux', 'Kairo'],
   },
   {
@@ -27,7 +27,7 @@ const MOCK_EVENTS = [
     date: '2026-11-07',
     time: '23:30',
     location: 'Centro, SP',
-    genres: ['Minimal', 'Deep House'],
+    genres: ['Minimal Techno', 'Deep House', 'Ambient'],
     lineup: ['Sublevel', 'Mara Vex'],
   },
   {
@@ -36,7 +36,7 @@ const MOCK_EVENTS = [
     date: '2026-11-15',
     time: '05:00',
     location: 'Pinheiros, SP',
-    genres: ['Melodic Techno'],
+    genres: ['Melodic Techno', 'Progressive House', 'Downtempo'],
     lineup: ['Aurora', 'Nyx'],
   },
   {
@@ -45,7 +45,7 @@ const MOCK_EVENTS = [
     date: '2026-11-21',
     time: '23:00',
     location: 'Juquitiba, SP',
-    genres: ['Psytrance', 'Full On', 'Forest'],
+    genres: ['Psytrance', 'Full On', 'Forest', 'Ambient'],
     lineup: ['Shakti', 'Mandala', 'Yggdrasil', 'Terra Viva', 'Nebula'],
   },
   {
@@ -54,7 +54,7 @@ const MOCK_EVENTS = [
     date: '2026-11-28',
     time: '23:59',
     location: 'Barra Funda, SP',
-    genres: ['Drum & Bass', 'Neurofunk', 'Jungle'],
+    genres: ['Drum & Bass', 'Neurofunk', 'Jungle', 'Breaks'],
     lineup: ['Subsonic', 'Raven', 'Kortex'],
   },
   {
@@ -63,7 +63,7 @@ const MOCK_EVENTS = [
     date: '2026-12-05',
     time: '22:30',
     location: 'Santo André, SP',
-    genres: ['Hardstyle', 'Rawstyle', 'Uptempo'],
+    genres: ['Hardstyle', 'Rawstyle', 'Uptempo', 'Hard Techno'],
     lineup: ['Overdrive', 'Khaos', 'Vandal', 'Riot', 'Fúria', 'Titan'],
   },
   {
@@ -72,7 +72,7 @@ const MOCK_EVENTS = [
     date: '2026-12-12',
     time: '21:00',
     location: 'Bela Vista, SP',
-    genres: ['Nu Disco', 'Italo Disco', 'Funk'],
+    genres: ['Nu Disco', 'Italo Disco', 'Funk', 'House'],
     lineup: ['Groove Machine'],
   },
   {
@@ -81,7 +81,7 @@ const MOCK_EVENTS = [
     date: '2026-12-19',
     time: '18:00',
     location: 'Ibirapuera, SP',
-    genres: ['Ambient', 'Downtempo', 'IDM'],
+    genres: ['Ambient', 'Downtempo', 'IDM', 'Experimental'],
     lineup: ['Aether', 'Solstice'],
   },
   {
@@ -90,7 +90,7 @@ const MOCK_EVENTS = [
     date: '2026-12-31',
     time: '23:00',
     location: 'Anhembi, SP',
-    genres: ['EDM', 'Big Room', 'Electro House'],
+    genres: ['EDM', 'Big Room', 'Electro House', 'Future Bass'],
     lineup: ['Pulse', 'Nova', 'Zephyr', 'Blaze', 'Echo', 'Titan', 'Vortex', 'Halo'],
   },
   {
@@ -99,7 +99,7 @@ const MOCK_EVENTS = [
     date: '2027-01-09',
     time: '22:00',
     location: 'Pinheiros, SP',
-    genres: ['Breaks', 'Breakbeat', 'Big Beat'],
+    genres: ['Breaks', 'Breakbeat', 'Big Beat', 'Electro'],
     lineup: ['Fractal', 'Rhythm Kid', 'Loopmaster'],
   },
   {
@@ -108,7 +108,7 @@ const MOCK_EVENTS = [
     date: '2027-01-16',
     time: '23:30',
     location: 'Moema, SP',
-    genres: ['Uplifting Trance', 'Progressive Trance', 'Vocal Trance'],
+    genres: ['Uplifting Trance', 'Progressive Trance', 'Vocal Trance', 'Psytrance'],
     lineup: ['Celestia', 'Aurora', 'Nyx', 'Starlight', 'Orion'],
   },
   {
@@ -117,7 +117,7 @@ const MOCK_EVENTS = [
     date: '2027-01-23',
     time: '22:00',
     location: 'Itaim Bibi, SP',
-    genres: ['Tech House', 'Minimal House', 'Deep House'],
+    genres: ['Tech House', 'Minimal House', 'Deep House', 'Minimal Techno'],
     lineup: ['Groove Lab', 'Bassline', 'Deepcut'],
   },
   {
@@ -126,7 +126,7 @@ const MOCK_EVENTS = [
     date: '2027-01-30',
     time: '23:00',
     location: 'Lapa, SP',
-    genres: ['Dubstep', 'Riddim', 'Trap'],
+    genres: ['Dubstep', 'Riddim', 'Trap', 'Drum & Bass'],
     lineup: ['Wobble', 'Grim', 'Bassdrop', 'Havoc'],
   },
 ]
