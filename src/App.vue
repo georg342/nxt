@@ -4,7 +4,7 @@ import { PhShieldCheck } from '@phosphor-icons/vue'
 import AuthModal from './components/auth/AuthModal.vue'
 import CreateEventModal from './components/events/CreateEventModal.vue'
 import ToastNotification from './components/ui/ToastNotification.vue'
-import AdminPanel from './components/admin/AdminPanel.vue'
+import AdminGateway from './components/admin/AdminGateway.vue'
 import { useAuthStore } from './stores/authStore'
 import { useUIStore } from './stores/uiStore'
 
@@ -30,19 +30,7 @@ onMounted(() => {
   </button>
 
   <Transition name="admin-panel">
-    <div v-if="uiStore.isAdminPanelOpen" class="admin-overlay">
-      <div class="admin-overlay__inner">
-        <button
-          type="button"
-          class="admin-overlay__close"
-          aria-label="Close admin panel"
-          @click="uiStore.closeAdminPanel()"
-        >
-          Fechar
-        </button>
-        <AdminPanel />
-      </div>
-    </div>
+    <AdminGateway v-if="uiStore.isAdminPanelOpen" />
   </Transition>
 
   <AuthModal />
@@ -66,44 +54,6 @@ onMounted(() => {
   border: 2px solid var(--border-color, #000);
   border-radius: var(--radius-md, 16px);
   box-shadow: var(--shadow-1);
-  color: var(--text-color);
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.admin-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9500;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  overflow-y: auto;
-}
-
-.admin-overlay__inner {
-  position: relative;
-  max-width: 640px;
-  margin: 5vh auto;
-  background: var(--bg-color);
-  border: 2px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-2);
-}
-
-.admin-overlay__close {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 10;
-  padding: 6px 10px;
-  font: inherit;
-  font-size: 0.75rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  background: var(--surface-color);
-  border: 2px solid var(--border-color);
-  border-radius: var(--radius-md);
   color: var(--text-color);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;

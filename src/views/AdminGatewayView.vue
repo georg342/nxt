@@ -1,5 +1,15 @@
 <script setup>
-// Temporary placeholder view for setup validation.
+import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useUIStore } from '../stores/uiStore'
+
+const router = useRouter()
+const uiStore = useUIStore()
+
+onMounted(() => {
+  uiStore.openAdminPanel()
+  router.replace('/')
+})
 </script>
 
 <template>

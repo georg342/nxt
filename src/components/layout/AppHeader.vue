@@ -1,17 +1,15 @@
 <script setup>
-import { useRouter } from 'vue-router'
 import { PhSun, PhMoon, PhGlobe } from '@phosphor-icons/vue'
 import BrutalButton from '../ui/BrutalButton.vue'
 import { useUIStore } from '../../stores/uiStore'
 
-const router = useRouter()
 const uiStore = useUIStore()
 
 let adminTimer = null
 
 const startAdminTimer = () => {
   adminTimer = setTimeout(() => {
-    router.push('/admin')
+    uiStore.openAdminPanel()
   }, 2000)
 }
 
