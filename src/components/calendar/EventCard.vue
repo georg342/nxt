@@ -4,6 +4,7 @@ import { PhCalendarBlank, PhClock, PhMapPin } from '@phosphor-icons/vue'
 import BrutalCard from '../ui/BrutalCard.vue'
 import BrutalButton from '../ui/BrutalButton.vue'
 import { useUIStore } from '../../stores/uiStore'
+import { getGenreColor } from '../../utils/genreColor'
 
 const props = defineProps({
   event: {
@@ -59,6 +60,7 @@ const formattedDate = computed(() => uiStore.formatEventDate(props.event.date))
             v-for="genre in event.genres"
             :key="genre"
             class="event-card__pill"
+            :style="{ backgroundColor: getGenreColor(genre) }"
           >
             {{ genre }}
           </span>
@@ -127,7 +129,6 @@ const formattedDate = computed(() => uiStore.formatEventDate(props.event.date))
   display: inline-flex;
   align-items: center;
   padding: 2px var(--space-2);
-  background-color: var(--accent-color);
   color: var(--accent-contrast);
   border: var(--border-width) solid var(--border-color);
   border-radius: var(--radius-md);
