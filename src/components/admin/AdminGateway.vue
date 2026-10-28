@@ -65,12 +65,12 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="fixed inset-0 z-50 bg-[var(--surface-color)] overflow-y-auto p-4 md:p-8 flex flex-col gap-6">
-    <header class="flex items-center justify-between gap-4">
-      <h1 class="text-2xl font-black uppercase tracking-wide">Admin CMS</h1>
+  <div class="admin-gateway">
+    <header class="admin-gateway__header">
+      <h1 class="admin-gateway__title">Admin CMS</h1>
       <button
         type="button"
-        class="w-10 h-10 flex items-center justify-center border-2 border-black bg-white hover:bg-gray-200 shadow-[2px_2px_0_0_rgba(0,0,0,1)] cursor-pointer rounded-md"
+        class="admin-gateway__close"
         aria-label="Close admin panel"
         @click="uiStore.closeAdminPanel()"
       >
@@ -78,11 +78,11 @@ onMounted(() => {
       </button>
     </header>
 
-    <nav class="flex gap-2 flex-wrap">
+    <nav class="admin-gateway__tabs">
       <button
         type="button"
-        class="px-4 py-2 font-black uppercase text-sm border-2 border-black rounded-md shadow-[2px_2px_0_0_rgba(0,0,0,1)] cursor-pointer"
-        :class="activeTab === 'pending' ? 'bg-[#a3e635]' : 'bg-white'"
+        class="admin-gateway__tab"
+        :class="{ 'admin-gateway__tab--active': activeTab === 'pending' }"
         @click="activeTab = 'pending'"
       >
         Eventos Pendentes
@@ -90,20 +90,20 @@ onMounted(() => {
       <button
         v-if="authStore.isSuperAdmin"
         type="button"
-        class="px-4 py-2 font-black uppercase text-sm border-2 border-black rounded-md shadow-[2px_2px_0_0_rgba(0,0,0,1)] cursor-pointer"
-        :class="activeTab === 'admins' ? 'bg-[#22d3ee]' : 'bg-white'"
+        class="admin-gateway__tab"
+        :class="{ 'admin-gateway__tab--active': activeTab === 'admins' }"
         @click="activeTab = 'admins'"
       >
         Gestão de Admins
       </button>
     </nav>
 
-    <section v-if="activeTab === 'pending'" class="flex flex-col gap-4">
-      <div class="flex flex-wrap items-center gap-3">
-        <label class="flex items-center gap-2 font-black uppercase text-xs">
+    <section v-if="activeTab === 'pending'" class="admin-gateway__section">
+      <div class="admin-gateway__toolbar">
+        <label class="admin-gateway__select-all">
           <input
             type="checkbox"
-            class="w-5 h-5 border-2 border-black"
+            class="admin-gateway__checkbox"
             :checked="allSelected"
             @change="toggleSelectAll()"
           />
@@ -111,7 +111,7 @@ onMounted(() => {
         </label>
         <button
           type="button"
-          class="px-4 py-2 font-black uppercase text-xs border-2 border-black rounded-md shadow-[2px_2px_0_0_rgba(0,0,0,1)] bg-[#a3e635] cursor-pointer disabled:opacity-50"
+          class="admin-gateway__bulk admin-gateway__bulk--approve"
           :disabled="eventStore.selectedPendingEventIds.length === 0"
           @click="eventStore.bulkUpdatePendingEvents('published')"
         >
@@ -119,7 +119,7 @@ onMounted(() => {
         </button>
         <button
           type="button"
-          class="px-4 py-2 font-black uppercase text-xs border-2 border-black rounded-md shadow-[2px_2px_0_0_rgba(0,0,0,1)] bg-[#fb923c] cursor-pointer disabled:opacity-50"
+          class="admin-gateway__bulk admin-gateway__bulk--reject"
           :disabled="eventStore.selectedPendingEventIds.length === 0"
           @click="eventStore.bulkUpdatePendingEvents('rejected')"
         >
@@ -127,36 +127,36 @@ onMounted(() => {
         </button>
       </div>
 
-      <p v-if="eventStore.isLoading" class="font-black uppercase text-sm">Carregando...</p>
+      <p v-if="eventStore.isLoading" class="admin-gateway__state">Carregando...</p>
       <p
         v-else-if="eventStore.pendingEvents.length === 0"
-        class="font-black uppercase text-sm p-4 border-2 border-black rounded-md bg-white"
+        class="admin-gateway__state"
       >
         Nenhum evento pendente. A paz reina.
       </p>
 
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div v-else class="admin-gateway__grid">
         <article
           v-for="event in eventStore.pendingEvents"
           :key="event.id"
-          class="flex flex-col gap-2 p-4 bg-white border-2 border-black rounded-lg shadow-[4px_4px_0_0_rgba(0,0,0,1)]"
+          class="admin-gateway__card"
         >
-          <label class="flex items-start gap-2">
+          <label class="admin-gateway__card-head">
             <input
               type="checkbox"
-              class="w-5 h-5 border-2 border-black mt-1"
+              class="admin-gateway__checkbox"
               :checked="eventStore.selectedPendingEventIds.includes(event.id)"
               @change="toggleEventSelection(event.id)"
             />
-            <span class="text-base font-black uppercase">{{ event.title }}</span>
+            <span class="admin-gateway__card-title">{{ event.title }}</span>
           </label>
-          <p class="text-xs font-bold text-gray-600">{{ formatDate(event.start_date) }}</p>
-          <p class="text-xs font-bold text-gray-600">{{ event.location }}</p>
-          <div v-if="event.lineup?.length" class="flex flex-wrap gap-1">
+          <p class="admin-gateway__card-meta">{{ formatDate(event.start_date) }}</p>
+          <p class="admin-gateway__card-meta">{{ event.location }}</p>
+          <div v-if="event.lineup?.length" class="admin-gateway__tags">
             <span
               v-for="(member, index) in event.lineup"
               :key="`lineup-${index}`"
-              class="px-2 py-1 text-xs font-black bg-[#22d3ee] border-2 border-black rounded-md"
+              class="admin-gateway__tag"
             >
               {{ tagLabel(member) }}
             </span>
@@ -165,28 +165,275 @@ onMounted(() => {
       </div>
     </section>
 
-    <section v-else-if="activeTab === 'admins'" class="flex flex-col gap-4 max-w-md">
-      <form class="flex flex-col gap-3" @submit.prevent="handleAddAdmin()">
-        <div class="relative">
+    <section v-else-if="activeTab === 'admins'" class="admin-gateway__section">
+      <form class="admin-gateway__form" @submit.prevent="handleAddAdmin()">
+        <div class="admin-gateway__field-wrap">
           <input
             v-model="newAdminId"
             type="text"
-            class="peer w-full px-3 pt-6 pb-2 text-sm font-bold bg-white border-2 border-black rounded-md outline-none"
+            class="admin-gateway__input"
             placeholder=" "
           />
-          <label
-            class="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-500 pointer-events-none transition-all peer-focus:top-2 peer-focus:translate-y-0 peer-focus:scale-75 peer-focus:origin-left peer-[:not(:placeholder-shown)]:top-2 peer-[:not(:placeholder-shown)]:translate-y-0 peer-[:not(:placeholder-shown)]:scale-75 peer-[:not(:placeholder-shown)]:origin-left"
-          >
-            UUID do Novo Admin
-          </label>
+          <label class="admin-gateway__label">UUID do Novo Admin</label>
         </div>
-        <button
-          type="submit"
-          class="px-4 py-2 font-black uppercase text-sm border-2 border-black rounded-md shadow-[2px_2px_0_0_rgba(0,0,0,1)] bg-[#a3e635] cursor-pointer"
-        >
+        <button type="submit" class="admin-gateway__submit">
           Adicionar Admin
         </button>
       </form>
     </section>
   </div>
 </template>
+
+<style scoped>
+.admin-gateway {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-4);
+  background: var(--surface-color);
+  overflow-y: auto;
+}
+
+.admin-gateway__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.admin-gateway__title {
+  font-size: 1.5rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.admin-gateway__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--bg-color);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-1);
+  color: var(--text-color);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.admin-gateway__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.admin-gateway__tab {
+  padding: var(--space-2) var(--space-4);
+  font-size: 0.875rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--text-color);
+  background: var(--bg-color);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-1);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.admin-gateway__tab--active {
+  background: #a3e635;
+  color: #000000;
+}
+
+.admin-gateway__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.admin-gateway__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.admin-gateway__select-all {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.admin-gateway__checkbox {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent-color);
+  cursor: pointer;
+}
+
+.admin-gateway__bulk {
+  padding: var(--space-2) var(--space-4);
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: #000000;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-1);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.admin-gateway__bulk:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-gateway__bulk--approve {
+  background: #a3e635;
+}
+
+.admin-gateway__bulk--reject {
+  background: #fb923c;
+}
+
+.admin-gateway__state {
+  padding: var(--space-4);
+  font-size: 0.875rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  text-align: center;
+  background: var(--bg-color);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.admin-gateway__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .admin-gateway__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.admin-gateway__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--bg-color);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+}
+
+.admin-gateway__card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.admin-gateway__card-title {
+  font-size: 1rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.admin-gateway__card-meta {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.admin-gateway__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.admin-gateway__tag {
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: #000000;
+  background: #22d3ee;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.admin-gateway__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 420px;
+}
+
+.admin-gateway__field-wrap {
+  position: relative;
+}
+
+.admin-gateway__input {
+  width: 100%;
+  padding: 26px 12px 8px;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-color);
+  background: var(--bg-color);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: box-shadow 0.15s ease;
+}
+
+.admin-gateway__input:focus {
+  box-shadow: var(--shadow-1);
+}
+
+.admin-gateway__label {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  pointer-events: none;
+  transition: all 0.15s ease;
+}
+
+.admin-gateway__input:focus + .admin-gateway__label,
+.admin-gateway__input:not(:placeholder-shown) + .admin-gateway__label {
+  top: 6px;
+  transform: translateY(0) scale(0.7);
+  transform-origin: left center;
+  color: var(--text-color);
+}
+
+.admin-gateway__submit {
+  padding: var(--space-2) var(--space-4);
+  font-size: 0.875rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: #000000;
+  background: #a3e635;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-1);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+</style>

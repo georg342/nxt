@@ -84,7 +84,7 @@ function handleClose() {
       <form class="create-event__card" @submit.prevent="handleSubmit()">
         <button
           type="button"
-          class="absolute top-4 right-4 z-50 w-8 h-8 flex items-center justify-center border-2 border-black bg-white hover:bg-gray-200 shadow-[2px_2px_0_0_rgba(0,0,0,1)] cursor-pointer rounded-md"
+          class="create-event__close"
           :aria-label="t('createEvent.close')"
           @click="handleClose()"
         >
@@ -234,14 +234,16 @@ function handleClose() {
   position: absolute;
   top: 12px;
   right: 12px;
+  z-index: 50;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 32px;
   height: 32px;
-  background: transparent;
+  background: var(--bg-color);
   border: 2px solid var(--border-color);
   border-radius: var(--radius-md);
+  box-shadow: var(--shadow-1);
   color: var(--text-color);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
