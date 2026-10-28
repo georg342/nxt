@@ -21,7 +21,7 @@ function handleCreate() {
     authStore.openAuthModal()
     return
   }
-  console.log('Open Create Event Form')
+  uiStore.openCreateEventModal()
 }
 </script>
 

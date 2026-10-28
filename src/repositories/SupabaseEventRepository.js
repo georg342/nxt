@@ -29,4 +29,24 @@ export class SupabaseEventRepository extends EventService {
 
     return data ?? []
   }
+
+  /**
+   * Inserts a new event. Status and created_by are enforced by RLS.
+   * @param {Object} eventData
+   * @returns {Promise<Object|null>}
+   */
+  async createEvent(eventData) {
+    const { data, error } = await supabase
+      .from('events')
+      .insert([eventData])
+      .select()
+      .single()
+
+    if (error) {
+      console.error('[SupabaseEventRepository] createEvent error:', error)
+      throw error
+    }
+
+    return data ?? null
+  }
 }

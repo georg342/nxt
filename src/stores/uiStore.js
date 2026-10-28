@@ -193,6 +193,7 @@ export const useUIStore = defineStore(
     const transitionDirection = ref(DEFAULT_TRANSITION)
     const searchQuery = ref('')
     const isSearchOpen = ref(false)
+    const isCreateEventModalOpen = ref(false)
 
     const intlLocale = computed(() => LOCALE_MAP[locale.value] ?? 'en-US')
 
@@ -460,6 +461,20 @@ export const useUIStore = defineStore(
       }
     }
 
+    /**
+     * Opens the create event modal.
+     */
+    function openCreateEventModal() {
+      isCreateEventModalOpen.value = true
+    }
+
+    /**
+     * Closes the create event modal.
+     */
+    function closeCreateEventModal() {
+      isCreateEventModalOpen.value = false
+    }
+
     return {
       theme,
       locale,
@@ -480,6 +495,7 @@ export const useUIStore = defineStore(
       initTheme,
       searchQuery,
       isSearchOpen,
+      isCreateEventModalOpen,
       setActiveView,
       nextWeek,
       goToPrevious,
@@ -489,6 +505,8 @@ export const useUIStore = defineStore(
       openSearch,
       closeSearch,
       toggleSearch,
+      openCreateEventModal,
+      closeCreateEventModal,
     }
   },
   {

@@ -7,6 +7,23 @@ export const useEventStore = defineStore('events', () => {
   const isLoading = ref(false)
   const error = ref(null)
 
+  async function addEvent(eventData) {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const repository = new SupabaseEventRepository()
+      const created = await repository.createEvent(eventData)
+      await loadEvents()
+      return created
+    } catch (err) {
+      error.value = err?.message ?? 'Failed to create event'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   async function loadEvents() {
     isLoading.value = true
     error.value = null
@@ -27,6 +44,7 @@ export const useEventStore = defineStore('events', () => {
     events,
     isLoading,
     error,
+    addEvent,
     loadEvents,
   }
 })
