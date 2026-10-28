@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import BrutalButton from '../ui/BrutalButton.vue'
 import { useUIStore } from '../../stores/uiStore'
 import { PhEye } from '@phosphor-icons/vue'
@@ -7,35 +7,36 @@ import { PhEye } from '@phosphor-icons/vue'
 const uiStore = useUIStore()
 
 const activeView = computed(() => uiStore.activeView)
+const isViewMenuOpen = ref(false)
 
-function setView(viewName) {
+function switchView(viewName) {
   uiStore.setActiveView(viewName)
-  uiStore.closeViewMenu()
+  isViewMenuOpen.value = false
 }
 </script>
 
 <template>
   <Transition name="fade-up">
     <nav
-      v-if="uiStore.isViewMenuOpen"
+      v-if="isViewMenuOpen"
       class="app-bottom-nav__view-menu"
       :aria-label="$t('nav.viewOptions')"
     >
       <BrutalButton
         :color="activeView === 'year' ? 'var(--accent-color)' : undefined"
-        @click="setView('year')"
+        @click="switchView('year')"
       >
         [ 12M ]
       </BrutalButton>
       <BrutalButton
         :color="activeView === 'month' ? 'var(--accent-color)' : undefined"
-        @click="setView('month')"
+        @click="switchView('month')"
       >
         [ 30D ]
       </BrutalButton>
       <BrutalButton
         :color="activeView === 'week' ? 'var(--accent-color)' : undefined"
-        @click="setView('week')"
+        @click="switchView('week')"
       >
         [ 7D ]
       </BrutalButton>
@@ -45,8 +46,8 @@ function setView(viewName) {
   <nav class="app-bottom-nav">
     <BrutalButton
       :aria-label="$t('nav.viewOptions')"
-      :aria-pressed="uiStore.isViewMenuOpen"
-      @click="uiStore.toggleViewMenu()"
+      :aria-pressed="isViewMenuOpen"
+      @click="isViewMenuOpen = !isViewMenuOpen"
     >
       <PhEye :size="18" weight="duotone" />
     </BrutalButton>
