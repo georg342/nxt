@@ -18,15 +18,17 @@ function switchView(viewName) {
 <template>
   <nav class="bottom-nav-pill" :aria-label="$t('nav.viewOptions')">
     <BrutalButton
+      class="nav-btn"
       :aria-label="$t('nav.viewOptions')"
       :aria-pressed="isViewMenuOpen"
       @click="isViewMenuOpen = !isViewMenuOpen"
     >
-      <PhEye :size="18" weight="duotone" />
+      <PhEye :size="28" weight="duotone" />
     </BrutalButton>
 
     <div class="view-options" :class="{ 'is-open': isViewMenuOpen }">
       <BrutalButton
+        class="nav-btn"
         :color="activeView === 'year' ? 'var(--accent-color)' : undefined"
         aria-label="Year View"
         @click="switchView('year')"
@@ -34,6 +36,7 @@ function switchView(viewName) {
         <PhCalendar :size="28" weight="duotone" />
       </BrutalButton>
       <BrutalButton
+        class="nav-btn"
         :color="activeView === 'month' ? 'var(--accent-color)' : undefined"
         aria-label="Month View"
         @click="switchView('month')"
@@ -41,6 +44,7 @@ function switchView(viewName) {
         <PhCalendarDots :size="28" weight="duotone" />
       </BrutalButton>
       <BrutalButton
+        class="nav-btn"
         :color="activeView === 'week' ? 'var(--accent-color)' : undefined"
         aria-label="Week View"
         @click="switchView('week')"
@@ -51,12 +55,13 @@ function switchView(viewName) {
 
     <div class="quick-actions" :class="{ 'is-hidden': isViewMenuOpen }">
       <BrutalButton
+        class="nav-btn"
         :color="uiStore.isTodaySelected ? 'var(--accent-color)' : undefined"
         @click="uiStore.goToToday()"
       >
         {{ $t('nav.today') }}
       </BrutalButton>
-      <BrutalButton color="var(--accent-color)">{{ $t('nav.add') }}</BrutalButton>
+      <BrutalButton class="nav-btn" color="var(--accent-color)">{{ $t('nav.add') }}</BrutalButton>
     </div>
   </nav>
 </template>
@@ -79,6 +84,17 @@ function switchView(viewName) {
   overflow: hidden;
   transition: all 0.5s cubic-bezier(0.32, 0.72, 0, 1);
   white-space: nowrap;
+  max-width: 95%;
+}
+
+.nav-btn {
+  min-width: 48px;
+  min-height: 48px;
+  padding: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .view-options {
@@ -90,10 +106,11 @@ function switchView(viewName) {
   transition: all 0.5s cubic-bezier(0.32, 0.72, 0, 1);
   pointer-events: none;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .view-options.is-open {
-  max-width: 200px;
+  max-width: 300px;
   opacity: 1;
   transform: translateX(0);
   pointer-events: auto;
@@ -102,11 +119,12 @@ function switchView(viewName) {
 .quick-actions {
   display: flex;
   gap: 8px;
-  max-width: 200px;
+  max-width: 300px;
   opacity: 1;
   transform: translateX(0);
   transition: all 0.5s cubic-bezier(0.32, 0.72, 0, 1);
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .quick-actions.is-hidden {
