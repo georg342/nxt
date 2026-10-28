@@ -29,6 +29,20 @@ const messages = {
       signInWithGoogle: 'Sign in with Google',
       close: 'Close',
     },
+    createEvent: {
+      title: 'Create New Event',
+      close: 'Close',
+      submit: 'Create Event',
+      submitting: 'Creating...',
+      error: 'Failed to create event. Please try again.',
+      fields: {
+        title: 'Title',
+        startDate: 'Date & Time',
+        location: 'Location',
+        lineup: 'Lineup (comma-separated)',
+        genres: 'Genres (comma-separated)',
+      },
+    },
   },
   pt: {
     nav: {
@@ -57,6 +71,20 @@ const messages = {
       description: 'Faça login para sugerir e gerenciar festas.',
       signInWithGoogle: 'Entrar com Google',
       close: 'Fechar',
+    },
+    createEvent: {
+      title: 'Criar Nova Festa',
+      close: 'Fechar',
+      submit: 'Criar Festa',
+      submitting: 'Criando...',
+      error: 'Falha ao criar a festa. Tente novamente.',
+      fields: {
+        title: 'Título',
+        startDate: 'Data e Hora',
+        location: 'Localização',
+        lineup: 'Lineup (separado por vírgula)',
+        genres: 'Gêneros (separado por vírgula)',
+      },
     },
   },
 }
