@@ -24,7 +24,7 @@ function handleClose() {
 <template>
   <div class="app-subheader">
     <button
-      v-if="!uiStore.isSearchOpen"
+      v-if="!uiStore.isSearchOpen && uiStore.activeView !== 'year'"
       type="button"
       class="app-subheader__action app-subheader__action--left"
       :aria-label="$t('nav.previous')"
@@ -56,7 +56,7 @@ function handleClose() {
     </Transition>
 
     <span
-      v-if="!uiStore.isSearchOpen"
+      v-if="!uiStore.isSearchOpen && uiStore.activeView !== 'year'"
       class="app-subheader__spacer"
       aria-hidden="true"
     />
@@ -84,8 +84,10 @@ function handleClose() {
 
 <style scoped>
 .app-subheader {
+  position: relative;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: var(--space-2) var(--space-4);
   background-color: var(--surface-color);
   border-bottom: var(--border-width) solid var(--border-color);
@@ -94,12 +96,17 @@ function handleClose() {
 }
 
 .app-subheader__label {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   font-weight: 700;
   font-size: 0.875rem;
   letter-spacing: 0.02em;
   color: var(--text-color);
-  flex: 1;
   text-align: center;
+  pointer-events: none;
+  white-space: nowrap;
 }
 
 .app-subheader__spacer {
@@ -116,6 +123,7 @@ function handleClose() {
 .app-subheader__input {
   flex: 1;
   min-width: 0;
+  margin-right: var(--space-2);
   background: transparent;
   border: none;
   outline: none;
