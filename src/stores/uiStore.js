@@ -247,6 +247,17 @@ export const useUIStore = defineStore(
       return formatted.charAt(0).toUpperCase() + formatted.slice(1)
     }
 
+    const isTodaySelected = computed(() => {
+      if (activeView.value !== 'day') return false
+      const target = selectedDate.value ?? currentDate.value
+      const today = new Date()
+      return (
+        target.getFullYear() === today.getFullYear() &&
+        target.getMonth() === today.getMonth() &&
+        target.getDate() === today.getDate()
+      )
+    })
+
     const contextLabel = computed(() => {
       const date = currentDate.value
       const intl = intlLocale.value
@@ -458,6 +469,7 @@ export const useUIStore = defineStore(
       transitionDirection,
       contextLabel,
       weekDaysData,
+      isTodaySelected,
       hasSearchQuery,
       hasMinSearchLength,
       searchResults,

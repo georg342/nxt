@@ -32,7 +32,10 @@ function setView(viewName) {
     >
       {{ $t('nav.week') }}
     </BrutalButton>
-    <BrutalButton @click="uiStore.goToToday()">
+    <BrutalButton
+      :color="uiStore.isTodaySelected ? 'var(--accent-color)' : undefined"
+      @click="uiStore.goToToday()"
+    >
       {{ $t('nav.today') }}
     </BrutalButton>
     <BrutalButton color="var(--accent-color)">{{ $t('nav.add') }}</BrutalButton>
