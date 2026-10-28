@@ -39,8 +39,6 @@ export class SupabaseEventRepository extends EventService {
     const { data, error } = await supabase
       .from('events')
       .insert([eventData])
-      .select()
-      .single()
 
     if (error) {
       console.error('[SupabaseEventRepository] createEvent error:', error)
