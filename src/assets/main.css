@@ -113,16 +113,16 @@ ol {
 
 /* ---------- Dark Theme ---------- */
 [data-theme="dark"] {
-  --bg-color: #111111;
-  --surface-color: #1c1c1c;
-  --text-color: #f5f1e8;
-  --text-muted: #a0a0a0;
-  --border-color: #f5f1e8;
-  --shadow-color: #f5f1e8;
-  --accent-color: #ffd60a;
-  --accent-contrast: #111111;
-  --danger-color: #ff4d4d;
-  --success-color: #2ecc71;
+  --bg-color: #121214;
+  --surface-color: #1e1e22;
+  --text-color: #f4f4f5;
+  --text-muted: #a1a1aa;
+  --border-color: #3f3f46;
+  --shadow-color: #09090b;
+  --accent-color: #facc15;
+  --accent-contrast: #121214;
+  --danger-color: #f87171;
+  --success-color: #4ade80;
 
   --shadow-1: 4px 4px 0px var(--shadow-color);
   --shadow-2: 8px 8px 0px var(--shadow-color);
