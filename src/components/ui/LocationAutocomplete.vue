@@ -81,14 +81,18 @@ function onBlur() {
 
 <template>
   <div class="location-autocomplete" :class="{ 'is-open': isOpen }">
-    <input
-      type="text"
-      class="location-autocomplete__input"
-      :value="searchQuery"
-      @input="onInput"
-      @focus="onFocus"
-      @blur="onBlur"
-    />
+    <div class="location-autocomplete__field-wrap">
+      <input
+        type="text"
+        class="location-autocomplete__input peer"
+        placeholder=" "
+        :value="searchQuery"
+        @input="onInput"
+        @focus="onFocus"
+        @blur="onBlur"
+      />
+      <label class="location-autocomplete__label">Localização</label>
+    </div>
     <Transition name="dropdown">
       <ul v-if="isOpen" class="location-autocomplete__dropdown">
         <li
@@ -101,7 +105,7 @@ function onBlur() {
           v-else-if="searchQuery.trim().length < 3"
           class="location-autocomplete__item location-autocomplete__item--state"
         >
-          Aguardando entrada...
+          Aguardando
         </li>
         <li
           v-else-if="results.length === 0"
@@ -128,9 +132,13 @@ function onBlur() {
   position: relative;
 }
 
+.location-autocomplete__field-wrap {
+  position: relative;
+}
+
 .location-autocomplete__input {
   width: 100%;
-  padding: 10px 12px;
+  padding: 18px 12px 8px;
   font: inherit;
   font-size: 0.875rem;
   font-weight: 700;
@@ -146,11 +154,31 @@ function onBlur() {
   box-shadow: var(--shadow-1);
 }
 
+.location-autocomplete__label {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  pointer-events: none;
+  transition: all 0.15s ease;
+}
+
+.location-autocomplete__input:focus + .location-autocomplete__label,
+.location-autocomplete__input:not(:placeholder-shown) + .location-autocomplete__label {
+  top: 8px;
+  transform: translateY(0) scale(0.75);
+  transform-origin: left center;
+  color: var(--text-color);
+}
+
 .location-autocomplete.is-open .location-autocomplete__input {
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
   border-bottom-color: transparent;
-  box-shadow: none;
+  box-shadow: 4px 4px 0 0 var(--border-color);
 }
 
 .location-autocomplete__dropdown {

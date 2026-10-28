@@ -29,8 +29,10 @@ const selectedHour = ref(initial ? initial.getHours() : 22)
 const selectedMinute = ref(initial ? initial.getMinutes() : 0)
 
 const isOpen = ref(false)
+const isEditable = ref(false)
 const rootRef = ref(null)
 const calendarPopup = ref(null)
+const displayInput = ref(null)
 const displayValue = ref('')
 const draftDate = ref(selectedDate.value ? new Date(selectedDate.value) : null)
 const draftHour = ref(selectedHour.value)
@@ -106,6 +108,14 @@ function syncDisplay() {
 }
 
 function openPicker() {
+  if (isOpen.value && !isEditable.value) {
+    isEditable.value = true
+    nextTick(() => {
+      displayInput.value?.focus()
+    })
+    return
+  }
+
   draftDate.value = selectedDate.value ? new Date(selectedDate.value) : null
   draftHour.value = selectedHour.value
   draftMinute.value = selectedMinute.value
@@ -113,20 +123,25 @@ function openPicker() {
     currentDate.value = new Date(draftDate.value.getFullYear(), draftDate.value.getMonth(), 1)
   }
   isOpen.value = true
-  nextTick(() => {
-    calendarPopup.value?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-  })
+  setTimeout(() => {
+    calendarPopup.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, 300)
+}
+
+function closePicker() {
+  isOpen.value = false
+  isEditable.value = false
 }
 
 function confirmSelection() {
   if (!draftDate.value) {
-    isOpen.value = false
+    closePicker()
     return
   }
   selectedDate.value = new Date(draftDate.value)
   selectedHour.value = draftHour.value
   selectedMinute.value = draftMinute.value
-  isOpen.value = false
+  closePicker()
 }
 
 function onDisplayInput(event) {
@@ -153,7 +168,7 @@ function onDisplayBlur() {
 
 function handleClickOutside(event) {
   if (rootRef.value && !rootRef.value.contains(event.target)) {
-    isOpen.value = false
+    closePicker()
   }
 }
 
@@ -183,15 +198,20 @@ onBeforeUnmount(() => {
 
 <template>
   <div ref="rootRef" class="dtp">
-    <input
-      type="text"
-      class="dtp__display"
-      :value="displayValue"
-      placeholder="DD/MM/AAAA HH:MM"
-      @input="onDisplayInput"
-      @focus="openPicker()"
-      @blur="onDisplayBlur()"
-    />
+    <div class="dtp__field-wrap">
+      <input
+        ref="displayInput"
+        type="text"
+        class="dtp__display peer"
+        :value="displayValue"
+        :readonly="!isEditable"
+        placeholder=" "
+        @input="onDisplayInput"
+        @click="openPicker()"
+        @blur="onDisplayBlur()"
+      />
+      <label class="dtp__label">Data e Hora</label>
+    </div>
 
     <div v-if="isOpen" ref="calendarPopup" class="dtp__popover">
       <div class="dtp__header">
@@ -257,9 +277,13 @@ onBeforeUnmount(() => {
   position: relative;
 }
 
+.dtp__field-wrap {
+  position: relative;
+}
+
 .dtp__display {
   width: 100%;
-  padding: 10px 12px;
+  padding: 18px 12px 8px;
   font: inherit;
   font-size: 0.875rem;
   font-weight: 700;
@@ -275,9 +299,29 @@ onBeforeUnmount(() => {
   box-shadow: var(--shadow-1);
 }
 
+.dtp__label {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  pointer-events: none;
+  transition: all 0.15s ease;
+}
+
+.dtp__display:focus + .dtp__label,
+.dtp__display:not(:placeholder-shown) + .dtp__label {
+  top: 8px;
+  transform: translateY(0) scale(0.75);
+  transform-origin: left center;
+  color: var(--text-color);
+}
+
 .dtp__popover {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + 8px);
   left: 0;
   right: 0;
   z-index: 50;

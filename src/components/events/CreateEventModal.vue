@@ -91,10 +91,18 @@ function handleClose() {
         <h2 class="create-event__title">{{ t('createEvent.title') }}</h2>
 
         <div class="create-event__body">
-          <label class="create-event__field">
-            <span>{{ t('createEvent.fields.title') }}</span>
-            <input v-model="form.title" type="text" required />
-          </label>
+          <div class="create-event__field">
+            <div class="create-event__field-wrap">
+              <input
+                v-model="form.title"
+                type="text"
+                class="peer"
+                placeholder=" "
+                required
+              />
+              <label class="create-event__label">{{ t('createEvent.fields.title') }}</label>
+            </div>
+          </div>
 
           <div class="create-event__field">
             <span>{{ t('createEvent.fields.startDate') }}</span>
@@ -155,8 +163,9 @@ function handleClose() {
   flex-direction: column;
   width: 100%;
   max-width: 420px;
-  max-height: 95dvh;
-  margin-top: 5vh;
+  height: 95dvh;
+  max-height: 100%;
+  margin-top: 2.5vh;
   background: var(--surface-color);
   border: 2px solid var(--border-color);
   border-radius: var(--radius-lg);
@@ -191,9 +200,11 @@ function handleClose() {
 .create-event__footer {
   position: sticky;
   bottom: 0;
+  z-index: 20;
   padding: var(--space-3) var(--space-4);
   background: var(--surface-color);
   border-top: 2px solid var(--border-color);
+  box-shadow: 0 -4px 0 0 rgba(0, 0, 0, 0.15);
 }
 
 .create-event__close {
@@ -214,11 +225,16 @@ function handleClose() {
 }
 
 .create-event__title {
-  padding: var(--space-4) var(--space-4) 0;
+  position: relative;
+  z-index: 20;
+  padding: var(--space-4);
   font-size: 1.25rem;
   font-weight: 900;
   letter-spacing: 0.02em;
   text-transform: uppercase;
+  background: var(--surface-color);
+  border-bottom: 2px solid var(--border-color);
+  box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.15);
 }
 
 .create-event__field {
@@ -231,8 +247,13 @@ function handleClose() {
   letter-spacing: 0.05em;
 }
 
+.create-event__field-wrap {
+  position: relative;
+}
+
 .create-event__field input {
-  padding: 10px 12px;
+  width: 100%;
+  padding: 18px 12px 8px;
   font: inherit;
   font-size: 0.875rem;
   font-weight: 700;
@@ -248,6 +269,26 @@ function handleClose() {
 
 .create-event__field input:focus {
   box-shadow: var(--shadow-1);
+}
+
+.create-event__label {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  pointer-events: none;
+  transition: all 0.15s ease;
+}
+
+.create-event__field input:focus + .create-event__label,
+.create-event__field input:not(:placeholder-shown) + .create-event__label {
+  top: 8px;
+  transform: translateY(0) scale(0.75);
+  transform-origin: left center;
+  color: var(--text-color);
 }
 
 .create-event__error {

@@ -11,12 +11,23 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-const PILL_COLORS = ['#a3e635', '#22d3ee', '#f472b6', '#facc15', '#fb923c']
+const PILL_COLORS = [
+  '#a3e635',
+  '#fb923c',
+  '#22d3ee',
+  '#f472b6',
+  '#facc15',
+  '#c084fc',
+  '#6ee7b7',
+  '#f87171',
+]
 
 const inputValue = ref('')
 
 function randomColor() {
-  return PILL_COLORS[Math.floor(Math.random() * PILL_COLORS.length)]
+  const previous = props.modelValue[props.modelValue.length - 1]?.color
+  const available = PILL_COLORS.filter((color) => color !== previous)
+  return available[Math.floor(Math.random() * available.length)]
 }
 
 function addTag() {
@@ -75,14 +86,18 @@ function removeTag(index) {
         <PhX :size="12" weight="bold" />
       </button>
     </span>
-    <input
-      :value="inputValue"
-      type="text"
-      class="tag-input__field"
-      @input="onInput"
-      @keydown.enter.prevent="addTag()"
-      @blur="addTag()"
-    />
+    <div class="tag-input__field-wrap">
+      <input
+        :value="inputValue"
+        type="text"
+        class="tag-input__field peer"
+        placeholder=" "
+        @input="onInput"
+        @keydown.enter.prevent="addTag()"
+        @blur="addTag()"
+      />
+      <label class="tag-input__label">Adicionar...</label>
+    </div>
   </div>
 </template>
 
@@ -124,9 +139,14 @@ function removeTag(index) {
   -webkit-tap-highlight-color: transparent;
 }
 
-.tag-input__field {
+.tag-input__field-wrap {
+  position: relative;
   flex: 1;
   min-width: 120px;
+}
+
+.tag-input__field {
+  width: 100%;
   padding: 4px;
   font: inherit;
   font-size: 0.875rem;
@@ -135,5 +155,25 @@ function removeTag(index) {
   background: transparent;
   border: none;
   outline: none;
+}
+
+.tag-input__label {
+  position: absolute;
+  top: 50%;
+  left: 4px;
+  transform: translateY(-50%);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  pointer-events: none;
+  transition: all 0.15s ease;
+}
+
+.tag-input__field:focus + .tag-input__label,
+.tag-input__field:not(:placeholder-shown) + .tag-input__label {
+  top: -2px;
+  transform: translateY(-100%) scale(0.85);
+  transform-origin: left center;
+  color: var(--text-color);
 }
 </style>
