@@ -116,13 +116,13 @@ ol {
   --bg-color: #121214;
   --surface-color: #1e1e22;
   --text-color: #f4f4f5;
-  --text-muted: #a1a1aa;
-  --border-color: #3f3f46;
+  --text-muted: #8b8b93;
+  --border-color: #2a2a30;
   --shadow-color: #09090b;
-  --accent-color: #facc15;
+  --accent-color: #eab308;
   --accent-contrast: #121214;
-  --danger-color: #f87171;
-  --success-color: #4ade80;
+  --danger-color: #dc2626;
+  --success-color: #16a34a;
 
   --shadow-1: 4px 4px 0px var(--shadow-color);
   --shadow-2: 8px 8px 0px var(--shadow-color);
