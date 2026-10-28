@@ -91,6 +91,9 @@ ol {
 
   /* Transitions */
   --transition-fast: 120ms ease;
+
+  /* Button content color (text + icons only) */
+  --button-text-color: var(--text-color);
 }
 
 /* ---------- Light Theme ---------- */
@@ -241,6 +244,22 @@ body {
 .day-card:nth-child(6) { transition-delay: 175ms; }
 .day-card:nth-child(7) { transition-delay: 210ms; }
 
+/* ---------- Button Content Color (buttons only) ---------- */
+/* Scoped to buttons: never leaks to text/icons outside a button. */
+button,
+[role="button"],
+.nb-button {
+  color: var(--button-text-color);
+}
+
+/* Icons inside buttons follow the button color (Phosphor renders filled SVG paths). */
+button svg,
+[role="button"] svg,
+.nb-button svg {
+  color: inherit;
+  fill: currentColor;
+}
+
 /* ---------- Utility: Neo-Brutalist Card ---------- */
 .nb-card {
   background-color: var(--surface-color);
@@ -254,7 +273,7 @@ body {
   min-width: var(--hit-area-min);
   padding: var(--space-2) var(--space-4);
   background-color: var(--surface-color);
-  color: var(--text-color);
+  color: var(--button-text-color);
   border: var(--border-width-strong) solid var(--border-color);
   border-radius: var(--radius-button);
   box-shadow: var(--shadow-1);
