@@ -15,13 +15,34 @@ export const useEventStore = defineStore('events', () => {
 
     try {
       const authStore = useAuthStore()
-      const payload = {
-        ...eventData,
-        status: 'pending',
-        created_by: authStore.user?.id,
+
+      if (!authStore.user || !authStore.user.id) {
+        Logger.error('EventStore', 'Cannot create event: User is missing or not authenticated')
+        error.value = 'User is not authenticated'
+        return
       }
 
-      Logger.debug('EventStore', 'Sending new event payload', payload)
+      const payload = {
+        title: eventData.title,
+        start_date: eventData.start_date,
+        location: eventData.location,
+        lineup: Array.isArray(eventData.lineup)
+          ? eventData.lineup
+          : (eventData.lineup || '')
+              .split(',')
+              .map((s) => s.trim())
+              .filter(Boolean),
+        genres: Array.isArray(eventData.genres)
+          ? eventData.genres
+          : (eventData.genres || '')
+              .split(',')
+              .map((s) => s.trim())
+              .filter(Boolean),
+        status: 'pending',
+        created_by: authStore.user.id,
+      }
+
+      Logger.info('EventStore', 'Sending EXACT payload to Supabase', payload)
 
       const repository = new SupabaseEventRepository()
       const created = await repository.createEvent(payload)

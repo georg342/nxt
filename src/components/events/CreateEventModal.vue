@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, ref } from 'vue'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { PhX } from '@phosphor-icons/vue'
 import BrutalButton from '../ui/BrutalButton.vue'
@@ -13,7 +13,7 @@ const eventStore = useEventStore()
 const isSubmitting = ref(false)
 const submitError = ref(null)
 
-const form = reactive({
+const form = ref({
   title: '',
   start_date: '',
   location: '',
@@ -22,11 +22,13 @@ const form = reactive({
 })
 
 function resetForm() {
-  form.title = ''
-  form.start_date = ''
-  form.location = ''
-  form.lineup = ''
-  form.genres = ''
+  form.value = {
+    title: '',
+    start_date: '',
+    location: '',
+    lineup: '',
+    genres: '',
+  }
   submitError.value = null
 }
 
@@ -44,11 +46,11 @@ async function handleSubmit() {
 
   try {
     const eventData = {
-      title: form.title.trim(),
-      start_date: form.start_date,
-      location: form.location.trim(),
-      lineup: parseList(form.lineup),
-      genres: parseList(form.genres),
+      title: form.value.title.trim(),
+      start_date: form.value.start_date,
+      location: form.value.location.trim(),
+      lineup: parseList(form.value.lineup),
+      genres: parseList(form.value.genres),
     }
 
     await eventStore.addEvent(eventData)
