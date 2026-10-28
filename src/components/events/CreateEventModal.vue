@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { PhX } from '@phosphor-icons/vue'
 import BrutalButton from '../ui/BrutalButton.vue'
+import DateTimePicker from '../ui/DateTimePicker.vue'
 import { useUIStore } from '../../stores/uiStore'
 import { useEventStore } from '../../stores/eventStore'
 
@@ -99,10 +100,10 @@ function handleClose() {
           <input v-model="form.title" type="text" required />
         </label>
 
-        <label class="create-event__field">
+        <div class="create-event__field">
           <span>{{ t('createEvent.fields.startDate') }}</span>
-          <input v-model="form.start_date" type="datetime-local" required />
-        </label>
+          <DateTimePicker v-model="form.start_date" />
+        </div>
 
         <label class="create-event__field">
           <span>{{ t('createEvent.fields.location') }}</span>
