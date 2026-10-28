@@ -46,8 +46,18 @@ function formatDate(value) {
   }).format(date)
 }
 
-function tagLabel(tag) {
-  return typeof tag === 'string' ? tag : tag?.label ?? ''
+function parsePills(data) {
+  if (!data) return []
+  if (Array.isArray(data)) return data
+  if (typeof data === 'string') {
+    try {
+      const parsed = JSON.parse(data)
+      return Array.isArray(parsed) ? parsed : []
+    } catch {
+      return []
+    }
+  }
+  return []
 }
 
 async function handleAddAdmin() {
@@ -152,13 +162,30 @@ onMounted(() => {
           </label>
           <p class="admin-gateway__card-meta">{{ formatDate(event.start_date) }}</p>
           <p class="admin-gateway__card-meta">{{ event.location }}</p>
-          <div v-if="event.lineup?.length" class="admin-gateway__tags">
+          <div
+            v-if="parsePills(event.genres).length"
+            class="admin-gateway__tags"
+          >
             <span
-              v-for="(member, index) in event.lineup"
+              v-for="(pill, index) in parsePills(event.genres)"
+              :key="`genre-${index}`"
+              class="admin-gateway__tag"
+              :style="{ backgroundColor: pill.color || pill.COLOR }"
+            >
+              {{ pill.label || pill.LABEL }}
+            </span>
+          </div>
+          <div
+            v-if="parsePills(event.lineup).length"
+            class="admin-gateway__tags"
+          >
+            <span
+              v-for="(pill, index) in parsePills(event.lineup)"
               :key="`lineup-${index}`"
               class="admin-gateway__tag"
+              :style="{ backgroundColor: pill.color || pill.COLOR }"
             >
-              {{ tagLabel(member) }}
+              {{ pill.label || pill.LABEL }}
             </span>
           </div>
         </article>
@@ -188,11 +215,11 @@ onMounted(() => {
 .admin-gateway {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 100;
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
-  padding: var(--space-4);
+  padding: 24px;
   background: var(--surface-color);
   overflow-y: auto;
 }
@@ -319,14 +346,8 @@ onMounted(() => {
 
 .admin-gateway__grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-4);
-}
-
-@media (min-width: 768px) {
-  .admin-gateway__grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
 }
 
 .admin-gateway__card {

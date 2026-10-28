@@ -1,10 +1,9 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { PhCalendarBlank, PhClock, PhMapPin } from '@phosphor-icons/vue'
 import BrutalCard from '../ui/BrutalCard.vue'
 import BrutalButton from '../ui/BrutalButton.vue'
 import { useUIStore } from '../../stores/uiStore'
-import { getGenreColor } from '../../utils/genreColor'
 
 const props = defineProps({
   event: {
@@ -21,9 +20,38 @@ const props = defineProps({
   },
 })
 
-defineEmits(['toggle'])
-
 const uiStore = useUIStore()
+
+const isExpanded = ref(false)
+
+function parsePills(data) {
+  if (!data) return []
+  if (Array.isArray(data)) return data
+  if (typeof data === 'string') {
+    try {
+      const parsed = JSON.parse(data)
+      return Array.isArray(parsed) ? parsed : []
+    } catch {
+      return []
+    }
+  }
+  return []
+}
+
+const parsedGenres = computed(() => parsePills(props.event.genres))
+const parsedLineup = computed(() => parsePills(props.event.lineup))
+
+function getShortAddress(address) {
+  if (!address) return ''
+  const parts = address.split(',').map((p) => p.trim()).filter(Boolean)
+  if (parts.length >= 3) {
+    const neighborhood = parts[1]
+    const city = parts[2]
+    const state = parts[3] || ''
+    return state ? `${neighborhood}, ${city} - ${state}` : `${neighborhood}, ${city}`
+  }
+  return address.length > 30 ? `${address.slice(0, 30)}…` : address
+}
 
 const formattedDate = computed(() => uiStore.formatEventDate(props.event.date))
 
@@ -39,7 +67,7 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
 <template>
   <BrutalCard
     class="event-card"
-    @click="$emit('toggle')"
+    @click="isExpanded = !isExpanded"
   >
     <div class="event-card__header">
       <h2 class="event-card__title">{{ event.title }}</h2>
@@ -61,28 +89,34 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
         </div>
         <span class="event-card__meta-item">
           <PhMapPin :size="18" weight="duotone" />
-          {{ event.location }}
+          {{ isExpanded ? event.location : getShortAddress(event.location) }}
         </span>
       </div>
     </div>
 
     <Transition name="accordion">
       <div
-        v-if="expanded"
+        v-if="isExpanded"
         class="event-card__body"
       >
-        <div class="event-card__genres">
+        <div
+          v-if="parsedGenres.length"
+          class="event-card__genres"
+        >
           <span
-            v-for="genre in event.genres"
-            :key="genre"
+            v-for="(pill, index) in parsedGenres"
+            :key="`genre-${index}`"
             class="event-card__pill"
-            :style="{ backgroundColor: getGenreColor(genre) }"
+            :style="{ backgroundColor: pill.color || pill.COLOR }"
           >
-            {{ genre }}
+            {{ pill.label || pill.LABEL }}
           </span>
         </div>
-        <p class="event-card__lineup">
-          {{ event.lineup.join(' · ') }}
+        <p
+          v-if="parsedLineup.length"
+          class="event-card__lineup"
+        >
+          {{ parsedLineup.map((p) => p.label || p.LABEL).join(' · ') }}
         </p>
         <BrutalButton color="var(--accent-color)">
           Tickets
