@@ -14,6 +14,13 @@ const messages = {
       toPt: 'PT',
       toEn: 'EN',
     },
+    search: {
+      open: 'Open search',
+      close: 'Close search',
+      placeholder: 'Search events...',
+      hint: 'Type at least 3 characters to search.',
+      empty: 'No events found.',
+    },
   },
   pt: {
     nav: {
@@ -27,6 +34,13 @@ const messages = {
     locale: {
       toPt: 'PT',
       toEn: 'EN',
+    },
+    search: {
+      open: 'Abrir busca',
+      close: 'Fechar busca',
+      placeholder: 'Buscar eventos...',
+      hint: 'Digite ao menos 3 caracteres para buscar.',
+      empty: 'Nenhum evento encontrado.',
     },
   },
 }

@@ -9,6 +9,8 @@ const DEFAULT_THEME = THEME_LIGHT
 const VALID_VIEWS = ['year', 'month', 'week', 'day']
 const DEFAULT_VIEW = 'year'
 
+const MIN_SEARCH_LENGTH = 3
+
 const VIEW_DEPTH = {
   year: 1,
   month: 2,
@@ -69,6 +71,8 @@ export const useUIStore = defineStore(
     const currentDate = ref(new Date())
     const selectedDate = ref(null)
     const transitionDirection = ref(DEFAULT_TRANSITION)
+    const searchQuery = ref('')
+    const isSearchOpen = ref(false)
 
     const intlLocale = computed(() => LOCALE_MAP[locale.value] ?? 'en-US')
 
@@ -218,6 +222,32 @@ export const useUIStore = defineStore(
       setActiveView('week')
     }
 
+    /**
+     * Opens the search field.
+     */
+    function openSearch() {
+      isSearchOpen.value = true
+    }
+
+    /**
+     * Closes the search field and clears the query.
+     */
+    function closeSearch() {
+      isSearchOpen.value = false
+      searchQuery.value = ''
+    }
+
+    /**
+     * Toggles the search field visibility.
+     */
+    function toggleSearch() {
+      if (isSearchOpen.value) {
+        closeSearch()
+      } else {
+        openSearch()
+      }
+    }
+
     return {
       theme,
       locale,
@@ -231,11 +261,16 @@ export const useUIStore = defineStore(
       toggleTheme,
       toggleLocale,
       initTheme,
+      searchQuery,
+      isSearchOpen,
       setActiveView,
       nextWeek,
       selectDate,
       goToToday,
       goToCurrentWeek,
+      openSearch,
+      closeSearch,
+      toggleSearch,
     }
   },
   {
