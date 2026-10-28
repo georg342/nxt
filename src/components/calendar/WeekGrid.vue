@@ -5,6 +5,18 @@ import BrutalButton from '../ui/BrutalButton.vue'
 import { useUIStore } from '../../stores/uiStore'
 
 const uiStore = useUIStore()
+
+function handleDayClick(index) {
+  const monday = new Date(uiStore.currentDate)
+  const day = monday.getDay()
+  const diff = day === 0 ? -6 : 1 - day
+  monday.setDate(monday.getDate() + diff)
+  monday.setHours(0, 0, 0, 0)
+
+  const target = new Date(monday)
+  target.setDate(monday.getDate() + index)
+  uiStore.selectDate(target)
+}
 </script>
 
 <template>
@@ -18,6 +30,7 @@ const uiStore = useUIStore()
           v-for="(day, index) in uiStore.weekDaysData"
           :key="index"
           class="week-grid__day day-card"
+          @click="handleDayClick(index)"
         >
           <span class="week-grid__label">{{ day.dayName }}</span>
           <span class="week-grid__date">{{ day.dateNum }}</span>
@@ -66,6 +79,7 @@ const uiStore = useUIStore()
   min-height: 0;
   overflow: hidden;
   text-align: center;
+  cursor: pointer;
 }
 
 .week-grid__label {

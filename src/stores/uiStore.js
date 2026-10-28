@@ -67,6 +67,7 @@ export const useUIStore = defineStore(
     const locale = ref(DEFAULT_LOCALE)
     const activeView = ref(DEFAULT_VIEW)
     const currentDate = ref(new Date())
+    const selectedDate = ref(null)
     const transitionDirection = ref(DEFAULT_TRANSITION)
 
     const intlLocale = computed(() => LOCALE_MAP[locale.value] ?? 'en-US')
@@ -101,6 +102,16 @@ export const useUIStore = defineStore(
         return sameMonth
           ? `${formatShortDate(monday, intl).split(' ')[0]} ${startLabel} - ${endLabel}`
           : `${startLabel} - ${endLabel}`
+      }
+
+      if (activeView.value === 'day') {
+        const target = selectedDate.value ?? date
+        const formatted = new Intl.DateTimeFormat(intl, {
+          weekday: 'long',
+          month: 'long',
+          day: 'numeric',
+        }).format(target)
+        return formatted.charAt(0).toUpperCase() + formatted.slice(1)
       }
 
       return ''
@@ -181,11 +192,21 @@ export const useUIStore = defineStore(
       currentDate.value = next
     }
 
+    /**
+     * Selects a specific date and opens the day view.
+     * @param {Date} date
+     */
+    function selectDate(date) {
+      selectedDate.value = new Date(date)
+      setActiveView('day')
+    }
+
     return {
       theme,
       locale,
       activeView,
       currentDate,
+      selectedDate,
       transitionDirection,
       contextLabel,
       weekDaysData,
@@ -195,6 +216,7 @@ export const useUIStore = defineStore(
       initTheme,
       setActiveView,
       nextWeek,
+      selectDate,
     }
   },
   {

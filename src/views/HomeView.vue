@@ -4,6 +4,7 @@ import AppLayout from '../components/layout/AppLayout.vue'
 import YearGrid from '../components/calendar/YearGrid.vue'
 import MonthGrid from '../components/calendar/MonthGrid.vue'
 import WeekGrid from '../components/calendar/WeekGrid.vue'
+import DayFeed from '../components/calendar/DayFeed.vue'
 import { useUIStore } from '../stores/uiStore'
 
 const uiStore = useUIStore()
@@ -18,6 +19,7 @@ const activeView = computed(() => uiStore.activeView)
         <YearGrid v-if="activeView === 'year'" key="year" />
         <MonthGrid v-else-if="activeView === 'month'" key="month" />
         <WeekGrid v-else-if="activeView === 'week'" key="week" />
+        <DayFeed v-else-if="activeView === 'day'" key="day" />
       </Transition>
     </div>
   </AppLayout>
