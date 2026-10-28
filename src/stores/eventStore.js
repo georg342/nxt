@@ -7,6 +7,7 @@ import { Logger } from '../utils/logger.js'
 
 export const useEventStore = defineStore('events', () => {
   const events = ref([])
+  const allEvents = ref([])
   const pendingEvents = ref([])
   const selectedPendingEventIds = ref([])
   const isLoading = ref(false)
@@ -163,14 +164,87 @@ export const useEventStore = defineStore('events', () => {
     }
   }
 
+  async function fetchAllEvents() {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const repository = new SupabaseEventRepository()
+      const data = await repository.fetchAllEvents()
+      allEvents.value = data
+      Logger.info('EventStore', 'All events loaded', data.length)
+    } catch (err) {
+      Logger.error('EventStore', 'Failed to load all events', err)
+      error.value = err?.message ?? 'Failed to load all events'
+      allEvents.value = []
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function setEventStatus(eventId, newStatus) {
+    const uiStore = useUIStore()
+
+    try {
+      const repository = new SupabaseEventRepository()
+      await repository.updateEventStatus(eventId, newStatus)
+
+      const target = allEvents.value.find((evt) => evt.id === eventId)
+      if (target) target.status = newStatus
+
+      pendingEvents.value = pendingEvents.value.filter(
+        (evt) => evt.id !== eventId
+      )
+      selectedPendingEventIds.value = selectedPendingEventIds.value.filter(
+        (id) => id !== eventId
+      )
+
+      Logger.info('EventStore', 'Event status changed', { eventId, newStatus })
+      uiStore.showToast(
+        newStatus === 'approved' ? 'Evento aprovado' : 'Evento rejeitado',
+        newStatus === 'approved' ? 'success' : 'error'
+      )
+    } catch (err) {
+      Logger.error('EventStore', 'Failed to change event status', err)
+      uiStore.showToast('Falha ao alterar status', 'error')
+    }
+  }
+
+  async function deleteEvent(eventId) {
+    const uiStore = useUIStore()
+
+    try {
+      const repository = new SupabaseEventRepository()
+      await repository.deleteEvent(eventId)
+
+      allEvents.value = allEvents.value.filter((evt) => evt.id !== eventId)
+      pendingEvents.value = pendingEvents.value.filter(
+        (evt) => evt.id !== eventId
+      )
+      selectedPendingEventIds.value = selectedPendingEventIds.value.filter(
+        (id) => id !== eventId
+      )
+
+      Logger.info('EventStore', 'Event deleted', eventId)
+      uiStore.showToast('Evento excluído', 'success')
+    } catch (err) {
+      Logger.error('EventStore', 'Failed to delete event', err)
+      uiStore.showToast('Falha ao excluir evento', 'error')
+    }
+  }
+
   return {
     events,
+    allEvents,
     pendingEvents,
     selectedPendingEventIds,
     isLoading,
     error,
     addEvent,
     loadEvents,
+    fetchAllEvents,
+    setEventStatus,
+    deleteEvent,
     fetchPendingEvents,
     approveEvent,
     rejectEvent,

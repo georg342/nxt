@@ -1,63 +1,118 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { PhCheck, PhX } from '@phosphor-icons/vue'
+import { useRouter } from 'vue-router'
+import {
+  PhArrowLeft,
+  PhCaretDown,
+  PhCaretUp,
+  PhMagnifyingGlass,
+} from '@phosphor-icons/vue'
 import { useUIStore } from '../../stores/uiStore'
-import { useAuthStore } from '../../stores/authStore'
 import { useEventStore } from '../../stores/eventStore'
 
+const router = useRouter()
 const uiStore = useUIStore()
-const authStore = useAuthStore()
 const eventStore = useEventStore()
 
-const activeTab = ref('pending')
-const newAdminUuid = ref('')
+const searchQuery = ref('')
+const statusFilter = ref('all')
+const selectedIds = ref([])
+const expandedIds = ref([])
+const pendingDeleteId = ref(null)
 
-const isAllSelected = computed(() => {
-  return (
-    eventStore.pendingEvents.length > 0 &&
-    eventStore.selectedPendingEventIds.length === eventStore.pendingEvents.length
-  )
+const filteredEvents = computed(() => {
+  let list = eventStore.allEvents
+  if (searchQuery.value.trim()) {
+    const q = searchQuery.value.toLowerCase()
+    list = list.filter((e) => (e.title || '').toLowerCase().includes(q))
+  }
+  if (statusFilter.value !== 'all') {
+    list = list.filter((e) => e.status === statusFilter.value)
+  }
+  return list
 })
 
+const isAllSelected = computed(
+  () =>
+    filteredEvents.value.length > 0 &&
+    filteredEvents.value.every((e) => selectedIds.value.includes(e.id))
+)
+
 function toggleSelectAll() {
-  if (isAllSelected.value) {
-    eventStore.selectedPendingEventIds = []
+  selectedIds.value = isAllSelected.value
+    ? []
+    : filteredEvents.value.map((e) => e.id)
+}
+
+function toggleSelect(id) {
+  selectedIds.value = selectedIds.value.includes(id)
+    ? selectedIds.value.filter((x) => x !== id)
+    : [...selectedIds.value, id]
+}
+
+function toggleExpanded(id) {
+  expandedIds.value = expandedIds.value.includes(id)
+    ? expandedIds.value.filter((x) => x !== id)
+    : [...expandedIds.value, id]
+}
+
+function requestDelete(id) {
+  if (pendingDeleteId.value === id) {
+    eventStore.deleteEvent(id)
+    pendingDeleteId.value = null
   } else {
-    eventStore.selectedPendingEventIds = eventStore.pendingEvents.map((event) => event.id)
+    pendingDeleteId.value = id
   }
 }
 
-function toggleEventSelection(eventId) {
-  const ids = eventStore.selectedPendingEventIds
-  if (ids.includes(eventId)) {
-    eventStore.selectedPendingEventIds = ids.filter((id) => id !== eventId)
-  } else {
-    eventStore.selectedPendingEventIds = [...ids, eventId]
-  }
+function handleBulkAction() {
+  uiStore.showToast('Ação em massa em breve', 'success')
+}
+
+function handleClose() {
+  uiStore.closeAdminPanel()
+  router.push('/')
 }
 
 function formatDate(value) {
   if (!value) return ''
-  const date = new Date(value)
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(new Date(value))
+}
+
+function formatDateTime(value) {
+  if (!value) return ''
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  }).format(date)
+  }).format(new Date(value))
 }
 
 function getShortLocation(address) {
   if (!address) return ''
   const parts = address.split(',').map((p) => p.trim()).filter(Boolean)
   if (parts.length >= 3) {
-    const neighborhood = parts[1]
     const city = parts[2]
     const state = parts[3] || ''
-    return state ? `${neighborhood}, ${city} - ${state}` : `${neighborhood}, ${city}`
+    return state ? `${city} - ${state}` : city
   }
-  return address.length > 40 ? `${address.slice(0, 40)}…` : address
+  return address.length > 30 ? `${address.slice(0, 30)}…` : address
+}
+
+function getStatusLabel(status) {
+  return (
+    { pending: 'Pendente', approved: 'Aprovado', rejected: 'Rejeitado' }[
+      status
+    ] ||
+    status ||
+    '—'
+  )
 }
 
 function parsePills(data) {
@@ -85,407 +140,352 @@ function parsePills(data) {
   return []
 }
 
-async function submitNewAdmin() {
-  const id = newAdminUuid.value.trim()
-  if (!id) return
-  const result = await eventStore.addAdminUser(id)
-  if (result?.success) {
-    newAdminUuid.value = ''
-  }
-}
-
 onMounted(() => {
-  eventStore.fetchPendingEvents()
+  eventStore.fetchAllEvents()
 })
 </script>
 
 <template>
-  <div class="admin-overlay">
-    <header class="admin-header">
-      <h1 class="admin-title">Admin CMS</h1>
-      <button
-        type="button"
-        class="btn-close"
-        aria-label="Close admin panel"
-        @click="uiStore.closeAdminPanel()"
-      >
-        <PhX :size="20" weight="bold" />
-      </button>
-    </header>
-
-    <nav class="admin-tabs">
-      <button
-        type="button"
-        class="admin-tab"
-        :class="{ 'admin-tab--active': activeTab === 'pending' }"
-        @click="activeTab = 'pending'"
-      >
-        Eventos Pendentes
-      </button>
-      <button
-        v-if="authStore.isSuperAdmin"
-        type="button"
-        class="admin-tab"
-        :class="{ 'admin-tab--active': activeTab === 'admins' }"
-        @click="activeTab = 'admins'"
-      >
-        Gestão de Admins
-      </button>
-    </nav>
-
-    <section v-if="activeTab === 'pending'" class="admin-tab-content">
-      <div class="admin-toolbar">
-        <label class="select-all">
-          <input
-            type="checkbox"
-            class="admin-checkbox"
-            :checked="isAllSelected"
-            @change="toggleSelectAll()"
-          />
-          <span>Selecionar Todos</span>
-        </label>
-        <div class="admin-toolbar__actions">
+  <div class="cms-container">
+    <div class="cms-inner">
+      <!-- HEADER -->
+      <header class="cms-header">
+        <div class="cms-header__left">
           <button
             type="button"
-            class="btn-approve"
-            :disabled="eventStore.selectedPendingEventIds.length === 0"
-            @click="eventStore.bulkUpdatePendingEvents('approved')"
+            class="cms-icon-btn"
+            aria-label="Voltar"
+            @click="handleClose"
           >
-            <PhCheck :size="16" weight="bold" />
-            Aprovar
+            <PhArrowLeft :size="20" weight="bold" />
           </button>
-          <button
-            type="button"
-            class="btn-reject"
-            :disabled="eventStore.selectedPendingEventIds.length === 0"
-            @click="eventStore.bulkUpdatePendingEvents('rejected')"
-          >
-            Rejeitar
-          </button>
+          <h1 class="cms-title">Painel de Controle</h1>
         </div>
-      </div>
+        <span class="cms-count">{{ filteredEvents.length }} evento(s)</span>
+      </header>
 
-      <p v-if="eventStore.isLoading" class="admin-state">Carregando...</p>
-      <p
-        v-else-if="eventStore.pendingEvents.length === 0"
-        class="admin-state"
-      >
-        Nenhum evento pendente. A paz reina.
-      </p>
-
-      <div v-else class="admin-grid">
-        <article
-          v-for="event in eventStore.pendingEvents"
-          :key="event.id"
-          class="admin-card"
-        >
-          <input
-            type="checkbox"
-            class="admin-card__checkbox"
-            :checked="eventStore.selectedPendingEventIds.includes(event.id)"
-            @change="toggleEventSelection(event.id)"
+      <!-- TOOLBAR -->
+      <div class="cms-toolbar">
+        <div class="cms-search-wrap">
+          <PhMagnifyingGlass
+            :size="18"
+            weight="bold"
+            class="cms-search-icon"
           />
-          <h3 class="admin-card__title">{{ event.title }}</h3>
-          <p class="admin-card__meta">{{ formatDate(event.start_date) }}</p>
-          <p class="admin-card__meta">{{ getShortLocation(event.location) }}</p>
-
-          <div
-            v-if="parsePills(event.genres).length"
-            class="admin-card__tags"
-          >
-            <span
-              v-for="(pill, index) in parsePills(event.genres)"
-              :key="`genre-${index}`"
-              class="admin-tag"
-              :style="{ backgroundColor: pill?.COLOR || pill?.color || '#e5e7eb' }"
-            >
-              {{ pill?.LABEL || pill?.label || pill }}
-            </span>
-          </div>
-          <div
-            v-if="parsePills(event.lineup).length"
-            class="admin-card__tags"
-          >
-            <span
-              v-for="(pill, index) in parsePills(event.lineup)"
-              :key="`lineup-${index}`"
-              class="admin-tag"
-              :style="{ backgroundColor: pill?.COLOR || pill?.color || '#e5e7eb' }"
-            >
-              {{ pill?.LABEL || pill?.label || pill }}
-            </span>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <section v-else-if="activeTab === 'admins'" class="admin-tab-content">
-      <form class="admin-form" @submit.prevent="submitNewAdmin()">
-        <div class="float-wrap">
           <input
-            v-model="newAdminUuid"
+            v-model="searchQuery"
             type="text"
-            class="float-input"
+            class="cms-search-input"
             placeholder=" "
           />
-          <label class="float-label">UUID do Novo Admin</label>
+          <label class="cms-search-label">Buscar por nome</label>
         </div>
-        <button type="submit" class="btn-submit">
-          <PhCheck :size="16" weight="bold" />
-          Adicionar Admin
-        </button>
-      </form>
-    </section>
+
+        <select v-model="statusFilter" class="cms-select">
+          <option value="all">Todos os Status</option>
+          <option value="pending">Pendentes</option>
+          <option value="approved">Aprovados</option>
+          <option value="rejected">Rejeitados</option>
+        </select>
+
+        <div class="cms-bulk">
+          <label class="cms-select-all">
+            <input
+              type="checkbox"
+              class="cms-checkbox"
+              :checked="isAllSelected"
+              @change="toggleSelectAll()"
+            />
+            <span>Selecionar Todos</span>
+          </label>
+          <button
+            type="button"
+            class="cms-btn cms-btn--bulk"
+            :disabled="selectedIds.length === 0"
+            @click="handleBulkAction()"
+          >
+            Ações em Massa
+          </button>
+        </div>
+      </div>
+
+      <!-- LISTA -->
+      <div class="cms-list">
+        <div class="cms-list-header">
+          <span></span>
+          <span>Nome</span>
+          <span>Data</span>
+          <span>Local</span>
+          <span>Status</span>
+        </div>
+
+        <div
+          v-for="event in filteredEvents"
+          :key="event.id"
+          class="cms-row"
+        >
+          <!-- SUMMARY -->
+          <div class="cms-row-summary" @click="toggleExpanded(event.id)">
+            <div class="cms-cell cms-cell--checkbox" @click.stop>
+              <input
+                type="checkbox"
+                class="cms-checkbox"
+                :checked="selectedIds.includes(event.id)"
+                @change="toggleSelect(event.id)"
+              />
+            </div>
+            <div class="cms-cell cms-cell--name">{{ event.title }}</div>
+            <div class="cms-cell cms-cell--date">
+              {{ formatDate(event.start_date) }}
+            </div>
+            <div class="cms-cell cms-cell--location">
+              {{ getShortLocation(event.location) }}
+            </div>
+            <div class="cms-cell cms-cell--status">
+              <span
+                class="cms-status"
+                :class="`cms-status--${event.status}`"
+              >
+                {{ getStatusLabel(event.status) }}
+              </span>
+              <PhCaretDown
+                v-if="!expandedIds.includes(event.id)"
+                :size="16"
+                weight="bold"
+                class="cms-caret"
+              />
+              <PhCaretUp
+                v-else
+                :size="16"
+                weight="bold"
+                class="cms-caret"
+              />
+            </div>
+          </div>
+
+          <!-- EXPANDED -->
+          <div
+            v-if="expandedIds.includes(event.id)"
+            class="cms-row-expanded"
+            @click.stop
+          >
+            <div class="cms-detail-grid">
+              <div>
+                <strong>Título</strong>
+                <p>{{ event.title }}</p>
+              </div>
+              <div>
+                <strong>Data</strong>
+                <p>{{ formatDateTime(event.start_date) }}</p>
+              </div>
+              <div>
+                <strong>Local</strong>
+                <p>{{ event.location }}</p>
+              </div>
+              <div v-if="event.link">
+                <strong>Link</strong>
+                <p>
+                  <a
+                    :href="event.link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {{ event.link }}
+                  </a>
+                </p>
+              </div>
+              <div v-if="parsePills(event.genres).length">
+                <strong>Gêneros</strong>
+                <div class="cms-tags">
+                  <span
+                    v-for="(pill, i) in parsePills(event.genres)"
+                    :key="`g-${i}`"
+                    class="cms-tag"
+                    :style="{
+                      backgroundColor: pill?.COLOR || pill?.color || '#e5e7eb',
+                    }"
+                  >
+                    {{ pill?.LABEL || pill?.label || pill }}
+                  </span>
+                </div>
+              </div>
+              <div v-if="parsePills(event.lineup).length">
+                <strong>Lineup</strong>
+                <div class="cms-tags">
+                  <span
+                    v-for="(pill, i) in parsePills(event.lineup)"
+                    :key="`l-${i}`"
+                    class="cms-tag"
+                    :style="{
+                      backgroundColor: pill?.COLOR || pill?.color || '#e5e7eb',
+                    }"
+                  >
+                    {{ pill?.LABEL || pill?.label || pill }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="cms-actions">
+              <button type="button" class="cms-btn cms-btn--edit">
+                Editar Evento
+              </button>
+              <button
+                type="button"
+                class="cms-btn cms-btn--approve"
+                :disabled="event.status === 'approved'"
+                @click="eventStore.setEventStatus(event.id, 'approved')"
+              >
+                Aprovar
+              </button>
+              <button
+                type="button"
+                class="cms-btn cms-btn--reject"
+                :disabled="event.status === 'rejected'"
+                @click="eventStore.setEventStatus(event.id, 'rejected')"
+              >
+                Rejeitar
+              </button>
+              <button
+                type="button"
+                class="cms-btn cms-btn--delete"
+                @click="requestDelete(event.id)"
+              >
+                {{
+                  pendingDeleteId === event.id
+                    ? 'Confirmar Exclusão?'
+                    : 'Excluir'
+                }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <p v-if="eventStore.isLoading" class="cms-state">Carregando...</p>
+        <p v-else-if="filteredEvents.length === 0" class="cms-state">
+          Nenhum evento encontrado.
+        </p>
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.admin-overlay {
+/* ============================================================
+   OVERLAY + INNER WRAPPER
+   ============================================================ */
+.cms-container {
   position: fixed;
   inset: 0;
   z-index: 200;
-  background-color: var(--surface-color, #fff);
   overflow-y: auto;
+  background: var(--surface-color, #fff);
   padding: 24px;
+  box-sizing: border-box;
+}
+
+.cms-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-.admin-header {
+/* ============================================================
+   HEADER
+   ============================================================ */
+.cms-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 4px solid var(--border-color, #000);
   padding-bottom: 16px;
+  gap: 16px;
+  flex-wrap: wrap;
 }
-
-.admin-title {
+.cms-header__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.cms-title {
   font-size: 1.5rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.02em;
 }
-
-.btn-close {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.cms-count {
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border: 2px solid var(--border-color, #000);
+  border-radius: var(--radius-md);
+  background: var(--bg-color, #fff);
+}
+.cms-icon-btn {
   width: 40px;
   height: 40px;
-  background: var(--bg-color, #fff);
-  border: 2px solid var(--border-color, #000);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-1);
-  color: var(--text-color, #000);
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.admin-tabs {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.admin-tab {
-  padding: 8px 16px;
-  border: 2px solid var(--border-color, #000);
-  background: transparent;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 1.1rem;
-  border-radius: var(--radius-md);
-  color: var(--text-color, #000);
-  text-transform: uppercase;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.admin-tab--active {
-  background-color: var(--border-color, #000);
-  color: white;
-  box-shadow: var(--shadow-1);
-}
-
-.admin-tab-content {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.admin-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  background: #f3f4f6;
-  border: 2px solid var(--border-color, #000);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-1);
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.admin-toolbar__actions {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.select-all {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.875rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-
-.admin-checkbox {
-  width: 20px;
-  height: 20px;
-  accent-color: var(--accent-color);
-  cursor: pointer;
-}
-
-.admin-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 16px;
-}
-
-.admin-card {
-  border: 2px solid var(--border-color, #000);
-  padding: 16px;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-1);
-  background: white;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.admin-card__checkbox {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 20px;
-  height: 20px;
-  accent-color: var(--accent-color);
-  cursor: pointer;
-}
-
-.admin-card__title {
-  font-size: 1rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  padding-right: 32px;
-}
-
-.admin-card__meta {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--text-muted, #555);
-}
-
-.admin-card__tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.admin-tag {
-  padding: 4px 8px;
-  font-size: 0.75rem;
-  font-weight: 900;
-  color: #000000;
-  border: 2px solid var(--border-color, #000);
-  border-radius: var(--radius-md);
-}
-
-.admin-state {
-  padding: 16px;
-  font-size: 0.875rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  text-align: center;
-  background: var(--bg-color, #fff);
-  border: 2px solid var(--border-color, #000);
-  border-radius: var(--radius-md);
-}
-
-.btn-approve,
-.btn-reject,
-.btn-submit {
-  padding: 8px 16px;
-  font-weight: bold;
-  border: 2px solid var(--border-color, #000);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  box-shadow: 2px 2px 0px 0px var(--border-color, #000);
-  color: #000000;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  text-transform: uppercase;
-  font-size: 0.875rem;
+  justify-content: center;
+  background: var(--bg-color, #fff);
+  border: 2px solid var(--border-color, #000);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-1, 4px 4px 0 0 #000);
+  color: var(--text-color, #000);
+  cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
-.btn-approve {
-  background-color: #a3e635;
-}
-
-.btn-reject {
-  background-color: #fb923c;
-}
-
-.btn-submit {
-  background-color: var(--accent-color, #a3e635);
-}
-
-.btn-approve:disabled,
-.btn-reject:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.admin-form {
+/* ============================================================
+   TOOLBAR
+   ============================================================ */
+.cms-toolbar {
   display: flex;
-  flex-direction: column;
   gap: 16px;
-  max-width: 420px;
+  align-items: center;
+  padding: 16px;
+  border: 2px solid var(--border-color, #000);
+  background: #f9f9f9;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-1, 4px 4px 0 0 #000);
+  flex-wrap: wrap;
 }
-
-.float-wrap {
+.cms-search-wrap {
   position: relative;
+  flex: 1 1 260px;
+  min-width: 220px;
 }
-
-.float-input {
+.cms-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted, #555);
+  pointer-events: none;
+}
+.cms-search-input {
   width: 100%;
-  padding: 26px 12px 8px;
+  padding: 22px 12px 8px 38px;
   font: inherit;
   font-size: 0.875rem;
   font-weight: 700;
-  color: var(--text-color, #000);
   background: var(--bg-color, #fff);
   border: 2px solid var(--border-color, #000);
   border-radius: var(--radius-md);
   outline: none;
-  transition: box-shadow 0.15s ease;
+  color: var(--text-color, #000);
 }
-
-.float-input:focus {
-  box-shadow: var(--shadow-1);
+.cms-search-input:focus {
+  box-shadow: var(--shadow-1, 4px 4px 0 0 #000);
 }
-
-.float-label {
+.cms-search-label {
   position: absolute;
+  left: 38px;
   top: 50%;
-  left: 12px;
   transform: translateY(-50%);
   font-size: 0.875rem;
   font-weight: 700;
@@ -493,12 +493,267 @@ onMounted(() => {
   pointer-events: none;
   transition: all 0.15s ease;
 }
-
-.float-input:focus + .float-label,
-.float-input:not(:placeholder-shown) + .float-label {
+.cms-search-input:focus + .cms-search-label,
+.cms-search-input:not(:placeholder-shown) + .cms-search-label {
   top: 6px;
   transform: translateY(0) scale(0.7);
   transform-origin: left center;
   color: var(--text-color, #000);
+}
+.cms-select {
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  border: 2px solid var(--border-color, #000);
+  border-radius: var(--radius-md);
+  background: var(--bg-color, #fff);
+  color: var(--text-color, #000);
+  box-shadow: var(--shadow-1, 4px 4px 0 0 #000);
+  cursor: pointer;
+  min-width: 160px;
+}
+.cms-bulk {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+.cms-select-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.cms-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent-color, #a3e635);
+  cursor: pointer;
+}
+
+/* ============================================================
+   LIST
+   ============================================================ */
+.cms-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cms-list-header {
+  display: grid;
+  grid-template-columns: 40px 2fr 1fr 1fr 1fr;
+  align-items: center;
+  padding: 8px 16px;
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--text-muted, #555);
+  border-bottom: 2px solid var(--border-color, #000);
+}
+.cms-row {
+  border: 2px solid var(--border-color, #000);
+  border-radius: var(--radius-md);
+  background: white;
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+.cms-row:hover {
+  box-shadow: var(--shadow-1, 4px 4px 0 0 #000);
+}
+.cms-row-summary {
+  display: grid;
+  grid-template-columns: 40px 2fr 1fr 1fr 1fr;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  gap: 8px;
+  -webkit-tap-highlight-color: transparent;
+}
+.cms-cell {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-color, #000);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cms-cell--name {
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.cms-cell--checkbox {
+  display: flex;
+  justify-content: center;
+}
+.cms-cell--status {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.cms-caret {
+  color: var(--text-muted, #555);
+}
+.cms-status {
+  padding: 3px 8px;
+  font-size: 0.65rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  border: 2px solid var(--border-color, #000);
+  border-radius: var(--radius-md);
+  color: #000;
+}
+.cms-status--pending {
+  background: #fde047;
+}
+.cms-status--approved {
+  background: #a3e635;
+}
+.cms-status--rejected {
+  background: #fb923c;
+}
+
+/* ============================================================
+   EXPANDED
+   ============================================================ */
+.cms-row-expanded {
+  padding: 16px;
+  border-top: 2px dashed var(--border-color, #000);
+  background: #fafafa;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.cms-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+.cms-detail-grid strong {
+  display: block;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: var(--text-muted, #555);
+  margin-bottom: 4px;
+}
+.cms-detail-grid p {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  word-break: break-word;
+}
+.cms-detail-grid a {
+  color: #2563eb;
+  text-decoration: underline;
+  word-break: break-all;
+}
+.cms-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.cms-tag {
+  padding: 3px 8px;
+  font-size: 0.7rem;
+  font-weight: 900;
+  color: #000;
+  border: 2px solid var(--border-color, #000);
+  border-radius: var(--radius-md);
+}
+.cms-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  border-top: 2px dashed var(--border-color, #000);
+  padding-top: 12px;
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.cms-btn {
+  padding: 8px 16px;
+  font-size: 0.8125rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  border: 2px solid var(--border-color, #000);
+  border-radius: var(--radius-md);
+  box-shadow: 2px 2px 0 0 var(--border-color, #000);
+  color: #000;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.cms-btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 0 var(--border-color, #000);
+}
+.cms-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.cms-btn--bulk {
+  background: #e5e7eb;
+}
+.cms-btn--edit {
+  background: #60a5fa;
+}
+.cms-btn--approve {
+  background: #a3e635;
+}
+.cms-btn--reject {
+  background: #fb923c;
+}
+.cms-btn--delete {
+  background: #ef4444;
+  color: #fff;
+}
+
+/* ============================================================
+   STATES
+   ============================================================ */
+.cms-state {
+  padding: 24px;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  background: #fff;
+  border: 2px solid var(--border-color, #000);
+  border-radius: var(--radius-md);
+}
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+@media (max-width: 768px) {
+  .cms-container {
+    padding: 16px;
+  }
+  .cms-inner {
+    gap: 16px;
+  }
+  .cms-row-summary,
+  .cms-list-header {
+    grid-template-columns: 32px 1fr auto;
+  }
+  .cms-list-header > :nth-child(3),
+  .cms-list-header > :nth-child(4),
+  .cms-cell--date,
+  .cms-cell--location {
+    display: none;
+  }
+  .cms-bulk {
+    margin-left: 0;
+    width: 100%;
+    justify-content: space-between;
+  }
+  .cms-title {
+    font-size: 1.1rem;
+  }
 }
 </style>

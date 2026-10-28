@@ -129,4 +129,38 @@ export class SupabaseEventRepository extends EventService {
 
     return { error: null }
   }
+
+  /**
+   * Fetches ALL events (no status filter) for admin CMS.
+   * @returns {Promise<Array>}
+   */
+  async fetchAllEvents() {
+    const { data, error } = await supabase
+      .from('events')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('[SupabaseEventRepository] fetchAllEvents error:', error)
+      throw error
+    }
+
+    return data ?? []
+  }
+
+  /**
+   * Deletes a single event by id.
+   * @param {string} eventId
+   */
+  async deleteEvent(eventId) {
+    const { error } = await supabase
+      .from('events')
+      .delete()
+      .eq('id', eventId)
+
+    if (error) {
+      console.error('[SupabaseEventRepository] deleteEvent error:', error)
+      throw error
+    }
+  }
 }
