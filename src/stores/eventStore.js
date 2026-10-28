@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { SupabaseEventRepository } from '../repositories/SupabaseEventRepository'
+import { useAuthStore } from './authStore'
 
 export const useEventStore = defineStore('events', () => {
   const events = ref([])
@@ -12,8 +13,15 @@ export const useEventStore = defineStore('events', () => {
     error.value = null
 
     try {
+      const authStore = useAuthStore()
+      const payload = {
+        ...eventData,
+        status: 'pending',
+        created_by: authStore.user?.id,
+      }
+
       const repository = new SupabaseEventRepository()
-      const created = await repository.createEvent(eventData)
+      const created = await repository.createEvent(payload)
       await loadEvents()
       return created
     } catch (err) {
