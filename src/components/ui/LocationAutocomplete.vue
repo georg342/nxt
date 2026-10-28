@@ -6,6 +6,10 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  label: {
+    type: String,
+    default: 'Localização',
+  },
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -14,6 +18,7 @@ const searchQuery = ref(props.modelValue)
 const results = ref([])
 const isOpen = ref(false)
 const isSearching = ref(false)
+const searchInput = ref(null)
 let debounceId = null
 
 watch(
@@ -70,6 +75,7 @@ function selectResult(result) {
   isOpen.value = false
   results.value = []
   isSearching.value = false
+  searchInput.value?.blur()
 }
 
 function onBlur() {
@@ -83,6 +89,7 @@ function onBlur() {
   <div class="location-autocomplete" :class="{ 'is-open': isOpen }">
     <div class="location-autocomplete__field-wrap">
       <input
+        ref="searchInput"
         type="text"
         class="location-autocomplete__input peer"
         placeholder=" "
@@ -91,7 +98,7 @@ function onBlur() {
         @focus="onFocus"
         @blur="onBlur"
       />
-      <label class="location-autocomplete__label">Localização</label>
+      <label class="location-autocomplete__label">{{ label }}</label>
     </div>
     <Transition name="dropdown">
       <ul v-if="isOpen" class="location-autocomplete__dropdown">
@@ -138,7 +145,7 @@ function onBlur() {
 
 .location-autocomplete__input {
   width: 100%;
-  padding: 18px 12px 8px;
+  padding: 26px 12px 8px;
   font: inherit;
   font-size: 0.875rem;
   font-weight: 700;
@@ -168,8 +175,8 @@ function onBlur() {
 
 .location-autocomplete__input:focus + .location-autocomplete__label,
 .location-autocomplete__input:not(:placeholder-shown) + .location-autocomplete__label {
-  top: 8px;
-  transform: translateY(0) scale(0.75);
+  top: 6px;
+  transform: translateY(0) scale(0.7);
   transform-origin: left center;
   color: var(--text-color);
 }
@@ -187,7 +194,7 @@ function onBlur() {
   left: 0;
   right: 0;
   z-index: 50;
-  margin: 0;
+  margin: -2px 0 0;
   padding: 0;
   list-style: none;
   background: var(--surface-color);

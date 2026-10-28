@@ -7,6 +7,10 @@ const props = defineProps({
     type: [String, Date],
     default: '',
   },
+  label: {
+    type: String,
+    default: 'Data e Hora',
+  },
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -210,7 +214,7 @@ onBeforeUnmount(() => {
         @click="openPicker()"
         @blur="onDisplayBlur()"
       />
-      <label class="dtp__label">Data e Hora</label>
+      <label class="dtp__label">{{ label }}</label>
     </div>
 
     <div v-if="isOpen" ref="calendarPopup" class="dtp__popover">
@@ -283,7 +287,7 @@ onBeforeUnmount(() => {
 
 .dtp__display {
   width: 100%;
-  padding: 18px 12px 8px;
+  padding: 26px 12px 8px;
   font: inherit;
   font-size: 0.875rem;
   font-weight: 700;
@@ -313,8 +317,8 @@ onBeforeUnmount(() => {
 
 .dtp__display:focus + .dtp__label,
 .dtp__display:not(:placeholder-shown) + .dtp__label {
-  top: 8px;
-  transform: translateY(0) scale(0.75);
+  top: 6px;
+  transform: translateY(0) scale(0.7);
   transform-origin: left center;
   color: var(--text-color);
 }

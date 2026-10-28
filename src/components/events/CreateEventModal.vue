@@ -105,23 +105,31 @@ function handleClose() {
           </div>
 
           <div class="create-event__field">
-            <span>{{ t('createEvent.fields.startDate') }}</span>
-            <DateTimePicker v-model="form.start_date" />
+            <DateTimePicker
+              v-model="form.start_date"
+              :label="t('createEvent.fields.startDate')"
+            />
           </div>
 
           <div class="create-event__field">
-            <span>{{ t('createEvent.fields.location') }}</span>
-            <LocationAutocomplete v-model="form.location" />
+            <LocationAutocomplete
+              v-model="form.location"
+              :label="t('createEvent.fields.location')"
+            />
           </div>
 
           <div class="create-event__field">
-            <span>{{ t('createEvent.fields.lineup') }}</span>
-            <TagInput v-model="form.lineup" />
+            <TagInput
+              v-model="form.lineup"
+              :label="t('createEvent.fields.lineup')"
+            />
           </div>
 
           <div class="create-event__field">
-            <span>{{ t('createEvent.fields.genres') }}</span>
-            <TagInput v-model="form.genres" />
+            <TagInput
+              v-model="form.genres"
+              :label="t('createEvent.fields.genres')"
+            />
           </div>
 
           <p v-if="submitError" class="create-event__error">{{ submitError }}</p>
@@ -185,7 +193,7 @@ function handleClose() {
 }
 
 .create-event__body::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .create-event__body::-webkit-scrollbar-track {
@@ -193,8 +201,8 @@ function handleClose() {
 }
 
 .create-event__body::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 3px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 9999px;
 }
 
 .create-event__footer {
@@ -253,7 +261,7 @@ function handleClose() {
 
 .create-event__field input {
   width: 100%;
-  padding: 18px 12px 8px;
+  padding: 26px 12px 8px;
   font: inherit;
   font-size: 0.875rem;
   font-weight: 700;
@@ -285,8 +293,8 @@ function handleClose() {
 
 .create-event__field input:focus + .create-event__label,
 .create-event__field input:not(:placeholder-shown) + .create-event__label {
-  top: 8px;
-  transform: translateY(0) scale(0.75);
+  top: 6px;
+  transform: translateY(0) scale(0.7);
   transform-origin: left center;
   color: var(--text-color);
 }

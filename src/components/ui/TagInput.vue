@@ -7,6 +7,10 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  label: {
+    type: String,
+    default: 'Adicionar...',
+  },
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -96,7 +100,7 @@ function removeTag(index) {
         @keydown.enter.prevent="addTag()"
         @blur="addTag()"
       />
-      <label class="tag-input__label">Adicionar...</label>
+      <label class="tag-input__label">{{ label }}</label>
     </div>
   </div>
 </template>
@@ -147,7 +151,7 @@ function removeTag(index) {
 
 .tag-input__field {
   width: 100%;
-  padding: 4px;
+  padding: 14px 4px 4px;
   font: inherit;
   font-size: 0.875rem;
   font-weight: 700;
@@ -171,8 +175,8 @@ function removeTag(index) {
 
 .tag-input__field:focus + .tag-input__label,
 .tag-input__field:not(:placeholder-shown) + .tag-input__label {
-  top: -2px;
-  transform: translateY(-100%) scale(0.85);
+  top: 2px;
+  transform: translateY(0) scale(0.85);
   transform-origin: left center;
   color: var(--text-color);
 }
