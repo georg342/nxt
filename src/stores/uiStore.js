@@ -363,23 +363,32 @@ export const useUIStore = defineStore(
     }
 
     /**
-     * Navigates to the previous period based on the active view.
-     * year -> -1 year, month -> -1 month, week -> -7 days, day -> -1 day.
+     * Navigates back one level in the view hierarchy.
+     * day -> week, week -> month, month -> year, year -> -1 year.
+     * When leaving the day view, keeps the currentDate anchored to the
+     * selected day so the parent view (week/month) shows the correct period.
      */
     function goToPrevious() {
-      const next = new Date(currentDate.value)
-
-      if (activeView.value === 'year') {
-        next.setFullYear(next.getFullYear() - 1)
-      } else if (activeView.value === 'month') {
-        next.setMonth(next.getMonth() - 1)
-      } else if (activeView.value === 'week') {
-        next.setDate(next.getDate() - 7)
-      } else if (activeView.value === 'day') {
-        next.setDate(next.getDate() - 1)
-        selectedDate.value = new Date(next)
+      if (activeView.value === 'day') {
+        if (selectedDate.value) {
+          currentDate.value = new Date(selectedDate.value)
+        }
+        setActiveView('week')
+        return
       }
 
+      if (activeView.value === 'week') {
+        setActiveView('month')
+        return
+      }
+
+      if (activeView.value === 'month') {
+        setActiveView('year')
+        return
+      }
+
+      const next = new Date(currentDate.value)
+      next.setFullYear(next.getFullYear() - 1)
       currentDate.value = next
     }
 
