@@ -43,13 +43,15 @@ async function handleSubmit() {
   submitError.value = null
 
   try {
-    await eventStore.addEvent({
+    const eventData = {
       title: form.title.trim(),
       start_date: form.start_date,
       location: form.location.trim(),
       lineup: parseList(form.lineup),
       genres: parseList(form.genres),
-    })
+    }
+
+    await eventStore.addEvent(eventData)
     resetForm()
     uiStore.closeCreateEventModal()
   } catch (err) {
