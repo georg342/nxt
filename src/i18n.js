@@ -35,6 +35,7 @@ const messages = {
       submit: 'Create Event',
       submitting: 'Creating...',
       error: 'Failed to create event. Please try again.',
+      success: 'Event suggested successfully! Awaiting admin approval.',
       fields: {
         title: 'Title',
         startDate: 'Date & Time',
@@ -78,6 +79,7 @@ const messages = {
       submit: 'Criar Festa',
       submitting: 'Criando...',
       error: 'Falha ao criar a festa. Tente novamente.',
+      success: 'Festa sugerida com sucesso! Aguardando aprovação do administrador.',
       fields: {
         title: 'Título',
         startDate: 'Data e Hora',
