@@ -32,22 +32,34 @@ function setView(viewName) {
         :color="activeView === 'year' ? 'var(--accent-color)' : undefined"
         @click="setView('year')"
       >
-        12M
+        {{ $t('nav.year') }}
       </BrutalButton>
       <BrutalButton
         :color="activeView === 'month' ? 'var(--accent-color)' : undefined"
         @click="setView('month')"
       >
-        30D
+        {{ $t('nav.month') }}
       </BrutalButton>
       <BrutalButton
         :color="activeView === 'week' ? 'var(--accent-color)' : undefined"
         @click="setView('week')"
       >
-        7D
+        {{ $t('nav.week') }}
       </BrutalButton>
-      <BrutalButton>Today</BrutalButton>
-      <BrutalButton color="var(--accent-color)">+</BrutalButton>
+      <BrutalButton>{{ $t('nav.today') }}</BrutalButton>
+      <BrutalButton color="var(--accent-color)">{{ $t('nav.add') }}</BrutalButton>
+      <BrutalButton
+        :aria-label="uiStore.theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'"
+        @click="uiStore.toggleTheme()"
+      >
+        {{ uiStore.theme === 'light' ? $t('theme.toDark') : $t('theme.toLight') }}
+      </BrutalButton>
+      <BrutalButton
+        :aria-label="uiStore.locale === 'pt' ? 'Switch to English' : 'Mudar para Português'"
+        @click="uiStore.toggleLocale()"
+      >
+        {{ uiStore.locale === 'pt' ? $t('locale.toEn') : $t('locale.toPt') }}
+      </BrutalButton>
     </nav>
   </header>
 </template>

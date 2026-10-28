@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+import i18n from '../i18n'
 
 const THEME_LIGHT = 'light'
 const THEME_DARK = 'dark'
@@ -17,7 +18,11 @@ const VIEW_DEPTH = {
 
 const DEFAULT_TRANSITION = 'ios-push'
 
-const DAY_NAMES = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
+const DEFAULT_LOCALE = 'pt'
+const LOCALE_MAP = {
+  pt: 'pt-BR',
+  en: 'en-US',
+}
 
 /**
  * Returns a new Date set to Monday 00:00 of the week containing `date`.
@@ -36,10 +41,11 @@ function getMondayOfWeek(date) {
 /**
  * Formats a Date as "MMM D" (e.g., "Oct 14").
  * @param {Date} date
+ * @param {string} intlLocale
  * @returns {string}
  */
-function formatShortDate(date) {
-  return new Intl.DateTimeFormat('en-US', {
+function formatShortDate(date, intlLocale) {
+  return new Intl.DateTimeFormat(intlLocale, {
     month: 'short',
     day: 'numeric',
   }).format(date)
@@ -58,22 +64,27 @@ export const useUIStore = defineStore(
   'ui',
   () => {
     const theme = ref(DEFAULT_THEME)
+    const locale = ref(DEFAULT_LOCALE)
     const activeView = ref(DEFAULT_VIEW)
     const currentDate = ref(new Date())
     const transitionDirection = ref(DEFAULT_TRANSITION)
 
+    const intlLocale = computed(() => LOCALE_MAP[locale.value] ?? 'en-US')
+
     const contextLabel = computed(() => {
       const date = currentDate.value
+      const intl = intlLocale.value
 
       if (activeView.value === 'year') {
         return String(date.getFullYear())
       }
 
       if (activeView.value === 'month') {
-        return new Intl.DateTimeFormat('en-US', {
+        const formatted = new Intl.DateTimeFormat(intl, {
           month: 'long',
           year: 'numeric',
         }).format(date)
+        return formatted.charAt(0).toUpperCase() + formatted.slice(1)
       }
 
       if (activeView.value === 'week') {
@@ -83,12 +94,12 @@ export const useUIStore = defineStore(
 
         const sameMonth = monday.getMonth() === sunday.getMonth()
         const startLabel = sameMonth
-          ? formatShortDate(monday).split(' ')[1]
-          : formatShortDate(monday)
-        const endLabel = formatShortDate(sunday)
+          ? formatShortDate(monday, intl).split(' ')[1]
+          : formatShortDate(monday, intl)
+        const endLabel = formatShortDate(sunday, intl)
 
         return sameMonth
-          ? `${formatShortDate(monday).split(' ')[0]} ${startLabel} - ${endLabel}`
+          ? `${formatShortDate(monday, intl).split(' ')[0]} ${startLabel} - ${endLabel}`
           : `${startLabel} - ${endLabel}`
       }
 
@@ -97,12 +108,17 @@ export const useUIStore = defineStore(
 
     const weekDaysData = computed(() => {
       const monday = getMondayOfWeek(currentDate.value)
+      const intl = intlLocale.value
+      const weekdayFormatter = new Intl.DateTimeFormat(intl, {
+        weekday: 'short',
+      })
+
       return Array.from({ length: 7 }, (_, i) => {
         const day = new Date(monday)
         day.setDate(monday.getDate() + i)
         return {
           dateNum: day.getDate(),
-          dayName: DAY_NAMES[day.getDay()],
+          dayName: weekdayFormatter.format(day).replace('.', '').toUpperCase(),
         }
       })
     })
@@ -121,6 +137,14 @@ export const useUIStore = defineStore(
      */
     function toggleTheme() {
       setTheme(theme.value === THEME_DARK ? THEME_LIGHT : THEME_DARK)
+    }
+
+    /**
+     * Toggles between 'pt' and 'en' locales and syncs vue-i18n.
+     */
+    function toggleLocale() {
+      locale.value = locale.value === 'pt' ? 'en' : 'pt'
+      i18n.global.locale.value = locale.value
     }
 
     /**
@@ -159,6 +183,7 @@ export const useUIStore = defineStore(
 
     return {
       theme,
+      locale,
       activeView,
       currentDate,
       transitionDirection,
@@ -166,6 +191,7 @@ export const useUIStore = defineStore(
       weekDaysData,
       setTheme,
       toggleTheme,
+      toggleLocale,
       initTheme,
       setActiveView,
       nextWeek,
@@ -174,7 +200,7 @@ export const useUIStore = defineStore(
   {
     persist: {
       key: 'wnxt-ui',
-      pick: ['theme', 'activeView'],
+      pick: ['theme', 'locale', 'activeView'],
     },
   }
 )

@@ -4,6 +4,7 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import { MotionPlugin } from '@vueuse/motion'
 import App from './App.vue'
 import router from './router'
+import i18n from './i18n'
 import { useUIStore } from './stores/uiStore'
 import './assets/main.css'
 
@@ -14,6 +15,7 @@ pinia.use(piniaPluginPersistedstate)
 
 app.use(pinia)
 app.use(router)
+app.use(i18n)
 app.use(MotionPlugin)
 
 // Apply persisted theme to <html> before mounting to avoid theme flash.

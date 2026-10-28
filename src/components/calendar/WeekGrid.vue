@@ -29,7 +29,7 @@ const uiStore = useUIStore()
       color="var(--accent-color)"
       @click="uiStore.nextWeek()"
     >
-      NEXT -&gt;
+      {{ $t('next') }}
     </BrutalButton>
   </div>
 </template>
