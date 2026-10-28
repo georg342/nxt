@@ -17,10 +17,13 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function loginWithGoogle() {
+    const redirectTo =
+      typeof window !== 'undefined' ? window.location.origin : undefined
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin,
+        redirectTo,
       },
     })
 
