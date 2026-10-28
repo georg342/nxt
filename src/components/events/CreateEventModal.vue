@@ -55,7 +55,7 @@ async function handleSubmit() {
 
     await eventStore.addEvent(eventData)
 
-    alert(t('createEvent.success'))
+    uiStore.showToast(t('createEvent.success'), 'success')
 
     resetForm()
     uiStore.closeCreateEventModal()

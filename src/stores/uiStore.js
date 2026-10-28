@@ -194,6 +194,8 @@ export const useUIStore = defineStore(
     const searchQuery = ref('')
     const isSearchOpen = ref(false)
     const isCreateEventModalOpen = ref(false)
+    const toast = ref({ show: false, message: '', type: 'success' })
+    let toastTimeoutId = null
 
     const intlLocale = computed(() => LOCALE_MAP[locale.value] ?? 'en-US')
 
@@ -462,6 +464,37 @@ export const useUIStore = defineStore(
     }
 
     /**
+     * Shows a toast notification, replacing any active one.
+     * @param {string} message
+     * @param {'success' | 'error' | 'info'} [type]
+     * @param {number} [duration]
+     */
+    function showToast(message, type = 'success', duration = 3000) {
+      if (toastTimeoutId) {
+        clearTimeout(toastTimeoutId)
+        toastTimeoutId = null
+      }
+
+      toast.value = { show: true, message, type }
+
+      toastTimeoutId = setTimeout(() => {
+        toast.value = { ...toast.value, show: false }
+        toastTimeoutId = null
+      }, duration)
+    }
+
+    /**
+     * Hides the toast notification immediately.
+     */
+    function hideToast() {
+      if (toastTimeoutId) {
+        clearTimeout(toastTimeoutId)
+        toastTimeoutId = null
+      }
+      toast.value = { ...toast.value, show: false }
+    }
+
+    /**
      * Opens the create event modal.
      */
     function openCreateEventModal() {
@@ -496,6 +529,7 @@ export const useUIStore = defineStore(
       searchQuery,
       isSearchOpen,
       isCreateEventModalOpen,
+      toast,
       setActiveView,
       nextWeek,
       goToPrevious,
@@ -507,6 +541,8 @@ export const useUIStore = defineStore(
       toggleSearch,
       openCreateEventModal,
       closeCreateEventModal,
+      showToast,
+      hideToast,
     }
   },
   {
