@@ -163,7 +163,7 @@ function handleClose() {
   flex-direction: column;
   width: 100%;
   max-width: 420px;
-  height: 95dvh;
+  height: 90dvh;
   max-height: 100%;
   margin-top: 2.5vh;
   background: var(--surface-color);
