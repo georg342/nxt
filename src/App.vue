@@ -1,14 +1,15 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted } from 'vue'
 import { PhShieldCheck } from '@phosphor-icons/vue'
 import AuthModal from './components/auth/AuthModal.vue'
 import CreateEventModal from './components/events/CreateEventModal.vue'
 import ToastNotification from './components/ui/ToastNotification.vue'
 import AdminPanel from './components/admin/AdminPanel.vue'
 import { useAuthStore } from './stores/authStore'
+import { useUIStore } from './stores/uiStore'
 
 const authStore = useAuthStore()
-const isAdminPanelOpen = ref(false)
+const uiStore = useUIStore()
 
 onMounted(() => {
   authStore.initAuth()
@@ -21,21 +22,21 @@ onMounted(() => {
   <button
     v-if="authStore.isAdmin"
     type="button"
-    class="admin-toggle"
+    class="admin-fab"
     aria-label="Admin panel"
-    @click="isAdminPanelOpen = !isAdminPanelOpen"
+    @click="uiStore.toggleAdminPanel()"
   >
     <PhShieldCheck :size="20" weight="duotone" />
   </button>
 
   <Transition name="admin-panel">
-    <div v-if="isAdminPanelOpen" class="admin-overlay">
+    <div v-if="uiStore.isAdminPanelOpen" class="admin-overlay">
       <div class="admin-overlay__inner">
         <button
           type="button"
           class="admin-overlay__close"
           aria-label="Close admin panel"
-          @click="isAdminPanelOpen = false"
+          @click="uiStore.closeAdminPanel()"
         >
           Fechar
         </button>
@@ -51,19 +52,19 @@ onMounted(() => {
 
 <style>
 /* O CSS global neo-brutalista será importado posteriormente */
-.admin-toggle {
+.admin-fab {
   position: fixed;
-  top: 16px;
-  right: 16px;
-  z-index: 9000;
+  bottom: 24px;
+  right: 24px;
+  z-index: 50;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: var(--accent-color);
-  border: 2px solid var(--border-color);
-  border-radius: var(--radius-md);
+  background-color: var(--accent-color, #fb923c);
+  border: 2px solid var(--border-color, #000);
+  border-radius: var(--radius-md, 16px);
   box-shadow: var(--shadow-1);
   color: var(--text-color);
   cursor: pointer;

@@ -517,6 +517,13 @@ export const useUIStore = defineStore(
     }
 
     /**
+     * Toggles the admin CMS panel visibility.
+     */
+    function toggleAdminPanel() {
+      isAdminPanelOpen.value = !isAdminPanelOpen.value
+    }
+
+    /**
      * Closes the admin CMS panel.
      */
     function closeAdminPanel() {
@@ -559,6 +566,7 @@ export const useUIStore = defineStore(
       closeCreateEventModal,
       openAdminPanel,
       closeAdminPanel,
+      toggleAdminPanel,
       showToast,
       hideToast,
     }

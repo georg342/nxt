@@ -1,22 +1,16 @@
 <script setup>
-import { useRouter } from 'vue-router'
 import { PhSun, PhMoon, PhGlobe } from '@phosphor-icons/vue'
 import BrutalButton from '../ui/BrutalButton.vue'
 import { useUIStore } from '../../stores/uiStore'
 
-const router = useRouter()
 const uiStore = useUIStore()
-
-function goToAdmin() {
-  router.push('/admin')
-}
 </script>
 
 <template>
   <header class="app-header">
     <span
-      class="app-header__logo"
-      @dblclick="goToAdmin"
+      class="app-header__logo site-logo"
+      @dblclick="uiStore.toggleAdminPanel()"
     >
       WNXT
     </span>
@@ -69,6 +63,9 @@ function goToAdmin() {
   font-size: 1.25rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+}
+
+.site-logo {
   user-select: none;
   cursor: pointer;
 }
