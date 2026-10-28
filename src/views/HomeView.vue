@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import AppLayout from '../components/layout/AppLayout.vue'
+import AppBottomNav from '../components/layout/AppBottomNav.vue'
 import YearGrid from '../components/calendar/YearGrid.vue'
 import MonthGrid from '../components/calendar/MonthGrid.vue'
 import WeekGrid from '../components/calendar/WeekGrid.vue'
@@ -22,6 +23,7 @@ const activeView = computed(() => uiStore.activeView)
         <DayFeed v-else-if="activeView === 'day'" key="day" />
       </Transition>
     </div>
+    <AppBottomNav />
   </AppLayout>
 </template>
 
@@ -30,5 +32,7 @@ const activeView = computed(() => uiStore.activeView)
   position: relative;
   height: 100%;
   overflow: hidden;
+  padding-bottom: 100px;
+  box-sizing: border-box;
 }
 </style>
