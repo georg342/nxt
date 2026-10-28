@@ -16,6 +16,13 @@ const eventStore = useEventStore()
 
 const searchQuery = ref('')
 const statusFilter = ref('all')
+const isStatusDropdownOpen = ref(false)
+const statusOptions = [
+  { label: 'TODOS OS STATUS', value: 'all' },
+  { label: 'PENDENTES', value: 'pending' },
+  { label: 'APROVADOS', value: 'approved' },
+  { label: 'REJEITADOS', value: 'rejected' },
+]
 const selectedIds = ref([])
 const expandedIds = ref([])
 const pendingDeleteId = ref(null)
@@ -38,10 +45,21 @@ const isAllSelected = computed(
     filteredEvents.value.every((e) => selectedIds.value.includes(e.id))
 )
 
+const currentStatusLabel = computed(
+  () =>
+    statusOptions.find((opt) => opt.value === statusFilter.value)?.label ||
+    'TODOS OS STATUS'
+)
+
 function toggleSelectAll() {
   selectedIds.value = isAllSelected.value
     ? []
     : filteredEvents.value.map((e) => e.id)
+}
+
+function selectStatus(value) {
+  statusFilter.value = value
+  isStatusDropdownOpen.value = false
 }
 
 function toggleSelect(id) {
@@ -186,12 +204,27 @@ onMounted(async () => {
           <label class="cms-search-label">Buscar por nome</label>
         </div>
 
-        <select v-model="statusFilter" class="cms-select">
-          <option value="all">Todos os Status</option>
-          <option value="pending">Pendentes</option>
-          <option value="approved">Aprovados</option>
-          <option value="rejected">Rejeitados</option>
-        </select>
+        <div class="custom-dropdown">
+          <button
+            type="button"
+            class="dropdown-trigger"
+            @click="isStatusDropdownOpen = !isStatusDropdownOpen"
+          >
+            {{ currentStatusLabel }}
+            <PhCaretDown :size="16" weight="bold" />
+          </button>
+          <ul v-if="isStatusDropdownOpen" class="dropdown-menu">
+            <li
+              v-for="option in statusOptions"
+              :key="option.value"
+              class="dropdown-item"
+              :class="{ 'is-active': statusFilter === option.value }"
+              @click="selectStatus(option.value)"
+            >
+              {{ option.label }}
+            </li>
+          </ul>
+        </div>
 
         <div class="cms-bulk">
           <label class="cms-select-all">
@@ -515,25 +548,71 @@ onMounted(async () => {
   transform-origin: left center;
   color: var(--text-color, #000);
 }
-.cms-select {
-  padding: 10px 12px;
-  font: inherit;
-  font-size: 0.8125rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  border: 2px solid var(--border-color, #000);
-  border-radius: var(--radius-md);
-  background: var(--bg-color, #fff);
-  color: var(--text-color, #000);
-  box-shadow: var(--shadow-1, 4px 4px 0 0 #000);
-  cursor: pointer;
-  min-width: 160px;
-}
 .cms-bulk {
   display: flex;
   align-items: center;
   gap: 12px;
   margin-left: auto;
+}
+
+/* ============================================================
+   CUSTOM DROPDOWN (STATUS FILTER)
+   ============================================================ */
+.custom-dropdown {
+  position: relative;
+  display: inline-block;
+  min-width: 200px;
+}
+.dropdown-trigger {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 12px 16px;
+  font-weight: bold;
+  background: var(--surface-color, #fff);
+  color: var(--text-color, #000);
+  border: 2px solid var(--border-color, #000);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: var(--shadow-1, 4px 4px 0px #000);
+  cursor: pointer;
+  text-transform: uppercase;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  background: var(--surface-color, #fff);
+  border: 2px solid var(--border-color, #000);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: var(--shadow-1, 4px 4px 0px #000);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  z-index: 50;
+  overflow: hidden;
+}
+.dropdown-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 2px solid var(--border-color, #000);
+  font-weight: bold;
+  text-transform: uppercase;
+  transition: background-color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+.dropdown-item:hover {
+  background-color: var(--accent-color, #a3e635);
+}
+.dropdown-item.is-active {
+  background-color: var(--border-color, #000);
+  color: #fff;
 }
 .cms-select-all {
   display: inline-flex;
