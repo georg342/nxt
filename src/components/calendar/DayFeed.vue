@@ -1,45 +1,49 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import EventCard from './EventCard.vue'
+import { useEventStore } from '../../stores/eventStore'
+import { useUIStore } from '../../stores/uiStore'
 
-const MOCK_EVENTS = [
-  {
-    id: 1,
-    title: 'Neon Warehouse',
-    time: '22:00',
-    location: 'Vila Madalena, SP',
-    genres: ['Techno', 'House'],
-    lineup: ['DJ Vertex', 'Luna Flux', 'Kairo'],
-  },
-  {
-    id: 2,
-    title: 'Basement Sessions',
-    time: '23:30',
-    location: 'Centro, SP',
-    genres: ['Minimal', 'Deep House'],
-    lineup: ['Sublevel', 'Mara Vex'],
-  },
-  {
-    id: 3,
-    title: 'Sunrise Rooftop',
-    time: '05:00',
-    location: 'Pinheiros, SP',
-    genres: ['Melodic Techno'],
-    lineup: ['Aurora', 'Nyx'],
-  },
-]
+const eventStore = useEventStore()
+const uiStore = useUIStore()
 
 const expandedEventId = ref(null)
 
 function toggleEvent(id) {
   expandedEventId.value = expandedEventId.value === id ? null : id
 }
+
+function toDateKey(date) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const filteredEvents = computed(() => {
+  const referenceDate = uiStore.selectedDate ?? new Date()
+  const targetKey = toDateKey(referenceDate)
+
+  return eventStore.events.filter((event) => {
+    if (!event.start_date) return false
+    return event.start_date.slice(0, 10) === targetKey
+  })
+})
+
+onMounted(() => {
+  eventStore.loadEvents()
+})
 </script>
 
 <template>
   <div class="day-feed">
+    <p v-if="eventStore.isLoading" class="day-feed__state">Loading...</p>
+    <p v-else-if="filteredEvents.length === 0" class="day-feed__state">
+      No events for this day.
+    </p>
     <EventCard
-      v-for="event in MOCK_EVENTS"
+      v-for="event in filteredEvents"
+      v-else
       :key="event.id"
       :event="event"
       :expanded="expandedEventId === event.id"
@@ -77,4 +81,16 @@ function toggleEvent(id) {
   display: none;
 }
 
+.day-feed__state {
+  margin: 0;
+  padding: 24px 16px;
+  text-align: center;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-color);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--surface-color);
+}
 </style>
