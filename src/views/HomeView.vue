@@ -32,7 +32,5 @@ const activeView = computed(() => uiStore.activeView)
   position: relative;
   height: 100%;
   overflow: hidden;
-  padding-bottom: 100px;
-  box-sizing: border-box;
 }
 </style>

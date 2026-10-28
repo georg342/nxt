@@ -25,5 +25,7 @@ import AppSubHeader from './AppSubHeader.vue'
   flex: 1;
   overflow: hidden;
   position: relative;
+  padding-bottom: 100px;
+  box-sizing: border-box;
 }
 </style>

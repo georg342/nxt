@@ -93,7 +93,7 @@ function toggleEvent(id) {
   height: 100%;
   overflow-y: auto;
   gap: 16px;
-  padding: 16px 16px 100px 16px;
+  padding: 16px;
   scrollbar-width: none;
   -ms-overflow-style: none;
   box-sizing: border-box;
