@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { PhX } from '@phosphor-icons/vue'
+import { PhCheck, PhX } from '@phosphor-icons/vue'
 import { useUIStore } from '../../stores/uiStore'
 import { useAuthStore } from '../../stores/authStore'
 import { useEventStore } from '../../stores/eventStore'
@@ -10,15 +10,17 @@ const authStore = useAuthStore()
 const eventStore = useEventStore()
 
 const activeTab = ref('pending')
-const newAdminId = ref('')
+const newAdminUuid = ref('')
 
-const allSelected = computed(() => {
-  const ids = eventStore.pendingEvents.map((event) => event.id)
-  return ids.length > 0 && ids.every((id) => eventStore.selectedPendingEventIds.includes(id))
+const isAllSelected = computed(() => {
+  return (
+    eventStore.pendingEvents.length > 0 &&
+    eventStore.selectedPendingEventIds.length === eventStore.pendingEvents.length
+  )
 })
 
 function toggleSelectAll() {
-  if (allSelected.value) {
+  if (isAllSelected.value) {
     eventStore.selectedPendingEventIds = []
   } else {
     eventStore.selectedPendingEventIds = eventStore.pendingEvents.map((event) => event.id)
@@ -46,13 +48,36 @@ function formatDate(value) {
   }).format(date)
 }
 
+function getShortLocation(address) {
+  if (!address) return ''
+  const parts = address.split(',').map((p) => p.trim()).filter(Boolean)
+  if (parts.length >= 3) {
+    const neighborhood = parts[1]
+    const city = parts[2]
+    const state = parts[3] || ''
+    return state ? `${neighborhood}, ${city} - ${state}` : `${neighborhood}, ${city}`
+  }
+  return address.length > 40 ? `${address.slice(0, 40)}…` : address
+}
+
 function parsePills(data) {
   if (!data) return []
-  if (Array.isArray(data)) return data
+  if (Array.isArray(data)) {
+    return data.map((item) => {
+      if (typeof item === 'string') {
+        try {
+          return JSON.parse(item)
+        } catch {
+          return { LABEL: item, COLOR: '#e5e7eb' }
+        }
+      }
+      return item
+    })
+  }
   if (typeof data === 'string') {
     try {
       const parsed = JSON.parse(data)
-      return Array.isArray(parsed) ? parsed : []
+      return Array.isArray(parsed) ? parsed : [parsed]
     } catch {
       return []
     }
@@ -60,12 +85,12 @@ function parsePills(data) {
   return []
 }
 
-async function handleAddAdmin() {
-  const id = newAdminId.value.trim()
+async function submitNewAdmin() {
+  const id = newAdminUuid.value.trim()
   if (!id) return
   const result = await eventStore.addAdminUser(id)
   if (result?.success) {
-    newAdminId.value = ''
+    newAdminUuid.value = ''
   }
 }
 
@@ -75,12 +100,12 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="admin-gateway">
-    <header class="admin-gateway__header">
-      <h1 class="admin-gateway__title">Admin CMS</h1>
+  <div class="admin-overlay">
+    <header class="admin-header">
+      <h1 class="admin-title">Admin CMS</h1>
       <button
         type="button"
-        class="admin-gateway__close"
+        class="btn-close"
         aria-label="Close admin panel"
         @click="uiStore.closeAdminPanel()"
       >
@@ -88,11 +113,11 @@ onMounted(() => {
       </button>
     </header>
 
-    <nav class="admin-gateway__tabs">
+    <nav class="admin-tabs">
       <button
         type="button"
-        class="admin-gateway__tab"
-        :class="{ 'admin-gateway__tab--active': activeTab === 'pending' }"
+        class="admin-tab"
+        :class="{ 'admin-tab--active': activeTab === 'pending' }"
         @click="activeTab = 'pending'"
       >
         Eventos Pendentes
@@ -100,110 +125,113 @@ onMounted(() => {
       <button
         v-if="authStore.isSuperAdmin"
         type="button"
-        class="admin-gateway__tab"
-        :class="{ 'admin-gateway__tab--active': activeTab === 'admins' }"
+        class="admin-tab"
+        :class="{ 'admin-tab--active': activeTab === 'admins' }"
         @click="activeTab = 'admins'"
       >
         Gestão de Admins
       </button>
     </nav>
 
-    <section v-if="activeTab === 'pending'" class="admin-gateway__section">
-      <div class="admin-gateway__toolbar">
-        <label class="admin-gateway__select-all">
+    <section v-if="activeTab === 'pending'" class="admin-tab-content">
+      <div class="admin-toolbar">
+        <label class="select-all">
           <input
             type="checkbox"
-            class="admin-gateway__checkbox"
-            :checked="allSelected"
+            class="admin-checkbox"
+            :checked="isAllSelected"
             @change="toggleSelectAll()"
           />
-          Selecionar Todos
+          <span>Selecionar Todos</span>
         </label>
-        <button
-          type="button"
-          class="admin-gateway__bulk admin-gateway__bulk--approve"
-          :disabled="eventStore.selectedPendingEventIds.length === 0"
-          @click="eventStore.bulkUpdatePendingEvents('published')"
-        >
-          Aprovar Selecionados
-        </button>
-        <button
-          type="button"
-          class="admin-gateway__bulk admin-gateway__bulk--reject"
-          :disabled="eventStore.selectedPendingEventIds.length === 0"
-          @click="eventStore.bulkUpdatePendingEvents('rejected')"
-        >
-          Rejeitar Selecionados
-        </button>
+        <div class="admin-toolbar__actions">
+          <button
+            type="button"
+            class="btn-approve"
+            :disabled="eventStore.selectedPendingEventIds.length === 0"
+            @click="eventStore.bulkUpdatePendingEvents('approved')"
+          >
+            <PhCheck :size="16" weight="bold" />
+            Aprovar
+          </button>
+          <button
+            type="button"
+            class="btn-reject"
+            :disabled="eventStore.selectedPendingEventIds.length === 0"
+            @click="eventStore.bulkUpdatePendingEvents('rejected')"
+          >
+            Rejeitar
+          </button>
+        </div>
       </div>
 
-      <p v-if="eventStore.isLoading" class="admin-gateway__state">Carregando...</p>
+      <p v-if="eventStore.isLoading" class="admin-state">Carregando...</p>
       <p
         v-else-if="eventStore.pendingEvents.length === 0"
-        class="admin-gateway__state"
+        class="admin-state"
       >
         Nenhum evento pendente. A paz reina.
       </p>
 
-      <div v-else class="admin-gateway__grid">
+      <div v-else class="admin-grid">
         <article
           v-for="event in eventStore.pendingEvents"
           :key="event.id"
-          class="admin-gateway__card"
+          class="admin-card"
         >
-          <label class="admin-gateway__card-head">
-            <input
-              type="checkbox"
-              class="admin-gateway__checkbox"
-              :checked="eventStore.selectedPendingEventIds.includes(event.id)"
-              @change="toggleEventSelection(event.id)"
-            />
-            <span class="admin-gateway__card-title">{{ event.title }}</span>
-          </label>
-          <p class="admin-gateway__card-meta">{{ formatDate(event.start_date) }}</p>
-          <p class="admin-gateway__card-meta">{{ event.location }}</p>
+          <input
+            type="checkbox"
+            class="admin-card__checkbox"
+            :checked="eventStore.selectedPendingEventIds.includes(event.id)"
+            @change="toggleEventSelection(event.id)"
+          />
+          <h3 class="admin-card__title">{{ event.title }}</h3>
+          <p class="admin-card__meta">{{ formatDate(event.start_date) }}</p>
+          <p class="admin-card__meta">{{ getShortLocation(event.location) }}</p>
+
           <div
             v-if="parsePills(event.genres).length"
-            class="admin-gateway__tags"
+            class="admin-card__tags"
           >
             <span
               v-for="(pill, index) in parsePills(event.genres)"
               :key="`genre-${index}`"
-              class="admin-gateway__tag"
-              :style="{ backgroundColor: pill.color || pill.COLOR }"
+              class="admin-tag"
+              :style="{ backgroundColor: pill?.COLOR || pill?.color || '#e5e7eb' }"
             >
-              {{ pill.label || pill.LABEL }}
+              {{ pill?.LABEL || pill?.label || pill }}
             </span>
           </div>
           <div
             v-if="parsePills(event.lineup).length"
-            class="admin-gateway__tags"
+            class="admin-card__tags"
           >
             <span
               v-for="(pill, index) in parsePills(event.lineup)"
               :key="`lineup-${index}`"
-              class="admin-gateway__tag"
-              :style="{ backgroundColor: pill.color || pill.COLOR }"
+              class="admin-tag"
+              :style="{ backgroundColor: pill?.COLOR || pill?.color || '#e5e7eb' }"
             >
-              {{ pill.label || pill.LABEL }}
+              {{ pill?.LABEL || pill?.label || pill }}
             </span>
           </div>
         </article>
       </div>
     </section>
 
-    <section v-else-if="activeTab === 'admins'" class="admin-gateway__section">
-      <form class="admin-gateway__form" @submit.prevent="handleAddAdmin()">
-        <div class="admin-gateway__field-wrap">
+    <section v-else-if="activeTab === 'admins'" class="admin-tab-content">
+      <form class="admin-form" @submit.prevent="submitNewAdmin()">
+        <div class="float-wrap">
           <input
-            v-model="newAdminId"
+            v-model="newAdminUuid"
             type="text"
-            class="admin-gateway__input"
+            class="float-input"
             placeholder=" "
           />
-          <label class="admin-gateway__label">UUID do Novo Admin</label>
+          <label class="float-label">UUID do Novo Admin</label>
         </div>
-        <button type="submit" class="admin-gateway__submit">
+        <button type="submit" class="btn-submit">
+          <PhCheck :size="16" weight="bold" />
           Adicionar Admin
         </button>
       </form>
@@ -212,249 +240,265 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.admin-gateway {
+.admin-overlay {
   position: fixed;
   inset: 0;
-  z-index: 100;
+  z-index: 200;
+  background-color: var(--surface-color, #fff);
+  overflow-y: auto;
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
-  padding: 24px;
-  background: var(--surface-color);
-  overflow-y: auto;
+  gap: 24px;
 }
 
-.admin-gateway__header {
+.admin-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: var(--space-4);
+  align-items: center;
+  border-bottom: 4px solid var(--border-color, #000);
+  padding-bottom: 16px;
 }
 
-.admin-gateway__title {
+.admin-title {
   font-size: 1.5rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.02em;
 }
 
-.admin-gateway__close {
+.btn-close {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 40px;
   height: 40px;
-  background: var(--bg-color);
-  border: 2px solid var(--border-color);
+  background: var(--bg-color, #fff);
+  border: 2px solid var(--border-color, #000);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-1);
-  color: var(--text-color);
+  color: var(--text-color, #000);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
-.admin-gateway__tabs {
+.admin-tabs {
   display: flex;
+  gap: 16px;
   flex-wrap: wrap;
-  gap: var(--space-2);
 }
 
-.admin-gateway__tab {
-  padding: var(--space-2) var(--space-4);
+.admin-tab {
+  padding: 8px 16px;
+  border: 2px solid var(--border-color, #000);
+  background: transparent;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1.1rem;
+  border-radius: var(--radius-md);
+  color: var(--text-color, #000);
+  text-transform: uppercase;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.admin-tab--active {
+  background-color: var(--border-color, #000);
+  color: white;
+  box-shadow: var(--shadow-1);
+}
+
+.admin-tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.admin-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: #f3f4f6;
+  border: 2px solid var(--border-color, #000);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-1);
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.admin-toolbar__actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.select-all {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 0.875rem;
   font-weight: 900;
   text-transform: uppercase;
-  color: var(--text-color);
-  background: var(--bg-color);
-  border: 2px solid var(--border-color);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-1);
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
 }
 
-.admin-gateway__tab--active {
-  background: #a3e635;
-  color: #000000;
-}
-
-.admin-gateway__section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-.admin-gateway__toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.admin-gateway__select-all {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: 0.75rem;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.admin-gateway__checkbox {
+.admin-checkbox {
   width: 20px;
   height: 20px;
   accent-color: var(--accent-color);
   cursor: pointer;
 }
 
-.admin-gateway__bulk {
-  padding: var(--space-2) var(--space-4);
-  font-size: 0.75rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  color: #000000;
-  border: 2px solid var(--border-color);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-1);
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.admin-gateway__bulk:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.admin-gateway__bulk--approve {
-  background: #a3e635;
-}
-
-.admin-gateway__bulk--reject {
-  background: #fb923c;
-}
-
-.admin-gateway__state {
-  padding: var(--space-4);
-  font-size: 0.875rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  text-align: center;
-  background: var(--bg-color);
-  border: 2px solid var(--border-color);
-  border-radius: var(--radius-md);
-}
-
-.admin-gateway__grid {
+.admin-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 16px;
 }
 
-.admin-gateway__card {
+.admin-card {
+  border: 2px solid var(--border-color, #000);
+  padding: 16px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-1);
+  background: white;
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-4);
-  background: var(--bg-color);
-  border: 2px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-1);
+  gap: 8px;
 }
 
-.admin-gateway__card-head {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-2);
+.admin-card__checkbox {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent-color);
+  cursor: pointer;
 }
 
-.admin-gateway__card-title {
+.admin-card__title {
   font-size: 1rem;
   font-weight: 900;
   text-transform: uppercase;
+  padding-right: 32px;
 }
 
-.admin-gateway__card-meta {
+.admin-card__meta {
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--text-muted);
+  color: var(--text-muted, #555);
 }
 
-.admin-gateway__tags {
+.admin-card__tags {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-.admin-gateway__tag {
+.admin-tag {
   padding: 4px 8px;
   font-size: 0.75rem;
   font-weight: 900;
   color: #000000;
-  background: #22d3ee;
-  border: 2px solid var(--border-color);
+  border: 2px solid var(--border-color, #000);
   border-radius: var(--radius-md);
 }
 
-.admin-gateway__form {
+.admin-state {
+  padding: 16px;
+  font-size: 0.875rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  text-align: center;
+  background: var(--bg-color, #fff);
+  border: 2px solid var(--border-color, #000);
+  border-radius: var(--radius-md);
+}
+
+.btn-approve,
+.btn-reject,
+.btn-submit {
+  padding: 8px 16px;
+  font-weight: bold;
+  border: 2px solid var(--border-color, #000);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  box-shadow: 2px 2px 0px 0px var(--border-color, #000);
+  color: #000000;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-approve {
+  background-color: #a3e635;
+}
+
+.btn-reject {
+  background-color: #fb923c;
+}
+
+.btn-submit {
+  background-color: var(--accent-color, #a3e635);
+}
+
+.btn-approve:disabled,
+.btn-reject:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: 16px;
   max-width: 420px;
 }
 
-.admin-gateway__field-wrap {
+.float-wrap {
   position: relative;
 }
 
-.admin-gateway__input {
+.float-input {
   width: 100%;
   padding: 26px 12px 8px;
   font: inherit;
   font-size: 0.875rem;
   font-weight: 700;
-  color: var(--text-color);
-  background: var(--bg-color);
-  border: 2px solid var(--border-color);
+  color: var(--text-color, #000);
+  background: var(--bg-color, #fff);
+  border: 2px solid var(--border-color, #000);
   border-radius: var(--radius-md);
   outline: none;
   transition: box-shadow 0.15s ease;
 }
 
-.admin-gateway__input:focus {
+.float-input:focus {
   box-shadow: var(--shadow-1);
 }
 
-.admin-gateway__label {
+.float-label {
   position: absolute;
   top: 50%;
   left: 12px;
   transform: translateY(-50%);
   font-size: 0.875rem;
   font-weight: 700;
-  color: var(--text-muted);
+  color: var(--text-muted, #555);
   pointer-events: none;
   transition: all 0.15s ease;
 }
 
-.admin-gateway__input:focus + .admin-gateway__label,
-.admin-gateway__input:not(:placeholder-shown) + .admin-gateway__label {
+.float-input:focus + .float-label,
+.float-input:not(:placeholder-shown) + .float-label {
   top: 6px;
   transform: translateY(0) scale(0.7);
   transform-origin: left center;
-  color: var(--text-color);
-}
-
-.admin-gateway__submit {
-  padding: var(--space-2) var(--space-4);
-  font-size: 0.875rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  color: #000000;
-  background: #a3e635;
-  border: 2px solid var(--border-color);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-1);
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
+  color: var(--text-color, #000);
 }
 </style>
