@@ -40,7 +40,7 @@ const messages = {
       add: '+',
       previous: 'Anterior',
     },
-    next: 'PRÓX',
+    next: 'PROX',
     nav: {
       year: '12M',
       month: '30D',
