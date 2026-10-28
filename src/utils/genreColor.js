@@ -1,35 +1,27 @@
-/**
- * Palette of high-contrast colors used to uniquely identify genres.
- * Colors are chosen to work with dark text (--accent-contrast).
- */
-const GENRE_PALETTE = [
-  '#FFD23F', // yellow
-  '#FF6B6B', // coral
-  '#4ECDC4', // teal
-  '#A78BFA', // violet
-  '#F472B6', // pink
-  '#60A5FA', // blue
-  '#FBBF24', // amber
-  '#34D399', // emerald
-  '#FB923C', // orange
-  '#C084FC', // purple
-  '#22D3EE', // cyan
-  '#F87171', // red
-]
+import { GENRE_GROUPS, buildGenreGroupIndex } from '../data/genreGroups'
+
+const FALLBACK_GROUP = GENRE_GROUPS.find((g) => g.id === 'other') ?? GENRE_GROUPS[0]
+
+const GENRE_GROUP_INDEX = buildGenreGroupIndex()
 
 /**
- * Returns a stable color for a given genre name.
- * The same genre always maps to the same color.
+ * Returns the genre group that owns the given genre/subgenre.
+ * Falls back to the "other" group when not registered.
+ * @param {string} genre
+ * @returns {import('../data/genreGroups').GenreGroup}
+ */
+export function getGenreGroup(genre) {
+  if (!genre) return FALLBACK_GROUP
+  const key = genre.trim().toLowerCase()
+  return GENRE_GROUP_INDEX.get(key) ?? FALLBACK_GROUP
+}
+
+/**
+ * Returns the stable identifying color for a given genre.
+ * All genres/subgenres within the same group share the same color site-wide.
  * @param {string} genre
  * @returns {string} hex color
  */
 export function getGenreColor(genre) {
-  if (!genre) return GENRE_PALETTE[0]
-  let hash = 0
-  for (let i = 0; i < genre.length; i++) {
-    hash = (hash << 5) - hash + genre.charCodeAt(i)
-    hash |= 0
-  }
-  const index = Math.abs(hash) % GENRE_PALETTE.length
-  return GENRE_PALETTE[index]
+  return getGenreGroup(genre).color
 }
