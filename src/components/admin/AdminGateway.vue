@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { onClickOutside, onKeyStroke } from '@vueuse/core'
 import {
   PhArrowLeft,
   PhCaretDown,
@@ -26,6 +27,7 @@ const statusOptions = [
 const selectedIds = ref([])
 const expandedIds = ref([])
 const pendingDeleteId = ref(null)
+const statusDropdownRef = ref(null)
 
 const filteredEvents = computed(() => {
   let list = eventStore.allEvents
@@ -166,6 +168,14 @@ onMounted(async () => {
     error: eventStore.error,
   })
 })
+
+onClickOutside(statusDropdownRef, () => {
+  isStatusDropdownOpen.value = false
+})
+
+onKeyStroke('Escape', () => {
+  isStatusDropdownOpen.value = false
+})
 </script>
 
 <template>
@@ -204,26 +214,46 @@ onMounted(async () => {
           <label class="cms-search-label">Buscar por nome</label>
         </div>
 
-        <div class="custom-dropdown">
+        <div
+          ref="statusDropdownRef"
+          class="status-dropdown"
+          :class="{ 'is-open': isStatusDropdownOpen }"
+        >
           <button
             type="button"
-            class="dropdown-trigger"
+            class="status-dropdown__field"
+            :aria-expanded="isStatusDropdownOpen"
+            aria-haspopup="listbox"
             @click="isStatusDropdownOpen = !isStatusDropdownOpen"
           >
-            {{ currentStatusLabel }}
-            <PhCaretDown :size="16" weight="bold" />
+            <span class="status-dropdown__value">{{ currentStatusLabel }}</span>
+            <PhCaretDown
+              :size="16"
+              weight="bold"
+              class="status-dropdown__caret"
+              :class="{ 'is-open': isStatusDropdownOpen }"
+            />
           </button>
-          <ul v-if="isStatusDropdownOpen" class="dropdown-menu">
-            <li
-              v-for="option in statusOptions"
-              :key="option.value"
-              class="dropdown-item"
-              :class="{ 'is-active': statusFilter === option.value }"
-              @click="selectStatus(option.value)"
+          <label class="status-dropdown__label">Status</label>
+          <Transition name="dropdown">
+            <ul
+              v-if="isStatusDropdownOpen"
+              class="status-dropdown__menu"
+              role="listbox"
             >
-              {{ option.label }}
-            </li>
-          </ul>
+              <li
+                v-for="option in statusOptions"
+                :key="option.value"
+                class="status-dropdown__item"
+                :class="{ 'is-active': statusFilter === option.value }"
+                role="option"
+                :aria-selected="statusFilter === option.value"
+                @click="selectStatus(option.value)"
+              >
+                {{ option.label }}
+              </li>
+            </ul>
+          </Transition>
         </div>
 
         <div class="cms-bulk">
@@ -556,64 +586,129 @@ onMounted(async () => {
 }
 
 /* ============================================================
-   CUSTOM DROPDOWN (STATUS FILTER)
+   STATUS DROPDOWN (matches LocationAutocomplete appearance)
    ============================================================ */
-.custom-dropdown {
+.status-dropdown {
   position: relative;
-  display: inline-block;
-  min-width: 200px;
+  min-width: 220px;
 }
-.dropdown-trigger {
+
+.status-dropdown__field {
+  position: relative;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   width: 100%;
-  padding: 12px 16px;
-  font-weight: bold;
-  background: var(--surface-color, #fff);
+  padding: 26px 12px 8px;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
   color: var(--text-color, #000);
+  background: var(--bg-color, #fff);
   border: 2px solid var(--border-color, #000);
-  border-radius: var(--radius-md, 8px);
-  box-shadow: var(--shadow-1, 4px 4px 0px #000);
-  cursor: pointer;
+  border-radius: var(--radius-md);
+  outline: none;
   text-transform: uppercase;
-  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  transition: box-shadow 0.15s ease, border-radius 0.15s ease;
 }
-.dropdown-menu {
+
+.status-dropdown__field:focus-visible {
+  box-shadow: var(--shadow-1, 4px 4px 0 0 #000);
+}
+
+.status-dropdown__value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-dropdown__caret {
+  flex-shrink: 0;
+  color: var(--text-color, #000);
+  transition: transform 0.2s ease;
+}
+
+.status-dropdown__caret.is-open {
+  transform: rotate(180deg);
+}
+
+.status-dropdown__label {
   position: absolute;
-  top: calc(100% + 8px);
+  top: 6px;
+  left: 12px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-color, #000);
+  transform: translateY(0) scale(0.7);
+  transform-origin: left center;
+  pointer-events: none;
+}
+
+.status-dropdown.is-open .status-dropdown__field {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom-color: transparent;
+  box-shadow: 4px 4px 0 0 var(--border-color, #000);
+}
+
+.status-dropdown__menu {
+  position: absolute;
+  top: 100%;
   left: 0;
-  width: 100%;
+  right: 0;
+  z-index: 50;
+  margin: -2px 0 0;
+  padding: 0;
+  list-style: none;
   background: var(--surface-color, #fff);
   border: 2px solid var(--border-color, #000);
-  border-radius: var(--radius-md, 8px);
-  box-shadow: var(--shadow-1, 4px 4px 0px #000);
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  z-index: 50;
-  overflow: hidden;
+  border-top: none;
+  border-bottom-left-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+  box-shadow: var(--shadow-1, 4px 4px 0 0 #000);
+  max-height: 240px;
+  overflow-y: auto;
 }
-.dropdown-item {
-  padding: 12px 16px;
-  cursor: pointer;
-  border-bottom: 2px solid var(--border-color, #000);
-  font-weight: bold;
+
+.status-dropdown__item {
+  padding: 10px 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-color, #000);
   text-transform: uppercase;
-  transition: background-color 0.2s;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
   -webkit-tap-highlight-color: transparent;
 }
-.dropdown-item:last-child {
+
+.status-dropdown__item:last-child {
   border-bottom: none;
 }
-.dropdown-item:hover {
-  background-color: var(--accent-color, #a3e635);
+
+.status-dropdown__item:hover {
+  background: var(--accent-color, #a3e635);
 }
-.dropdown-item.is-active {
-  background-color: var(--border-color, #000);
+
+.status-dropdown__item.is-active {
+  background: var(--border-color, #000);
   color: #fff;
 }
+
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
 .cms-select-all {
   display: inline-flex;
   align-items: center;
@@ -860,6 +955,10 @@ onMounted(async () => {
   }
   .cms-title {
     font-size: 1.1rem;
+  }
+  .status-dropdown {
+    width: 100%;
+    min-width: 0;
   }
 }
 </style>
