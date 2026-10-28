@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import BrutalButton from '../ui/BrutalButton.vue'
 import { useUIStore } from '../../stores/uiStore'
-import { PhEye } from '@phosphor-icons/vue'
+import { PhEye, PhCards, PhGridFour, PhColumns } from '@phosphor-icons/vue'
 
 const uiStore = useUIStore()
 
@@ -24,21 +24,24 @@ function switchView(viewName) {
     >
       <BrutalButton
         :color="activeView === 'year' ? 'var(--accent-color)' : undefined"
+        aria-label="Year View"
         @click="switchView('year')"
       >
-        [ 12M ]
+        <PhCards :size="28" weight="duotone" />
       </BrutalButton>
       <BrutalButton
         :color="activeView === 'month' ? 'var(--accent-color)' : undefined"
+        aria-label="Month View"
         @click="switchView('month')"
       >
-        [ 30D ]
+        <PhGridFour :size="28" weight="duotone" />
       </BrutalButton>
       <BrutalButton
         :color="activeView === 'week' ? 'var(--accent-color)' : undefined"
+        aria-label="Week View"
         @click="switchView('week')"
       >
-        [ 7D ]
+        <PhColumns :size="28" weight="duotone" />
       </BrutalButton>
     </nav>
   </Transition>
