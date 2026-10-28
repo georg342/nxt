@@ -1,9 +1,11 @@
 <script setup>
-import { PhClock, PhMapPin } from '@phosphor-icons/vue'
+import { computed } from 'vue'
+import { PhCalendarBlank, PhClock, PhMapPin } from '@phosphor-icons/vue'
 import BrutalCard from '../ui/BrutalCard.vue'
 import BrutalButton from '../ui/BrutalButton.vue'
+import { useUIStore } from '../../stores/uiStore'
 
-defineProps({
+const props = defineProps({
   event: {
     type: Object,
     required: true,
@@ -15,6 +17,10 @@ defineProps({
 })
 
 defineEmits(['toggle'])
+
+const uiStore = useUIStore()
+
+const formattedDate = computed(() => uiStore.formatEventDate(props.event.date))
 </script>
 
 <template>
@@ -25,6 +31,13 @@ defineEmits(['toggle'])
     <div class="event-card__header">
       <h2 class="event-card__title">{{ event.title }}</h2>
       <div class="event-card__meta">
+        <span
+          v-if="formattedDate"
+          class="event-card__meta-item"
+        >
+          <PhCalendarBlank :size="18" weight="duotone" />
+          {{ formattedDate }}
+        </span>
         <span class="event-card__meta-item">
           <PhClock :size="18" weight="duotone" />
           {{ event.time }}

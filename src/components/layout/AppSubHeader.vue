@@ -33,6 +33,8 @@ function handleClose() {
         :placeholder="$t('search.placeholder')"
         autocomplete="off"
         spellcheck="false"
+        inputmode="search"
+        enterkeyhint="search"
       />
       <span
         v-else

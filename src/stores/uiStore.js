@@ -15,6 +15,7 @@ const MOCK_EVENTS = [
   {
     id: 1,
     title: 'Neon Warehouse',
+    date: '2026-10-31',
     time: '22:00',
     location: 'Vila Madalena, SP',
     genres: ['Techno', 'House'],
@@ -23,6 +24,7 @@ const MOCK_EVENTS = [
   {
     id: 2,
     title: 'Basement Sessions',
+    date: '2026-11-07',
     time: '23:30',
     location: 'Centro, SP',
     genres: ['Minimal', 'Deep House'],
@@ -31,6 +33,7 @@ const MOCK_EVENTS = [
   {
     id: 3,
     title: 'Sunrise Rooftop',
+    date: '2026-11-15',
     time: '05:00',
     location: 'Pinheiros, SP',
     genres: ['Melodic Techno'],
@@ -118,6 +121,7 @@ export const useUIStore = defineStore(
       return MOCK_EVENTS.filter((event) => {
         const haystack = [
           event.title,
+          event.date,
           event.time,
           event.location,
           ...event.genres,
@@ -128,6 +132,25 @@ export const useUIStore = defineStore(
         return haystack.includes(q)
       })
     })
+
+    /**
+     * Formats an event date as a full localized string (e.g., "Saturday, October 31, 2026").
+     * Locked to America/Sao_Paulo timezone.
+     * @param {string} isoDate
+     * @returns {string}
+     */
+    function formatEventDate(isoDate) {
+      if (!isoDate) return ''
+      const date = new Date(`${isoDate}T12:00:00`)
+      const formatted = new Intl.DateTimeFormat(intlLocale.value, {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'America/Sao_Paulo',
+      }).format(date)
+      return formatted.charAt(0).toUpperCase() + formatted.slice(1)
+    }
 
     const contextLabel = computed(() => {
       const date = currentDate.value
@@ -312,6 +335,7 @@ export const useUIStore = defineStore(
       weekDaysData,
       hasMinSearchLength,
       searchResults,
+      formatEventDate,
       setTheme,
       toggleTheme,
       toggleLocale,
