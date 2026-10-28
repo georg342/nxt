@@ -1,5 +1,5 @@
 <script setup>
-import { PhX } from '@phosphor-icons/vue'
+import { PhX, PhCheckCircle, PhWarningCircle } from '@phosphor-icons/vue'
 import { useUIStore } from '../../stores/uiStore'
 
 const uiStore = useUIStore()
@@ -14,6 +14,18 @@ const uiStore = useUIStore()
       role="status"
       aria-live="polite"
     >
+      <PhCheckCircle
+        v-if="uiStore.toast.type === 'success'"
+        class="toast__icon"
+        :size="22"
+        weight="bold"
+      />
+      <PhWarningCircle
+        v-else-if="uiStore.toast.type === 'error'"
+        class="toast__icon"
+        :size="22"
+        weight="bold"
+      />
       <span class="toast__message">{{ uiStore.toast.message }}</span>
       <button
         type="button"
@@ -49,13 +61,23 @@ const uiStore = useUIStore()
   letter-spacing: 0.02em;
 }
 
+.toast--success {
+  background: #a3e635;
+  color: #000000;
+}
+
 .toast--error {
-  background: #ff5252;
-  color: #ffffff;
+  background: #fb923c;
+  color: #000000;
 }
 
 .toast--info {
   background: var(--surface-color);
+}
+
+.toast__icon {
+  flex-shrink: 0;
+  color: #000000;
 }
 
 .toast__message {
