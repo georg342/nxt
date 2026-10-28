@@ -1,10 +1,12 @@
 <script setup>
 import AppHeader from './AppHeader.vue'
+import AppSubHeader from './AppSubHeader.vue'
 </script>
 
 <template>
   <div class="app-layout">
     <AppHeader />
+    <AppSubHeader />
     <main class="app-layout__main">
       <slot />
     </main>

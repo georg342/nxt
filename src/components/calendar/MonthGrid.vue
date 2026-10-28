@@ -6,7 +6,15 @@ const uiStore = useUIStore()
 const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 const DAYS_IN_MONTH = 30
 
-const days = Array.from({ length: DAYS_IN_MONTH }, (_, i) => i + 1)
+const dayNumbers = Array.from({ length: DAYS_IN_MONTH }, (_, i) => i + 1)
+const totalCells = Math.ceil(dayNumbers.length / 7) * 7
+const days = [
+  ...dayNumbers.map((num) => ({ type: 'day', value: num })),
+  ...Array.from({ length: totalCells - dayNumbers.length }, () => ({
+    type: 'empty',
+    value: null,
+  })),
+]
 
 function handleDayClick() {
   uiStore.setActiveView('week')
@@ -26,16 +34,24 @@ function handleDayClick() {
     </div>
 
     <div class="month-grid__days">
-      <button
-        v-for="day in days"
-        :key="day"
-        type="button"
-        class="month-grid__day"
-        :aria-label="`Day ${day}`"
-        @click="handleDayClick"
+      <template
+        v-for="(cell, index) in days"
+        :key="index"
       >
-        {{ day }}
-      </button>
+        <button
+          v-if="cell.type === 'day'"
+          type="button"
+          class="month-grid__day"
+          :aria-label="`Day ${cell.value}`"
+          @click="handleDayClick"
+        >
+          {{ cell.value }}
+        </button>
+        <div
+          v-else
+          class="month-grid__empty"
+        />
+      </template>
     </div>
   </div>
 </template>
@@ -73,12 +89,14 @@ function handleDayClick() {
   flex: 1;
   gap: 0;
   min-height: 0;
-  border: var(--border-width) solid var(--border-color);
+  border-top: var(--border-width) solid var(--border-color);
+  border-left: var(--border-width) solid var(--border-color);
   border-radius: var(--radius-grid);
   overflow: hidden;
 }
 
-.month-grid__day {
+.month-grid__day,
+.month-grid__empty {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -91,16 +109,15 @@ function handleDayClick() {
   font-weight: 700;
   font-size: 0.875rem;
   min-height: 0;
+}
+
+.month-grid__day {
   cursor: pointer;
   transition: background-color var(--transition-fast);
 }
 
-.month-grid__day:nth-child(7n) {
-  border-right: none;
-}
-
-.month-grid__day:nth-last-child(-n + 7) {
-  border-bottom: none;
+.month-grid__empty {
+  background-color: var(--bg-color);
 }
 
 .month-grid__day:hover,

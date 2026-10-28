@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 const THEME_LIGHT = 'light'
 const THEME_DARK = 'dark'
@@ -17,6 +17,34 @@ const VIEW_DEPTH = {
 
 const DEFAULT_TRANSITION = 'ios-push'
 
+const DAY_NAMES = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
+
+/**
+ * Returns a new Date set to Monday 00:00 of the week containing `date`.
+ * @param {Date} date
+ * @returns {Date}
+ */
+function getMondayOfWeek(date) {
+  const result = new Date(date)
+  const day = result.getDay()
+  const diff = day === 0 ? -6 : 1 - day
+  result.setDate(result.getDate() + diff)
+  result.setHours(0, 0, 0, 0)
+  return result
+}
+
+/**
+ * Formats a Date as "MMM D" (e.g., "Oct 14").
+ * @param {Date} date
+ * @returns {string}
+ */
+function formatShortDate(date) {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+  }).format(date)
+}
+
 /**
  * Applies the given theme to the <html> element via the data-theme attribute.
  * @param {'light' | 'dark'} theme
@@ -31,8 +59,53 @@ export const useUIStore = defineStore(
   () => {
     const theme = ref(DEFAULT_THEME)
     const activeView = ref(DEFAULT_VIEW)
-    const weekOffset = ref(0)
+    const currentDate = ref(new Date())
     const transitionDirection = ref(DEFAULT_TRANSITION)
+
+    const contextLabel = computed(() => {
+      const date = currentDate.value
+
+      if (activeView.value === 'year') {
+        return String(date.getFullYear())
+      }
+
+      if (activeView.value === 'month') {
+        return new Intl.DateTimeFormat('en-US', {
+          month: 'long',
+          year: 'numeric',
+        }).format(date)
+      }
+
+      if (activeView.value === 'week') {
+        const monday = getMondayOfWeek(date)
+        const sunday = new Date(monday)
+        sunday.setDate(monday.getDate() + 6)
+
+        const sameMonth = monday.getMonth() === sunday.getMonth()
+        const startLabel = sameMonth
+          ? formatShortDate(monday).split(' ')[1]
+          : formatShortDate(monday)
+        const endLabel = formatShortDate(sunday)
+
+        return sameMonth
+          ? `${formatShortDate(monday).split(' ')[0]} ${startLabel} - ${endLabel}`
+          : `${startLabel} - ${endLabel}`
+      }
+
+      return ''
+    })
+
+    const weekDaysData = computed(() => {
+      const monday = getMondayOfWeek(currentDate.value)
+      return Array.from({ length: 7 }, (_, i) => {
+        const day = new Date(monday)
+        day.setDate(monday.getDate() + i)
+        return {
+          dateNum: day.getDate(),
+          dayName: DAY_NAMES[day.getDay()],
+        }
+      })
+    })
 
     /**
      * Sets the theme and applies it to the document.
@@ -79,14 +152,18 @@ export const useUIStore = defineStore(
      * Advances to the next week.
      */
     function nextWeek() {
-      weekOffset.value += 1
+      const next = new Date(currentDate.value)
+      next.setDate(next.getDate() + 7)
+      currentDate.value = next
     }
 
     return {
       theme,
       activeView,
-      weekOffset,
+      currentDate,
       transitionDirection,
+      contextLabel,
+      weekDaysData,
       setTheme,
       toggleTheme,
       initTheme,

@@ -1,43 +1,25 @@
 <script setup>
-import { computed } from 'vue'
 import BrutalCard from '../ui/BrutalCard.vue'
 import BrutalButton from '../ui/BrutalButton.vue'
 import { useUIStore } from '../../stores/uiStore'
 
 const uiStore = useUIStore()
-
-const BASE_DAYS = [
-  { label: 'MON', date: 14 },
-  { label: 'TUE', date: 15 },
-  { label: 'WED', date: 16 },
-  { label: 'THU', date: 17 },
-  { label: 'FRI', date: 18 },
-  { label: 'SAT', date: 19 },
-  { label: 'SUN', date: 20 },
-]
-
-const days = computed(() =>
-  BASE_DAYS.map((day) => ({
-    ...day,
-    date: day.date + uiStore.weekOffset * 7,
-  }))
-)
 </script>
 
 <template>
   <div class="week-grid">
     <Transition name="swipe-week" mode="out-in">
       <div
-        :key="uiStore.weekOffset"
+        :key="uiStore.currentDate.getTime()"
         class="week-grid__days"
       >
         <BrutalCard
-          v-for="day in days"
-          :key="day.label"
+          v-for="(day, index) in uiStore.weekDaysData"
+          :key="index"
           class="week-grid__day day-card"
         >
-          <span class="week-grid__label">{{ day.label }}</span>
-          <span class="week-grid__date">{{ day.date }}</span>
+          <span class="week-grid__label">{{ day.dayName }}</span>
+          <span class="week-grid__date">{{ day.dateNum }}</span>
         </BrutalCard>
       </div>
     </Transition>
@@ -54,17 +36,23 @@ const days = computed(() =>
 
 <style scoped>
 .week-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: repeat(4, 1fr);
+  position: relative;
   height: 100%;
-  gap: 12px;
   padding: 16px 16px 24px 16px;
   box-sizing: border-box;
 }
 
 .week-grid__days {
-  display: contents;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 12px;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  inset: 0;
+  padding: 16px 16px 24px 16px;
+  box-sizing: border-box;
 }
 
 .week-grid__day {
@@ -93,10 +81,14 @@ const days = computed(() =>
 }
 
 .week-grid__next {
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  right: 16px;
+  bottom: 24px;
+  width: calc(50% - 22px);
+  height: calc(25% - 33px);
   font-size: 1rem;
   font-weight: 900;
   letter-spacing: 0.05em;
+  z-index: 1;
 }
 </style>
