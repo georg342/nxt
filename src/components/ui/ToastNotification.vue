@@ -49,7 +49,8 @@ const uiStore = useUIStore()
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  max-width: 90%;
+  width: fit-content;
+  max-width: 85vw;
   padding: 12px 16px;
   background: var(--accent-color);
   border: 2px solid var(--border-color);
@@ -82,6 +83,10 @@ const uiStore = useUIStore()
 
 .toast__message {
   flex: 1;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .toast__close {
