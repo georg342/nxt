@@ -4,14 +4,23 @@ import BrutalButton from '../ui/BrutalButton.vue'
 import { useUIStore } from '../../stores/uiStore'
 
 const uiStore = useUIStore()
+
+let adminTimer = null
+
+const startAdminTimer = () => {
+  adminTimer = setTimeout(() => {
+    uiStore.toggleAdminPanel()
+  }, 2000)
+}
+
+const cancelAdminTimer = () => {
+  if (adminTimer) clearTimeout(adminTimer)
+}
 </script>
 
 <template>
   <header class="app-header">
-    <span
-      class="app-header__logo site-logo"
-      @dblclick="uiStore.toggleAdminPanel()"
-    >
+    <span class="app-header__logo">
       WNXT
     </span>
 
@@ -33,9 +42,15 @@ const uiStore = useUIStore()
         />
       </BrutalButton>
       <BrutalButton
-        class="app-header__control-btn"
+        class="app-header__control-btn lang-toggle-btn"
         :aria-label="uiStore.locale === 'pt' ? 'Switch to English' : 'Mudar para Português'"
         @click="uiStore.toggleLocale()"
+        @mousedown="startAdminTimer"
+        @touchstart.passive="startAdminTimer"
+        @mouseup="cancelAdminTimer"
+        @mouseleave="cancelAdminTimer"
+        @touchend="cancelAdminTimer"
+        @touchcancel="cancelAdminTimer"
       >
         <PhGlobe :size="18" weight="duotone" />
         <span class="app-header__locale-label">
@@ -65,9 +80,9 @@ const uiStore = useUIStore()
   text-transform: uppercase;
 }
 
-.site-logo {
+.lang-toggle-btn {
   user-select: none;
-  cursor: pointer;
+  -webkit-touch-callout: none;
 }
 
 .app-header__controls {
