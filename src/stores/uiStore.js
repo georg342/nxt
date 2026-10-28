@@ -200,11 +200,16 @@ export const useUIStore = defineStore(
       searchQuery.value.trim().toLowerCase()
     )
 
+    const hasSearchQuery = computed(
+      () => normalizedSearchQuery.value.length > 0
+    )
+
     const hasMinSearchLength = computed(
       () => normalizedSearchQuery.value.length >= MIN_SEARCH_LENGTH
     )
 
     const searchResults = computed(() => {
+      if (!hasSearchQuery.value) return MOCK_EVENTS
       if (!hasMinSearchLength.value) return []
       const q = normalizedSearchQuery.value
 
@@ -453,6 +458,7 @@ export const useUIStore = defineStore(
       transitionDirection,
       contextLabel,
       weekDaysData,
+      hasSearchQuery,
       hasMinSearchLength,
       searchResults,
       formatEventDate,

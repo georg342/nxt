@@ -15,7 +15,7 @@ function toggleEvent(id) {
 <template>
   <div class="search-results">
     <div
-      v-if="!uiStore.hasMinSearchLength"
+      v-if="uiStore.hasSearchQuery && !uiStore.hasMinSearchLength"
       class="search-results__hint"
     >
       <PhMagnifyingGlass :size="32" weight="duotone" />
@@ -23,7 +23,7 @@ function toggleEvent(id) {
     </div>
 
     <div
-      v-else-if="uiStore.searchResults.length === 0"
+      v-else-if="uiStore.hasMinSearchLength && uiStore.searchResults.length === 0"
       class="search-results__hint"
     >
       <PhMagnifyingGlass :size="32" weight="duotone" />
