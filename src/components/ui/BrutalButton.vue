@@ -23,7 +23,9 @@ const buttonStyle = computed(() => ({
     :type="type"
     class="brutal-button"
     :style="buttonStyle"
-    :tapped="{ scale: 0.95 }"
+    :initial="{ scale: 1 }"
+    :enter="{ scale: 1, transition: { type: 'spring', stiffness: 400, damping: 20 } }"
+    :tapped="{ scale: 0.94, transition: { type: 'spring', stiffness: 400, damping: 20 } }"
   >
     <slot />
   </button>

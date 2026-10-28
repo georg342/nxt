@@ -15,7 +15,7 @@ const VIEW_DEPTH = {
   day: 4,
 }
 
-const DEFAULT_TRANSITION = 'slide-left'
+const DEFAULT_TRANSITION = 'ios-push'
 
 /**
  * Applies the given theme to the <html> element via the data-theme attribute.
@@ -70,7 +70,7 @@ export const useUIStore = defineStore(
       const nextDepth = VIEW_DEPTH[viewName] ?? 0
 
       transitionDirection.value =
-        nextDepth >= currentDepth ? 'slide-left' : 'slide-right'
+        nextDepth >= currentDepth ? 'ios-push' : 'ios-pop'
 
       activeView.value = viewName
     }

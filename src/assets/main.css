@@ -73,6 +73,8 @@ ol {
   --radius-card: 8px;
   --radius-button: 8px;
   --radius-grid: 0px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
   --hit-area-min: 44px;
 
   /* Typography */
@@ -157,35 +159,51 @@ body {
   transform: scale(0.98) translateY(10px);
 }
 
-/* ---------- Slide Transitions ---------- */
-.slide-left-enter-active,
-.slide-left-leave-active,
-.slide-right-enter-active,
-.slide-right-leave-active {
+/* ---------- iOS 18 Spatial Navigation ---------- */
+.ios-push-enter-active,
+.ios-push-leave-active,
+.ios-pop-enter-active,
+.ios-pop-leave-active {
   position: absolute;
-  inset: 0;
-  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.25s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: transform, opacity;
+  width: 100%;
+  height: 100%;
+  transition: all 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+  will-change: transform, opacity, filter;
 }
 
-.slide-left-enter-from {
+.ios-push-enter-from {
   transform: translateX(100%);
+}
+
+.ios-push-leave-to {
+  transform: scale(0.92) translateX(-20%);
+  opacity: 0;
+  filter: blur(2px);
+}
+
+.ios-pop-enter-from {
+  transform: scale(0.92) translateX(-20%);
+  opacity: 0;
+  filter: blur(2px);
+}
+
+.ios-pop-leave-to {
+  transform: translateX(100%);
+}
+
+/* ---------- Week Swipe ---------- */
+.swipe-week-enter-active,
+.swipe-week-leave-active {
+  transition: all 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.swipe-week-enter-from {
+  transform: translateX(30px);
   opacity: 0;
 }
 
-.slide-left-leave-to {
-  transform: translateX(-30%);
-  opacity: 0;
-}
-
-.slide-right-enter-from {
-  transform: translateX(-100%);
-  opacity: 0;
-}
-
-.slide-right-leave-to {
-  transform: translateX(30%);
+.swipe-week-leave-to {
+  transform: translateX(-30px);
   opacity: 0;
 }
 

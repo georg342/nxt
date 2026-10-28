@@ -6,7 +6,9 @@
   <div
     v-motion
     class="brutal-card"
-    :tapped="{ scale: 0.98 }"
+    :initial="{ scale: 1 }"
+    :enter="{ scale: 1, transition: { type: 'spring', stiffness: 400, damping: 20 } }"
+    :tapped="{ scale: 0.94, transition: { type: 'spring', stiffness: 400, damping: 20 } }"
   >
     <slot />
   </div>

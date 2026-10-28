@@ -26,14 +26,21 @@ const days = computed(() =>
 
 <template>
   <div class="week-grid">
-    <BrutalCard
-      v-for="day in days"
-      :key="day.label"
-      class="week-grid__day"
-    >
-      <span class="week-grid__label">{{ day.label }}</span>
-      <span class="week-grid__date">{{ day.date }}</span>
-    </BrutalCard>
+    <Transition name="swipe-week" mode="out-in">
+      <div
+        :key="uiStore.weekOffset"
+        class="week-grid__days"
+      >
+        <BrutalCard
+          v-for="day in days"
+          :key="day.label"
+          class="week-grid__day"
+        >
+          <span class="week-grid__label">{{ day.label }}</span>
+          <span class="week-grid__date">{{ day.date }}</span>
+        </BrutalCard>
+      </div>
+    </Transition>
 
     <BrutalButton
       class="week-grid__next"
@@ -54,6 +61,10 @@ const days = computed(() =>
   gap: 12px;
   padding: 16px 16px 24px 16px;
   box-sizing: border-box;
+}
+
+.week-grid__days {
+  display: contents;
 }
 
 .week-grid__day {

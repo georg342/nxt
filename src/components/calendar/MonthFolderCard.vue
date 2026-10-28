@@ -25,7 +25,9 @@ function handleClick() {
     type="button"
     class="month-folder"
     :aria-label="`${month}, ${eventCount} events`"
-    :tapped="{ scale: 0.95 }"
+    :initial="{ scale: 1 }"
+    :enter="{ scale: 1, transition: { type: 'spring', stiffness: 400, damping: 20 } }"
+    :tapped="{ scale: 0.94, transition: { type: 'spring', stiffness: 400, damping: 20 } }"
     @click="handleClick"
   >
     <span class="month-folder__tab">{{ month }}</span>
