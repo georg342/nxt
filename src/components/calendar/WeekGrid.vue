@@ -1,8 +1,12 @@
 <script setup>
+import { computed } from 'vue'
 import BrutalCard from '../ui/BrutalCard.vue'
 import BrutalButton from '../ui/BrutalButton.vue'
+import { useUIStore } from '../../stores/uiStore'
 
-const DAYS = [
+const uiStore = useUIStore()
+
+const BASE_DAYS = [
   { label: 'MON', date: 14 },
   { label: 'TUE', date: 15 },
   { label: 'WED', date: 16 },
@@ -11,12 +15,19 @@ const DAYS = [
   { label: 'SAT', date: 19 },
   { label: 'SUN', date: 20 },
 ]
+
+const days = computed(() =>
+  BASE_DAYS.map((day) => ({
+    ...day,
+    date: day.date + uiStore.weekOffset * 7,
+  }))
+)
 </script>
 
 <template>
   <div class="week-grid">
     <BrutalCard
-      v-for="day in DAYS"
+      v-for="day in days"
       :key="day.label"
       class="week-grid__day"
     >
@@ -27,6 +38,7 @@ const DAYS = [
     <BrutalButton
       class="week-grid__next"
       color="var(--accent-color)"
+      @click="uiStore.nextWeek()"
     >
       NEXT -&gt;
     </BrutalButton>

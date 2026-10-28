@@ -43,8 +43,7 @@ const buttonStyle = computed(() => ({
   font-size: 0.875rem;
   line-height: 1;
   cursor: pointer;
-  transition: transform var(--transition-fast),
-    box-shadow var(--transition-fast);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
 .brutal-button:hover,

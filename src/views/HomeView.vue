@@ -13,8 +13,10 @@ const activeView = computed(() => uiStore.activeView)
 
 <template>
   <AppLayout>
-    <YearGrid v-if="activeView === 'year'" />
-    <MonthGrid v-else-if="activeView === 'month'" />
-    <WeekGrid v-else-if="activeView === 'week'" />
+    <Transition name="view-fade" mode="out-in">
+      <YearGrid v-if="activeView === 'year'" key="year" />
+      <MonthGrid v-else-if="activeView === 'month'" key="month" />
+      <WeekGrid v-else-if="activeView === 'week'" key="week" />
+    </Transition>
   </AppLayout>
 </template>

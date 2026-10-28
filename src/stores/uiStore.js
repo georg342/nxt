@@ -22,6 +22,7 @@ export const useUIStore = defineStore(
   () => {
     const theme = ref(DEFAULT_THEME)
     const activeView = ref(DEFAULT_VIEW)
+    const weekOffset = ref(0)
 
     /**
      * Sets the theme and applies it to the document.
@@ -56,13 +57,22 @@ export const useUIStore = defineStore(
       activeView.value = viewName
     }
 
+    /**
+     * Advances to the next week.
+     */
+    function nextWeek() {
+      weekOffset.value += 1
+    }
+
     return {
       theme,
       activeView,
+      weekOffset,
       setTheme,
       toggleTheme,
       initTheme,
       setActiveView,
+      nextWeek,
     }
   },
   {

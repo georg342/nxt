@@ -15,5 +15,6 @@
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-2);
   padding: var(--space-4);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 </style>

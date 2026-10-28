@@ -71,8 +71,11 @@ function handleDayClick() {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   flex: 1;
-  gap: 4px;
+  gap: 0;
   min-height: 0;
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--radius-grid);
+  overflow: hidden;
 }
 
 .month-grid__day {
@@ -81,13 +84,23 @@ function handleDayClick() {
   justify-content: center;
   background-color: var(--surface-color);
   color: var(--text-color);
-  border: var(--border-width) solid var(--border-color);
-  border-radius: var(--radius-grid);
+  border: none;
+  border-right: var(--border-width) solid var(--border-color);
+  border-bottom: var(--border-width) solid var(--border-color);
+  border-radius: 0;
   font-weight: 700;
   font-size: 0.875rem;
   min-height: 0;
   cursor: pointer;
   transition: background-color var(--transition-fast);
+}
+
+.month-grid__day:nth-child(7n) {
+  border-right: none;
+}
+
+.month-grid__day:nth-last-child(-n + 7) {
+  border-bottom: none;
 }
 
 .month-grid__day:hover,
