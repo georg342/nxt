@@ -51,6 +51,7 @@ const uiStore = useUIStore()
   gap: var(--space-2);
   width: fit-content;
   max-width: 85vw;
+  white-space: nowrap;
   padding: 12px 16px;
   background: var(--accent-color);
   border: 2px solid var(--border-color);
@@ -84,7 +85,7 @@ const uiStore = useUIStore()
 .toast__message {
   flex: 1;
   min-width: 0;
-  white-space: normal;
+  white-space: nowrap;
   overflow-wrap: break-word;
   word-break: break-word;
 }
