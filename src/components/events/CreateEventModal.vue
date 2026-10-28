@@ -54,6 +54,9 @@ async function handleSubmit() {
     }
 
     await eventStore.addEvent(eventData)
+
+    alert(t('createEvent.success'))
+
     resetForm()
     uiStore.closeCreateEventModal()
   } catch (err) {
