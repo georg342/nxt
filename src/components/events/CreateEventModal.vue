@@ -4,6 +4,8 @@ import { useI18n } from 'vue-i18n'
 import { PhX } from '@phosphor-icons/vue'
 import BrutalButton from '../ui/BrutalButton.vue'
 import DateTimePicker from '../ui/DateTimePicker.vue'
+import TagInput from '../ui/TagInput.vue'
+import LocationAutocomplete from '../ui/LocationAutocomplete.vue'
 import { useUIStore } from '../../stores/uiStore'
 import { useEventStore } from '../../stores/eventStore'
 
@@ -18,8 +20,8 @@ const form = ref({
   title: '',
   start_date: '',
   location: '',
-  lineup: '',
-  genres: '',
+  lineup: [],
+  genres: [],
 })
 
 function resetForm() {
@@ -27,17 +29,10 @@ function resetForm() {
     title: '',
     start_date: '',
     location: '',
-    lineup: '',
-    genres: '',
+    lineup: [],
+    genres: [],
   }
   submitError.value = null
-}
-
-function parseList(value) {
-  return value
-    .split(',')
-    .map((item) => item.trim())
-    .filter(Boolean)
 }
 
 async function handleSubmit() {
@@ -50,8 +45,8 @@ async function handleSubmit() {
       title: form.value.title.trim(),
       start_date: form.value.start_date,
       location: form.value.location.trim(),
-      lineup: parseList(form.value.lineup),
-      genres: parseList(form.value.genres),
+      lineup: form.value.lineup,
+      genres: form.value.genres,
     }
 
     await eventStore.addEvent(eventData)
@@ -95,41 +90,45 @@ function handleClose() {
 
         <h2 class="create-event__title">{{ t('createEvent.title') }}</h2>
 
-        <label class="create-event__field">
-          <span>{{ t('createEvent.fields.title') }}</span>
-          <input v-model="form.title" type="text" required />
-        </label>
+        <div class="create-event__body">
+          <label class="create-event__field">
+            <span>{{ t('createEvent.fields.title') }}</span>
+            <input v-model="form.title" type="text" required />
+          </label>
 
-        <div class="create-event__field">
-          <span>{{ t('createEvent.fields.startDate') }}</span>
-          <DateTimePicker v-model="form.start_date" />
+          <div class="create-event__field">
+            <span>{{ t('createEvent.fields.startDate') }}</span>
+            <DateTimePicker v-model="form.start_date" />
+          </div>
+
+          <div class="create-event__field">
+            <span>{{ t('createEvent.fields.location') }}</span>
+            <LocationAutocomplete v-model="form.location" />
+          </div>
+
+          <div class="create-event__field">
+            <span>{{ t('createEvent.fields.lineup') }}</span>
+            <TagInput v-model="form.lineup" />
+          </div>
+
+          <div class="create-event__field">
+            <span>{{ t('createEvent.fields.genres') }}</span>
+            <TagInput v-model="form.genres" />
+          </div>
+
+          <p v-if="submitError" class="create-event__error">{{ submitError }}</p>
         </div>
 
-        <label class="create-event__field">
-          <span>{{ t('createEvent.fields.location') }}</span>
-          <input v-model="form.location" type="text" required />
-        </label>
-
-        <label class="create-event__field">
-          <span>{{ t('createEvent.fields.lineup') }}</span>
-          <input v-model="form.lineup" type="text" />
-        </label>
-
-        <label class="create-event__field">
-          <span>{{ t('createEvent.fields.genres') }}</span>
-          <input v-model="form.genres" type="text" />
-        </label>
-
-        <p v-if="submitError" class="create-event__error">{{ submitError }}</p>
-
-        <BrutalButton
-          type="submit"
-          class="create-event__submit"
-          color="var(--accent-color)"
-          :disabled="isSubmitting"
-        >
-          {{ isSubmitting ? t('createEvent.submitting') : t('createEvent.submit') }}
-        </BrutalButton>
+        <div class="create-event__footer">
+          <BrutalButton
+            type="submit"
+            class="create-event__submit"
+            color="var(--accent-color)"
+            :disabled="isSubmitting"
+          >
+            {{ isSubmitting ? t('createEvent.submitting') : t('createEvent.submit') }}
+          </BrutalButton>
+        </div>
       </form>
     </div>
   </Transition>
@@ -141,9 +140,9 @@ function handleClose() {
   inset: 0;
   z-index: 9999;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 24px;
+  padding: 16px;
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -154,14 +153,32 @@ function handleClose() {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
   width: 100%;
   max-width: 420px;
-  padding: var(--space-5);
+  max-height: 85dvh;
+  margin-top: 5vh;
   background: var(--surface-color);
   border: 2px solid var(--border-color);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-2);
+  overflow: hidden;
+}
+
+.create-event__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  flex: 1;
+  padding: var(--space-4);
+  overflow-y: auto;
+}
+
+.create-event__footer {
+  position: sticky;
+  bottom: 0;
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-color);
+  border-top: 2px solid var(--border-color);
 }
 
 .create-event__close {
@@ -182,6 +199,7 @@ function handleClose() {
 }
 
 .create-event__title {
+  padding: var(--space-4) var(--space-4) 0;
   font-size: 1.25rem;
   font-weight: 900;
   letter-spacing: 0.02em;

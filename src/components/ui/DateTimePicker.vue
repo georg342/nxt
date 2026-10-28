@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { PhCaretLeft, PhCaretRight } from '@phosphor-icons/vue'
 
 const props = defineProps({
@@ -27,6 +27,13 @@ const currentDate = ref(
 const selectedDate = ref(initial ? new Date(initial.getFullYear(), initial.getMonth(), initial.getDate()) : null)
 const selectedHour = ref(initial ? initial.getHours() : 22)
 const selectedMinute = ref(initial ? initial.getMinutes() : 0)
+
+const isOpen = ref(false)
+const rootRef = ref(null)
+const displayValue = ref('')
+const draftDate = ref(selectedDate.value ? new Date(selectedDate.value) : null)
+const draftHour = ref(selectedHour.value)
+const draftMinute = ref(selectedMinute.value)
 
 const monthLabel = computed(() =>
   new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(currentDate.value)
@@ -59,7 +66,7 @@ function isSameDay(a, b) {
 
 function selectDay(day) {
   if (!day) return
-  selectedDate.value = new Date(day.getFullYear(), day.getMonth(), day.getDate())
+  draftDate.value = new Date(day.getFullYear(), day.getMonth(), day.getDate())
 }
 
 function prevMonth() {
@@ -77,15 +84,73 @@ function clamp(value, min, max) {
 }
 
 function onHourInput(event) {
-  selectedHour.value = clamp(event.target.value, 0, 23)
+  draftHour.value = clamp(event.target.value, 0, 23)
 }
 
 function onMinuteInput(event) {
-  selectedMinute.value = clamp(event.target.value, 0, 59)
+  draftMinute.value = clamp(event.target.value, 0, 59)
 }
 
 function pad(value) {
   return String(value).padStart(2, '0')
+}
+
+function formatDisplay(date, hour, minute) {
+  if (!date) return ''
+  return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()} ${pad(hour)}:${pad(minute)}`
+}
+
+function syncDisplay() {
+  displayValue.value = formatDisplay(selectedDate.value, selectedHour.value, selectedMinute.value)
+}
+
+function openPicker() {
+  draftDate.value = selectedDate.value ? new Date(selectedDate.value) : null
+  draftHour.value = selectedHour.value
+  draftMinute.value = selectedMinute.value
+  if (draftDate.value) {
+    currentDate.value = new Date(draftDate.value.getFullYear(), draftDate.value.getMonth(), 1)
+  }
+  isOpen.value = true
+}
+
+function confirmSelection() {
+  if (!draftDate.value) {
+    isOpen.value = false
+    return
+  }
+  selectedDate.value = new Date(draftDate.value)
+  selectedHour.value = draftHour.value
+  selectedMinute.value = draftMinute.value
+  isOpen.value = false
+}
+
+function onDisplayInput(event) {
+  displayValue.value = event.target.value
+}
+
+function onDisplayBlur() {
+  const match = displayValue.value.match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})$/)
+  if (!match) {
+    syncDisplay()
+    return
+  }
+  const [, dd, mm, yyyy, hh, min] = match
+  const parsed = new Date(Number(yyyy), Number(mm) - 1, Number(dd))
+  if (Number.isNaN(parsed.getTime())) {
+    syncDisplay()
+    return
+  }
+  selectedDate.value = parsed
+  selectedHour.value = clamp(hh, 0, 23)
+  selectedMinute.value = clamp(min, 0, 59)
+  syncDisplay()
+}
+
+function handleClickOutside(event) {
+  if (rootRef.value && !rootRef.value.contains(event.target)) {
+    isOpen.value = false
+  }
 }
 
 function emitValue() {
@@ -98,72 +163,126 @@ function emitValue() {
   emit('update:modelValue', iso)
 }
 
-watch([selectedDate, selectedHour, selectedMinute], emitValue, { immediate: true })
+watch([selectedDate, selectedHour, selectedMinute], () => {
+  syncDisplay()
+  emitValue()
+}, { immediate: true })
+
+onMounted(() => {
+  document.addEventListener('mousedown', handleClickOutside)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('mousedown', handleClickOutside)
+})
 </script>
 
 <template>
-  <div class="dtp">
-    <div class="dtp__header">
-      <button type="button" class="dtp__nav" aria-label="Previous month" @click="prevMonth()">
-        <PhCaretLeft :size="16" weight="bold" />
-      </button>
-      <span class="dtp__month">{{ monthLabel }}</span>
-      <button type="button" class="dtp__nav" aria-label="Next month" @click="nextMonth()">
-        <PhCaretRight :size="16" weight="bold" />
-      </button>
-    </div>
+  <div ref="rootRef" class="dtp">
+    <input
+      type="text"
+      class="dtp__display"
+      :value="displayValue"
+      placeholder="DD/MM/AAAA HH:MM"
+      @input="onDisplayInput"
+      @focus="openPicker()"
+      @blur="onDisplayBlur()"
+    />
 
-    <div class="dtp__weekdays">
-      <span v-for="day in WEEKDAYS" :key="day" class="dtp__weekday">{{ day }}</span>
-    </div>
+    <div v-if="isOpen" class="dtp__popover">
+      <div class="dtp__header">
+        <button type="button" class="dtp__nav" aria-label="Previous month" @click="prevMonth()">
+          <PhCaretLeft :size="16" weight="bold" />
+        </button>
+        <span class="dtp__month">{{ monthLabel }}</span>
+        <button type="button" class="dtp__nav" aria-label="Next month" @click="nextMonth()">
+          <PhCaretRight :size="16" weight="bold" />
+        </button>
+      </div>
 
-    <div class="dtp__grid">
-      <button
-        v-for="(day, index) in calendarDays"
-        :key="index"
-        type="button"
-        class="dtp__day"
-        :class="{
-          'dtp__day--empty': !day,
-          'dtp__day--selected': day && isSameDay(day, selectedDate),
-        }"
-        :disabled="!day"
-        @click="selectDay(day)"
-      >
-        {{ day ? day.getDate() : '' }}
+      <div class="dtp__weekdays">
+        <span v-for="day in WEEKDAYS" :key="day" class="dtp__weekday">{{ day }}</span>
+      </div>
+
+      <div class="dtp__grid">
+        <button
+          v-for="(day, index) in calendarDays"
+          :key="index"
+          type="button"
+          class="dtp__day"
+          :class="{
+            'dtp__day--empty': !day,
+            'dtp__day--selected': day && isSameDay(day, draftDate),
+          }"
+          :disabled="!day"
+          @click="selectDay(day)"
+        >
+          {{ day ? day.getDate() : '' }}
+        </button>
+      </div>
+
+      <div class="dtp__time">
+        <span class="dtp__time-label">Hora:</span>
+        <input
+          class="dtp__time-input"
+          type="number"
+          min="0"
+          max="23"
+          :value="draftHour"
+          @input="onHourInput"
+        />
+        <span class="dtp__time-sep">:</span>
+        <input
+          class="dtp__time-input"
+          type="number"
+          min="0"
+          max="59"
+          :value="draftMinute"
+          @input="onMinuteInput"
+        />
+      </div>
+
+      <button type="button" class="dtp__confirm" @click="confirmSelection()">
+        OK
       </button>
-    </div>
-
-    <div class="dtp__time">
-      <span class="dtp__time-label">Hora:</span>
-      <input
-        class="dtp__time-input"
-        type="number"
-        min="0"
-        max="23"
-        :value="selectedHour"
-        @input="onHourInput"
-      />
-      <span class="dtp__time-sep">:</span>
-      <input
-        class="dtp__time-input"
-        type="number"
-        min="0"
-        max="59"
-        :value="selectedMinute"
-        @input="onMinuteInput"
-      />
     </div>
   </div>
 </template>
 
 <style scoped>
 .dtp {
+  position: relative;
+}
+
+.dtp__display {
+  width: 100%;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-color);
+  background: var(--bg-color);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: box-shadow 0.15s ease;
+}
+
+.dtp__display:focus {
+  box-shadow: var(--shadow-1);
+}
+
+.dtp__popover {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 50;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
   padding: var(--space-3);
-  background: var(--bg-color);
+  background: var(--surface-color);
   border: 2px solid var(--border-color);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-1);
@@ -280,5 +399,21 @@ watch([selectedDate, selectedHour, selectedMinute], emitValue, { immediate: true
 
 .dtp__time-sep {
   font-weight: 900;
+}
+
+.dtp__confirm {
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #000000;
+  background: #a3e635;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-1);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 </style>
