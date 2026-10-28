@@ -201,6 +201,23 @@ export const useUIStore = defineStore(
       setActiveView('day')
     }
 
+    /**
+     * Opens the day view for today's date.
+     */
+    function goToToday() {
+      const today = new Date()
+      currentDate.value = today
+      selectDate(today)
+    }
+
+    /**
+     * Opens the week view for the week containing today.
+     */
+    function goToCurrentWeek() {
+      currentDate.value = new Date()
+      setActiveView('week')
+    }
+
     return {
       theme,
       locale,
@@ -217,6 +234,8 @@ export const useUIStore = defineStore(
       setActiveView,
       nextWeek,
       selectDate,
+      goToToday,
+      goToCurrentWeek,
     }
   },
   {
