@@ -1,11 +1,20 @@
 <script setup>
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import BrutalButton from '../ui/BrutalButton.vue'
+import { useUIStore } from '../../stores/uiStore'
 
 const router = useRouter()
+const uiStore = useUIStore()
+
+const activeView = computed(() => uiStore.activeView)
 
 function goToAdmin() {
   router.push('/admin')
+}
+
+function setView(viewName) {
+  uiStore.setActiveView(viewName)
 }
 </script>
 
@@ -19,9 +28,19 @@ function goToAdmin() {
     </span>
 
     <nav class="app-header__nav">
-      <BrutalButton>12M</BrutalButton>
+      <BrutalButton
+        :color="activeView === 'year' ? 'var(--accent-color)' : undefined"
+        @click="setView('year')"
+      >
+        12M
+      </BrutalButton>
       <BrutalButton>30D</BrutalButton>
-      <BrutalButton>7D</BrutalButton>
+      <BrutalButton
+        :color="activeView === 'week' ? 'var(--accent-color)' : undefined"
+        @click="setView('week')"
+      >
+        7D
+      </BrutalButton>
       <BrutalButton>Today</BrutalButton>
       <BrutalButton color="var(--accent-color)">+</BrutalButton>
     </nav>

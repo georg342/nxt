@@ -1,4 +1,6 @@
 <script setup>
+import { useUIStore } from '../../stores/uiStore'
+
 defineProps({
   month: {
     type: String,
@@ -9,6 +11,12 @@ defineProps({
     default: 0,
   },
 })
+
+const uiStore = useUIStore()
+
+function handleClick() {
+  uiStore.setActiveView('week')
+}
 </script>
 
 <template>
@@ -16,6 +24,7 @@ defineProps({
     type="button"
     class="month-folder"
     :aria-label="`${month}, ${eventCount} events`"
+    @click="handleClick"
   >
     <span class="month-folder__tab">{{ month }}</span>
     <span class="month-folder__body">

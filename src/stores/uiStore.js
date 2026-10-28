@@ -5,6 +5,9 @@ const THEME_LIGHT = 'light'
 const THEME_DARK = 'dark'
 const DEFAULT_THEME = THEME_LIGHT
 
+const VALID_VIEWS = ['year', 'month', 'week', 'day']
+const DEFAULT_VIEW = 'year'
+
 /**
  * Applies the given theme to the <html> element via the data-theme attribute.
  * @param {'light' | 'dark'} theme
@@ -18,6 +21,7 @@ export const useUIStore = defineStore(
   'ui',
   () => {
     const theme = ref(DEFAULT_THEME)
+    const activeView = ref(DEFAULT_VIEW)
 
     /**
      * Sets the theme and applies it to the document.
@@ -43,17 +47,28 @@ export const useUIStore = defineStore(
       applyThemeToDocument(theme.value)
     }
 
+    /**
+     * Sets the active calendar view.
+     * @param {'year' | 'month' | 'week' | 'day'} viewName
+     */
+    function setActiveView(viewName) {
+      if (!VALID_VIEWS.includes(viewName)) return
+      activeView.value = viewName
+    }
+
     return {
       theme,
+      activeView,
       setTheme,
       toggleTheme,
       initTheme,
+      setActiveView,
     }
   },
   {
     persist: {
       key: 'wnxt-ui',
-      pick: ['theme'],
+      pick: ['theme', 'activeView'],
     },
   }
 )
