@@ -20,6 +20,9 @@ export const useEventStore = defineStore('events', () => {
         created_by: authStore.user?.id,
       }
 
+      console.log("Auth User Object:", authStore.user);
+      console.log("Final Payload being sent:", payload);
+
       const repository = new SupabaseEventRepository()
       const created = await repository.createEvent(payload)
       await loadEvents()
