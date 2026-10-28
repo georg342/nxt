@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { PhSun, PhMoon, PhGlobe } from '@phosphor-icons/vue'
 import BrutalButton from '../ui/BrutalButton.vue'
 import { useUIStore } from '../../stores/uiStore'
 
@@ -52,13 +53,25 @@ function setView(viewName) {
         :aria-label="uiStore.theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'"
         @click="uiStore.toggleTheme()"
       >
-        {{ uiStore.theme === 'light' ? $t('theme.toDark') : $t('theme.toLight') }}
+        <PhSun
+          v-if="uiStore.theme === 'dark'"
+          :size="24"
+          weight="duotone"
+        />
+        <PhMoon
+          v-else
+          :size="24"
+          weight="duotone"
+        />
       </BrutalButton>
       <BrutalButton
         :aria-label="uiStore.locale === 'pt' ? 'Switch to English' : 'Mudar para Português'"
         @click="uiStore.toggleLocale()"
       >
-        {{ uiStore.locale === 'pt' ? $t('locale.toEn') : $t('locale.toPt') }}
+        <PhGlobe :size="24" weight="duotone" />
+        <span class="app-header__locale-label">
+          {{ uiStore.locale === 'pt' ? $t('locale.toEn') : $t('locale.toPt') }}
+        </span>
       </BrutalButton>
     </nav>
   </header>
@@ -99,5 +112,12 @@ function setView(viewName) {
 
 .app-header__nav::-webkit-scrollbar {
   display: none;
+}
+
+.app-header__locale-label {
+  margin-left: var(--space-1);
+  font-weight: 900;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
 }
 </style>

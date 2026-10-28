@@ -1,4 +1,5 @@
 <script setup>
+import { PhArrowRight } from '@phosphor-icons/vue'
 import BrutalCard from '../ui/BrutalCard.vue'
 import BrutalButton from '../ui/BrutalButton.vue'
 import { useUIStore } from '../../stores/uiStore'
@@ -29,7 +30,8 @@ const uiStore = useUIStore()
       color="var(--accent-color)"
       @click="uiStore.nextWeek()"
     >
-      {{ $t('next') }}
+      <span>{{ $t('next') }}</span>
+      <PhArrowRight :size="24" weight="bold" />
     </BrutalButton>
   </div>
 </template>
@@ -90,5 +92,9 @@ const uiStore = useUIStore()
   font-weight: 900;
   letter-spacing: 0.05em;
   z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
 }
 </style>

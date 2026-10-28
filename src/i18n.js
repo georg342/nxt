@@ -9,11 +9,7 @@ const messages = {
       today: 'Today',
       add: '+',
     },
-    next: 'NEXT ->',
-    theme: {
-      toDark: '🌙',
-      toLight: '☀️',
-    },
+    next: 'NEXT',
     locale: {
       toPt: 'PT',
       toEn: 'EN',
@@ -27,11 +23,7 @@ const messages = {
       today: 'Hoje',
       add: '+',
     },
-    next: 'PRÓX ->',
-    theme: {
-      toDark: '🌙',
-      toLight: '☀️',
-    },
+    next: 'PRÓX',
     locale: {
       toPt: 'PT',
       toEn: 'EN',
