@@ -54,5 +54,14 @@ function goToAdmin() {
   align-items: center;
   gap: var(--space-2);
   overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 12px;
+  padding-right: 12px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.app-header__nav::-webkit-scrollbar {
+  display: none;
 }
 </style>
