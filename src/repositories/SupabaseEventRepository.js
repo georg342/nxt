@@ -47,4 +47,43 @@ export class SupabaseEventRepository extends EventService {
 
     return data ?? null
   }
+
+  /**
+   * Fetches pending events ordered by created_at ascending.
+   * @returns {Promise<Array>}
+   */
+  async getPendingEvents() {
+    const { data, error } = await supabase
+      .from('events')
+      .select('*')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: true })
+
+    if (error) {
+      console.error('[SupabaseEventRepository] getPendingEvents error:', error)
+      return []
+    }
+
+    return data ?? []
+  }
+
+  /**
+   * Updates the status of an event.
+   * @param {string} eventId
+   * @param {string} newStatus
+   * @returns {Promise<{ error: Object|null }>}
+   */
+  async updateEventStatus(eventId, newStatus) {
+    const { error } = await supabase
+      .from('events')
+      .update({ status: newStatus })
+      .eq('id', eventId)
+
+    if (error) {
+      console.error('[SupabaseEventRepository] updateEventStatus error:', error)
+      throw error
+    }
+
+    return { error: null }
+  }
 }

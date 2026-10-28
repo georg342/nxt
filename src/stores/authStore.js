@@ -1,10 +1,12 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { supabase } from '../lib/supabase'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
   const isAuthModalOpen = ref(false)
+
+  const isAdmin = computed(() => Boolean(user.value))
 
   function initAuth() {
     supabase.auth.getSession().then(({ data }) => {
@@ -49,6 +51,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   return {
     user,
+    isAdmin,
     isAuthModalOpen,
     initAuth,
     loginWithGoogle,

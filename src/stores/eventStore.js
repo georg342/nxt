@@ -2,10 +2,12 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { SupabaseEventRepository } from '../repositories/SupabaseEventRepository'
 import { useAuthStore } from './authStore'
+import { useUIStore } from './uiStore'
 import { Logger } from '../utils/logger.js'
 
 export const useEventStore = defineStore('events', () => {
   const events = ref([])
+  const pendingEvents = ref([])
   const isLoading = ref(false)
   const error = ref(null)
 
@@ -59,6 +61,54 @@ export const useEventStore = defineStore('events', () => {
     }
   }
 
+  async function fetchPendingEvents() {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const repository = new SupabaseEventRepository()
+      const data = await repository.getPendingEvents()
+      pendingEvents.value = data
+      Logger.info('EventStore', 'Pending events loaded', data.length)
+    } catch (err) {
+      Logger.error('EventStore', 'Failed to load pending events', err)
+      error.value = err?.message ?? 'Failed to load pending events'
+      pendingEvents.value = []
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function approveEvent(eventId) {
+    const uiStore = useUIStore()
+
+    try {
+      const repository = new SupabaseEventRepository()
+      await repository.updateEventStatus(eventId, 'published')
+      pendingEvents.value = pendingEvents.value.filter((event) => event.id !== eventId)
+      Logger.info('EventStore', 'Event approved', eventId)
+      uiStore.showToast('Evento aprovado', 'success')
+    } catch (err) {
+      Logger.error('EventStore', 'Failed to approve event', err)
+      uiStore.showToast('Falha ao aprovar evento', 'error')
+    }
+  }
+
+  async function rejectEvent(eventId) {
+    const uiStore = useUIStore()
+
+    try {
+      const repository = new SupabaseEventRepository()
+      await repository.updateEventStatus(eventId, 'rejected')
+      pendingEvents.value = pendingEvents.value.filter((event) => event.id !== eventId)
+      Logger.info('EventStore', 'Event rejected', eventId)
+      uiStore.showToast('Evento rejeitado', 'error')
+    } catch (err) {
+      Logger.error('EventStore', 'Failed to reject event', err)
+      uiStore.showToast('Falha ao rejeitar evento', 'error')
+    }
+  }
+
   async function loadEvents() {
     isLoading.value = true
     error.value = null
@@ -77,9 +127,13 @@ export const useEventStore = defineStore('events', () => {
 
   return {
     events,
+    pendingEvents,
     isLoading,
     error,
     addEvent,
     loadEvents,
+    fetchPendingEvents,
+    approveEvent,
+    rejectEvent,
   }
 })
