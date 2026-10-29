@@ -1,41 +1,63 @@
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { PhShieldCheck } from '@phosphor-icons/vue'
 import AuthModal from './components/auth/AuthModal.vue'
 import CreateEventModal from './components/events/CreateEventModal.vue'
 import ToastNotification from './components/ui/ToastNotification.vue'
 import AdminGateway from './components/admin/AdminGateway.vue'
+import AppGate from './components/layout/AppGate.vue'
 import { useAuthStore } from './stores/authStore'
 import { useUIStore } from './stores/uiStore'
+
+const GATE_STORAGE_KEY = 'wnxt_gate_unlocked'
 
 const authStore = useAuthStore()
 const uiStore = useUIStore()
 
+const isUnlocked = ref(false)
+
+function readGateState() {
+  try {
+    return sessionStorage.getItem(GATE_STORAGE_KEY) === '1'
+  } catch (err) {
+    return false
+  }
+}
+
+function handleUnlock() {
+  isUnlocked.value = true
+}
+
 onMounted(() => {
+  isUnlocked.value = readGateState()
   authStore.initAuth()
 })
 </script>
 
 <template>
-  <router-view />
+  <AppGate v-if="!isUnlocked" @unlock="handleUnlock" />
 
-  <button
-    v-if="authStore.isAdmin"
+  <template v-else>
+    <router-view />
+
+    <button
+      v-if="authStore.isAdmin"
     type="button"
-    class="admin-fab actionBtnWhiteText"
-    aria-label="Admin panel"
-    @click="uiStore.toggleAdminPanel()"
-  >
-    <PhShieldCheck :size="20" weight="duotone" />
-  </button>
+      class="admin-fab actionBtnWhiteText"
+      aria-label="Admin panel"
+      @click="uiStore.toggleAdminPanel()"
+    >
+      <PhShieldCheck :size="20" weight="duotone" />
+    </button>
 
-  <Transition name="admin-panel">
-    <AdminGateway v-if="uiStore.isAdminPanelOpen" />
-  </Transition>
+    <Transition name="admin-panel">
+      <AdminGateway v-if="uiStore.isAdminPanelOpen" />
+    </Transition>
 
-  <AuthModal />
-  <CreateEventModal />
-  <ToastNotification />
+    <AuthModal />
+    <CreateEventModal />
+    <ToastNotification />
+  </template>
 </template>
 
 <style>
