@@ -26,7 +26,11 @@ function handleCreate() {
 </script>
 
 <template>
-  <nav class="bottom-nav-pill" :aria-label="$t('nav.viewOptions')">
+  <nav
+    v-if="!uiStore.isAdminPanelOpen"
+    class="bottom-nav-pill"
+    :aria-label="$t('nav.viewOptions')"
+  >
     <BrutalButton
       class="nav-btn"
       :aria-label="$t('nav.viewOptions')"
