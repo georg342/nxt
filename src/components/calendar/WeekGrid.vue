@@ -43,7 +43,6 @@ function handleDayClick(index) {
       color="var(--accent-color)"
       @click="uiStore.nextWeek()"
     >
-      <span>{{ $t('next') }}</span>
       <PhArrowRight :size="24" weight="bold" />
     </BrutalButton>
   </div>
@@ -86,7 +85,7 @@ function handleDayClick(index) {
   font-weight: 900;
   font-size: 0.75rem;
   letter-spacing: 0.05em;
-  text-transform: uppercase;
+text-transform: uppercase;
   color: var(--text-muted);
 }
 
@@ -101,7 +100,7 @@ function handleDayClick(index) {
   right: 16px;
   bottom: 24px;
   width: calc(50% - 22px);
-  height: calc(25% - 33px);
+  height: calc(25% - 23px);
   font-size: 1rem;
   font-weight: 900;
   letter-spacing: 0.05em;
