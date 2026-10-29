@@ -113,6 +113,9 @@ function handleCreate() {
   flex-shrink: 0;
 }
 
+/* Padding matches the button box-shadow offset (4px); the negative margin
+   cancels it in layout so the collapse animation via max-width is unaffected.
+   This prevents the hard offset shadow from being clipped by overflow: hidden. */
 .view-options {
   display: flex;
   gap: 8px;
@@ -123,6 +126,8 @@ function handleCreate() {
   pointer-events: none;
   overflow: hidden;
   flex-shrink: 0;
+  padding: 4px;
+  margin: -4px;
 }
 
 .view-options.is-open {
@@ -141,6 +146,8 @@ function handleCreate() {
   transition: all 0.5s cubic-bezier(0.32, 0.72, 0, 1);
   overflow: hidden;
   flex-shrink: 0;
+  padding: 4px;
+  margin: -4px;
 }
 
 .quick-actions.is-hidden {
