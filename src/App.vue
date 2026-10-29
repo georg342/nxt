@@ -22,7 +22,7 @@ onMounted(() => {
   <button
     v-if="authStore.isAdmin"
     type="button"
-    class="admin-fab"
+    class="admin-fab actionBtnWhiteText"
     aria-label="Admin panel"
     @click="uiStore.toggleAdminPanel()"
   >

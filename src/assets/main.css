@@ -93,7 +93,6 @@ ol {
   --transition-fast: 120ms ease;
 
   /* Button content color (text + icons only) */
-  
 }
 
 /* ---------- Light Theme ---------- */
@@ -104,8 +103,8 @@ ol {
   --text-muted: #555555;
   --border-color: #111111;
   --shadow-color: #111111;
-  --accent-color: #8e37e0;
-  --accent-contrast: #ffffff;
+  --accent-color: #FACC15;
+  --accent-contrast: #000000;
   --danger-color: #ff4d4d;
   --success-color: #2ecc71;
   --button-text-color: #ff0000;
@@ -256,6 +255,23 @@ button,
 button svg,
 [role="button"] svg,
 .nb-button svg {
+  color: inherit;
+  fill: currentColor;
+}
+
+/* ---------- Button Variant: actionBtnWhiteText ---------- */
+/* Opt-in variant that forces button text/icons to white.
+   Uses compound selectors so specificity (0,1,1 / 0,2,0) reliably beats
+   `button`, `[role="button"]`, `.nb-button` and `.admin-fab` color rules. */
+button.actionBtnWhiteText,
+[role="button"].actionBtnWhiteText,
+.nb-button.actionBtnWhiteText {
+  color: #ffffff;
+}
+
+button.actionBtnWhiteText svg,
+[role="button"].actionBtnWhiteText svg,
+.nb-button.actionBtnWhiteText svg {
   color: inherit;
   fill: currentColor;
 }
