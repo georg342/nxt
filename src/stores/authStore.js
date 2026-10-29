@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { supabase } from '../lib/supabase'
 
-const MASTER_EMAIL = 'YOUR_EMAIL_HERE'
+const MASTER_EMAIL = 'getoledo.123@gmail.com'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
