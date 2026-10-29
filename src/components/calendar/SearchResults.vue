@@ -2,9 +2,9 @@
 import { ref } from 'vue'
 import { PhMagnifyingGlass } from '@phosphor-icons/vue'
 import EventCard from './EventCard.vue'
-import { useUIStore } from '../../stores/uiStore'
+import { useEventStore } from '../../stores/eventStore'
 
-const uiStore = useUIStore()
+const eventStore = useEventStore()
 const expandedEventId = ref(null)
 
 function toggleEvent(id) {
@@ -15,15 +15,7 @@ function toggleEvent(id) {
 <template>
   <div class="search-results">
     <div
-      v-if="uiStore.hasSearchQuery && !uiStore.hasMinSearchLength"
-      class="search-results__hint"
-    >
-      <PhMagnifyingGlass :size="32" weight="duotone" />
-      <p>{{ $t('search.hint') }}</p>
-    </div>
-
-    <div
-      v-else-if="uiStore.hasMinSearchLength && uiStore.searchResults.length === 0"
+      v-if="eventStore.hasActiveFilters && eventStore.filteredEvents.length === 0"
       class="search-results__hint"
     >
       <PhMagnifyingGlass :size="32" weight="duotone" />
@@ -31,7 +23,7 @@ function toggleEvent(id) {
     </div>
 
     <EventCard
-      v-for="event in uiStore.searchResults"
+      v-for="event in eventStore.filteredEvents"
       v-else
       :key="event.id"
       :event="event"
