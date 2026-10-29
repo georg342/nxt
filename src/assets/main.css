@@ -93,7 +93,7 @@ ol {
   --transition-fast: 120ms ease;
 
   /* Button content color (text + icons only) */
-  --button-text-color: var(--text-color);
+  
 }
 
 /* ---------- Light Theme ---------- */
@@ -108,7 +108,7 @@ ol {
   --accent-contrast: #ffffff;
   --danger-color: #ff4d4d;
   --success-color: #2ecc71;
-
+  --button-text-color: #ff0000;
   --shadow-1: 4px 4px 0px var(--shadow-color);
   --shadow-2: 8px 8px 0px var(--shadow-color);
   --shadow-hover: 2px 2px 0px var(--shadow-color);
