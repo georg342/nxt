@@ -8,6 +8,7 @@ import {
   PhCaretUp,
   PhMagnifyingGlass,
 } from '@phosphor-icons/vue'
+import AppHeader from '../layout/AppHeader.vue'
 import { useUIStore } from '../../stores/uiStore'
 import { useEventStore } from '../../stores/eventStore'
 
@@ -180,269 +181,272 @@ onKeyStroke('Escape', () => {
 
 <template>
   <div class="cms-container">
-    <div class="cms-inner">
-      <!-- HEADER -->
-      <header class="cms-header">
-        <div class="cms-header__left">
-          <button
-            type="button"
-            class="cms-icon-btn"
-            aria-label="Voltar"
-            @click="handleClose"
-          >
-            <PhArrowLeft :size="20" weight="bold" />
-          </button>
-          <h1 class="cms-title">Painel de Controle</h1>
-        </div>
-        <span class="cms-count">{{ filteredEvents.length }} evento(s)</span>
-      </header>
-
-      <!-- TOOLBAR -->
-      <div class="cms-toolbar">
-        <div class="cms-search-wrap">
-          <PhMagnifyingGlass
-            :size="18"
-            weight="bold"
-            class="cms-search-icon"
-          />
-          <input
-            v-model="searchQuery"
-            type="text"
-            class="cms-search-input"
-            placeholder=" "
-          />
-          <label class="cms-search-label">Buscar por nome</label>
-        </div>
-
-        <div
-          ref="statusDropdownRef"
-          class="status-dropdown"
-          :class="{ 'is-open': isStatusDropdownOpen }"
-        >
-          <button
-            type="button"
-            class="status-dropdown__field"
-            :aria-expanded="isStatusDropdownOpen"
-            aria-haspopup="listbox"
-            @click="isStatusDropdownOpen = !isStatusDropdownOpen"
-          >
-            <span class="status-dropdown__value">{{ currentStatusLabel }}</span>
-            <PhCaretDown
-              :size="16"
-              weight="bold"
-              class="status-dropdown__caret"
-              :class="{ 'is-open': isStatusDropdownOpen }"
-            />
-          </button>
-          <label class="status-dropdown__label">Status</label>
-          <Transition name="dropdown">
-            <ul
-              v-if="isStatusDropdownOpen"
-              class="status-dropdown__menu"
-              role="listbox"
+    <AppHeader />
+    <div class="cms-scroll">
+      <div class="cms-inner">
+        <!-- HEADER -->
+        <header class="cms-header">
+          <div class="cms-header__left">
+            <button
+              type="button"
+              class="cms-icon-btn"
+              aria-label="Voltar"
+              @click="handleClose"
             >
-              <li
-                v-for="option in statusOptions"
-                :key="option.value"
-                class="status-dropdown__item"
-                :class="{ 'is-active': statusFilter === option.value }"
-                role="option"
-                :aria-selected="statusFilter === option.value"
-                @click="selectStatus(option.value)"
-              >
-                {{ option.label }}
-              </li>
-            </ul>
-          </Transition>
-        </div>
+              <PhArrowLeft :size="20" weight="bold" />
+            </button>
+            <h1 class="cms-title">Painel de Controle</h1>
+          </div>
+          <span class="cms-count">{{ filteredEvents.length }} evento(s)</span>
+        </header>
 
-        <div class="cms-bulk">
-          <label class="cms-select-all">
-            <input
-              type="checkbox"
-              class="cms-checkbox"
-              :checked="isAllSelected"
-              @change="toggleSelectAll()"
+        <!-- TOOLBAR -->
+        <div class="cms-toolbar">
+          <div class="cms-search-wrap">
+            <PhMagnifyingGlass
+              :size="18"
+              weight="bold"
+              class="cms-search-icon"
             />
-            <span>Selecionar Todos</span>
-          </label>
-          <button
-            type="button"
-            class="cms-btn cms-btn--bulk"
-            :disabled="selectedIds.length === 0"
-            @click="handleBulkAction()"
+            <input
+              v-model="searchQuery"
+              type="text"
+              class="cms-search-input"
+              placeholder=" "
+            />
+            <label class="cms-search-label">Buscar por nome</label>
+          </div>
+
+          <div
+            ref="statusDropdownRef"
+            class="status-dropdown"
+            :class="{ 'is-open': isStatusDropdownOpen }"
           >
-            Ações em Massa
-          </button>
-        </div>
-      </div>
+            <button
+              type="button"
+              class="status-dropdown__field"
+              :aria-expanded="isStatusDropdownOpen"
+              aria-haspopup="listbox"
+              @click="isStatusDropdownOpen = !isStatusDropdownOpen"
+            >
+              <span class="status-dropdown__value">{{ currentStatusLabel }}</span>
+              <PhCaretDown
+                :size="16"
+                weight="bold"
+                class="status-dropdown__caret"
+                :class="{ 'is-open': isStatusDropdownOpen }"
+              />
+            </button>
+            <label class="status-dropdown__label">Status</label>
+            <Transition name="dropdown">
+              <ul
+                v-if="isStatusDropdownOpen"
+                class="status-dropdown__menu"
+                role="listbox"
+              >
+                <li
+                  v-for="option in statusOptions"
+                  :key="option.value"
+                  class="status-dropdown__item"
+                  :class="{ 'is-active': statusFilter === option.value }"
+                  role="option"
+                  :aria-selected="statusFilter === option.value"
+                  @click="selectStatus(option.value)"
+                >
+                  {{ option.label }}
+                </li>
+              </ul>
+            </Transition>
+          </div>
 
-      <!-- LISTA -->
-      <div class="cms-list">
-        <div class="cms-list-header">
-          <span></span>
-          <span>Nome</span>
-          <span>Data</span>
-          <span>Local</span>
-          <span>Status</span>
-        </div>
-
-        <div
-          v-for="event in filteredEvents"
-          :key="event.id"
-          class="cms-row"
-        >
-          <!-- SUMMARY -->
-          <div class="cms-row-summary" @click="toggleExpanded(event.id)">
-            <div class="cms-cell cms-cell--checkbox" @click.stop>
+          <div class="cms-bulk">
+            <label class="cms-select-all">
               <input
                 type="checkbox"
                 class="cms-checkbox"
-                :checked="selectedIds.includes(event.id)"
-                @change="toggleSelect(event.id)"
+                :checked="isAllSelected"
+                @change="toggleSelectAll()"
               />
-            </div>
-            <div class="cms-cell cms-cell--name">{{ event.title }}</div>
-            <div class="cms-cell cms-cell--date">
-              {{ formatDate(event.start_date) }}
-            </div>
-            <div class="cms-cell cms-cell--location">
-              {{ getShortLocation(event.location) }}
-            </div>
-            <div class="cms-cell cms-cell--status">
-              <span
-                class="cms-status"
-                :class="`cms-status--${event.status}`"
-              >
-                {{ getStatusLabel(event.status) }}
-              </span>
-              <PhCaretDown
-                v-if="!expandedIds.includes(event.id)"
-                :size="16"
-                weight="bold"
-                class="cms-caret"
-              />
-              <PhCaretUp
-                v-else
-                :size="16"
-                weight="bold"
-                class="cms-caret"
-              />
-            </div>
+              <span>Selecionar Todos</span>
+            </label>
+            <button
+              type="button"
+              class="cms-btn cms-btn--bulk"
+              :disabled="selectedIds.length === 0"
+              @click="handleBulkAction()"
+            >
+              Ações em Massa
+            </button>
+          </div>
+        </div>
+
+        <!-- LISTA -->
+        <div class="cms-list">
+          <div class="cms-list-header">
+            <span></span>
+            <span>Nome</span>
+            <span>Data</span>
+            <span>Local</span>
+            <span>Status</span>
           </div>
 
-          <!-- EXPANDED -->
           <div
-            v-if="expandedIds.includes(event.id)"
-            class="cms-row-expanded"
-            @click.stop
+            v-for="event in filteredEvents"
+            :key="event.id"
+            class="cms-row"
           >
-            <div class="cms-detail-grid">
-              <div>
-                <strong>Título</strong>
-                <p>{{ event.title }}</p>
+            <!-- SUMMARY -->
+            <div class="cms-row-summary" @click="toggleExpanded(event.id)">
+              <div class="cms-cell cms-cell--checkbox" @click.stop>
+                <input
+                  type="checkbox"
+                  class="cms-checkbox"
+                  :checked="selectedIds.includes(event.id)"
+                  @change="toggleSelect(event.id)"
+                />
               </div>
-              <div>
-                <strong>Data</strong>
-                <p>{{ formatDateTime(event.start_date) }}</p>
+              <div class="cms-cell cms-cell--name">{{ event.title }}</div>
+              <div class="cms-cell cms-cell--date">
+                {{ formatDate(event.start_date) }}
               </div>
-              <div>
-                <strong>Local</strong>
-                <p>{{ event.location }}</p>
+              <div class="cms-cell cms-cell--location">
+                {{ getShortLocation(event.location) }}
               </div>
-              <div v-if="event.link">
-                <strong>Link</strong>
-                <p>
-                  <a
-                    :href="event.link"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {{ event.link }}
-                  </a>
-                </p>
-              </div>
-              <div v-if="parsePills(event.genres).length">
-                <strong>Gêneros</strong>
-                <div class="cms-tags">
-                  <span
-                    v-for="(pill, i) in parsePills(event.genres)"
-                    :key="`g-${i}`"
-                    class="cms-tag"
-                    :style="{
-                      backgroundColor: pill?.COLOR || pill?.color || '#e5e7eb',
-                    }"
-                  >
-                    {{ pill?.LABEL || pill?.label || pill }}
-                  </span>
-                </div>
-              </div>
-              <div v-if="parsePills(event.lineup).length">
-                <strong>Lineup</strong>
-                <div class="cms-tags">
-                  <span
-                    v-for="(pill, i) in parsePills(event.lineup)"
-                    :key="`l-${i}`"
-                    class="cms-tag"
-                    :style="{
-                      backgroundColor: pill?.COLOR || pill?.color || '#e5e7eb',
-                    }"
-                  >
-                    {{ pill?.LABEL || pill?.label || pill }}
-                  </span>
-                </div>
+              <div class="cms-cell cms-cell--status">
+                <span
+                  class="cms-status"
+                  :class="`cms-status--${event.status}`"
+                >
+                  {{ getStatusLabel(event.status) }}
+                </span>
+                <PhCaretDown
+                  v-if="!expandedIds.includes(event.id)"
+                  :size="16"
+                  weight="bold"
+                  class="cms-caret"
+                />
+                <PhCaretUp
+                  v-else
+                  :size="16"
+                  weight="bold"
+                  class="cms-caret"
+                />
               </div>
             </div>
 
-            <div class="cms-actions">
-              <button type="button" class="cms-btn cms-btn--edit">
-                Editar Evento
-              </button>
-              <button
-                type="button"
-                class="cms-btn cms-btn--approve"
-                :disabled="event.status === 'approved'"
-                @click="eventStore.setEventStatus(event.id, 'approved')"
-              >
-                Aprovar
-              </button>
-              <button
-                type="button"
-                class="cms-btn cms-btn--reject"
-                :disabled="event.status === 'rejected'"
-                @click="eventStore.setEventStatus(event.id, 'rejected')"
-              >
-                Rejeitar
-              </button>
-              <button
-                type="button"
-                class="cms-btn cms-btn--delete"
-                @click="requestDelete(event.id)"
-              >
-                {{
-                  pendingDeleteId === event.id
-                    ? 'Confirmar Exclusão?'
-                    : 'Excluir'
-                }}
-              </button>
+            <!-- EXPANDED -->
+            <div
+              v-if="expandedIds.includes(event.id)"
+              class="cms-row-expanded"
+              @click.stop
+            >
+              <div class="cms-detail-grid">
+                <div>
+                  <strong>Título</strong>
+                  <p>{{ event.title }}</p>
+                </div>
+                <div>
+                  <strong>Data</strong>
+                  <p>{{ formatDateTime(event.start_date) }}</p>
+                </div>
+                <div>
+                  <strong>Local</strong>
+                  <p>{{ event.location }}</p>
+                </div>
+                <div v-if="event.link">
+                  <strong>Link</strong>
+                  <p>
+                    <a
+                      :href="event.link"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {{ event.link }}
+                    </a>
+                  </p>
+                </div>
+                <div v-if="parsePills(event.genres).length">
+                  <strong>Gêneros</strong>
+                  <div class="cms-tags">
+                    <span
+                      v-for="(pill, i) in parsePills(event.genres)"
+                      :key="`g-${i}`"
+                      class="cms-tag"
+                      :style="{
+                        backgroundColor: pill?.COLOR || pill?.color || '#e5e7eb',
+                      }"
+                    >
+                      {{ pill?.LABEL || pill?.label || pill }}
+                    </span>
+                  </div>
+                </div>
+                <div v-if="parsePills(event.lineup).length">
+                  <strong>Lineup</strong>
+                  <div class="cms-tags">
+                    <span
+                      v-for="(pill, i) in parsePills(event.lineup)"
+                      :key="`l-${i}`"
+                      class="cms-tag"
+                      :style="{
+                        backgroundColor: pill?.COLOR || pill?.color || '#e5e7eb',
+                      }"
+                    >
+                      {{ pill?.LABEL || pill?.label || pill }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="cms-actions">
+                <button type="button" class="cms-btn cms-btn--edit">
+                  Editar Evento
+                </button>
+                <button
+                  type="button"
+                  class="cms-btn cms-btn--approve"
+                  :disabled="event.status === 'approved'"
+                  @click="eventStore.setEventStatus(event.id, 'approved')"
+                >
+                  Aprovar
+                </button>
+                <button
+                  type="button"
+                  class="cms-btn cms-btn--reject"
+                  :disabled="event.status === 'rejected'"
+                  @click="eventStore.setEventStatus(event.id, 'rejected')"
+                >
+                  Rejeitar
+                </button>
+                <button
+                  type="button"
+                  class="cms-btn cms-btn--delete"
+                  @click="requestDelete(event.id)"
+                >
+                  {{
+                    pendingDeleteId === event.id
+                      ? 'Confirmar Exclusão?'
+                      : 'Excluir'
+                  }}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        <p v-if="eventStore.isLoading" class="cms-state">Carregando...</p>
-        <div v-else-if="eventStore.error" class="cms-state cms-state--error">
-          <span>Erro ao carregar eventos: {{ eventStore.error }}</span>
-          <button
-            type="button"
-            class="cms-btn cms-btn--bulk"
-            @click="eventStore.fetchAllEvents()"
-          >
-            Tentar Novamente
-          </button>
+          <p v-if="eventStore.isLoading" class="cms-state">Carregando...</p>
+          <div v-else-if="eventStore.error" class="cms-state cms-state--error">
+            <span>Erro ao carregar eventos: {{ eventStore.error }}</span>
+            <button
+              type="button"
+              class="cms-btn cms-btn--bulk"
+              @click="eventStore.fetchAllEvents()"
+            >
+              Tentar Novamente
+            </button>
+          </div>
+          <p v-else-if="filteredEvents.length === 0" class="cms-state">
+            Nenhum evento encontrado.
+          </p>
         </div>
-        <p v-else-if="filteredEvents.length === 0" class="cms-state">
-          Nenhum evento encontrado.
-        </p>
       </div>
     </div>
   </div>
@@ -456,8 +460,18 @@ onKeyStroke('Escape', () => {
   position: fixed;
   inset: 0;
   z-index: 200;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
   background: var(--bg-color, #f5f1e8);
+  box-sizing: border-box;
+}
+
+.cms-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   padding: 24px;
   box-sizing: border-box;
 }
@@ -933,7 +947,7 @@ onKeyStroke('Escape', () => {
    MOBILE
    ============================================================ */
 @media (max-width: 768px) {
-  .cms-container {
+  .cms-scroll {
     padding: 16px;
   }
   .cms-inner {
