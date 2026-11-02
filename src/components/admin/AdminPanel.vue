@@ -1,15 +1,17 @@
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import {
   PhCheck,
   PhX,
   PhCheckSquare,
   PhSquare,
+  PhCaretDown,
 } from '@phosphor-icons/vue'
 import BrutalButton from '../ui/BrutalButton.vue'
 import { useEventStore } from '../../stores/eventStore'
 
 const eventStore = useEventStore()
+const expandedIds = ref([])
 
 const selectedCount = computed(
   () => eventStore.selectedPendingEventIds.length
@@ -29,6 +31,16 @@ function toggleSelection(id) {
   const idx = ids.indexOf(id)
   if (idx === -1) ids.push(id)
   else ids.splice(idx, 1)
+}
+
+function isExpanded(id) {
+  return expandedIds.value.includes(id)
+}
+
+function toggleExpanded(id) {
+  const idx = expandedIds.value.indexOf(id)
+  if (idx === -1) expandedIds.value.push(id)
+  else expandedIds.value.splice(idx, 1)
 }
 
 function toggleSelectAll() {
@@ -118,57 +130,82 @@ onMounted(() => {
       >
         <header class="admin-panel__card-head">
           <h3 class="admin-panel__card-title">{{ event.title }}</h3>
-          <button
-            type="button"
-            class="admin-panel__toggle"
-            :aria-pressed="isSelected(event.id)"
-            @click="toggleSelection(event.id)"
-          >
-            <component
-              :is="isSelected(event.id) ? PhCheckSquare : PhSquare"
-              :size="20"
-              weight="bold"
-            />
-          </button>
+          <div class="admin-panel__card-head-actions">
+            <button
+              type="button"
+              class="admin-panel__toggle"
+              :aria-pressed="isSelected(event.id)"
+              aria-label="Selecionar evento"
+              @click="toggleSelection(event.id)"
+            >
+              <component
+                :is="isSelected(event.id) ? PhCheckSquare : PhSquare"
+                :size="20"
+                weight="bold"
+              />
+            </button>
+            <button
+              type="button"
+              class="admin-panel__toggle admin-panel__toggle--chevron"
+              :class="{ 'admin-panel__toggle--open': isExpanded(event.id) }"
+              :aria-expanded="isExpanded(event.id)"
+              :aria-controls="`admin-details-${event.id}`"
+              aria-label="Mostrar detalhes"
+              @click="toggleExpanded(event.id)"
+            >
+              <PhCaretDown :size="20" weight="bold" />
+            </button>
+          </div>
         </header>
         <p class="admin-panel__card-meta">{{ formatDate(event.start_date) }}</p>
         <p class="admin-panel__card-meta">{{ event.location }}</p>
 
-        <div v-if="event.lineup?.length" class="admin-panel__tags">
-          <span
-            v-for="(member, index) in event.lineup"
-            :key="`lineup-${index}`"
-            class="admin-panel__tag"
+        <div
+          :id="`admin-details-${event.id}`"
+          class="admin-panel__details"
+          :class="{ 'admin-panel__details--open': isExpanded(event.id) }"
+        >
+          <div
+            class="admin-panel__details-inner"
+            :inert="!isExpanded(event.id)"
           >
-            {{ tagLabel(member) }}
-          </span>
-        </div>
+            <div v-if="event.lineup?.length" class="admin-panel__tags">
+              <span
+                v-for="(member, index) in event.lineup"
+                :key="`lineup-${index}`"
+                class="admin-panel__tag"
+              >
+                {{ tagLabel(member) }}
+              </span>
+            </div>
 
-        <div v-if="event.genres?.length" class="admin-panel__tags">
-          <span
-            v-for="(genre, index) in event.genres"
-            :key="`genre-${index}`"
-            class="admin-panel__tag admin-panel__tag--genre"
-          >
-            {{ tagLabel(genre) }}
-          </span>
-        </div>
+            <div v-if="event.genres?.length" class="admin-panel__tags">
+              <span
+                v-for="(genre, index) in event.genres"
+                :key="`genre-${index}`"
+                class="admin-panel__tag admin-panel__tag--genre"
+              >
+                {{ tagLabel(genre) }}
+              </span>
+            </div>
 
-        <div class="admin-panel__actions">
-          <BrutalButton
-            class="admin-panel__action admin-panel__action--approve"
-            @click="eventStore.approveEvent(event.id)"
-          >
-            <PhCheck :size="16" weight="bold" />
-            APROVAR
-          </BrutalButton>
-          <BrutalButton
-            class="admin-panel__action admin-panel__action--reject"
-            @click="eventStore.rejectEvent(event.id)"
-          >
-            <PhX :size="16" weight="bold" />
-            REJEITAR
-          </BrutalButton>
+            <div class="admin-panel__actions">
+              <BrutalButton
+                class="admin-panel__action admin-panel__action--approve"
+                @click="eventStore.approveEvent(event.id)"
+              >
+                <PhCheck :size="16" weight="bold" />
+                APROVAR
+              </BrutalButton>
+              <BrutalButton
+                class="admin-panel__action admin-panel__action--reject"
+                @click="eventStore.rejectEvent(event.id)"
+              >
+                <PhX :size="16" weight="bold" />
+                REJEITAR
+              </BrutalButton>
+            </div>
+          </div>
         </div>
       </article>
     </div>
@@ -327,6 +364,12 @@ onMounted(() => {
   gap: var(--space-2);
 }
 
+.admin-panel__card-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .admin-panel__toggle {
   display: inline-flex;
   align-items: center;
@@ -340,8 +383,48 @@ onMounted(() => {
   -webkit-tap-highlight-color: transparent;
 }
 
+.admin-panel__toggle--chevron svg {
+  transition: transform 240ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-panel__toggle--open svg {
+  transform: rotate(180deg);
+}
+
 .admin-panel__card--selected {
   outline: 3px solid var(--accent-color);
   outline-offset: 2px;
+}
+
+.admin-panel__details {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 260ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-panel__details--open {
+  grid-template-rows: 1fr;
+}
+
+.admin-panel__details-inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.admin-panel__details--open .admin-panel__details-inner {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-panel__toggle--chevron svg,
+  .admin-panel__details,
+  .admin-panel__details-inner {
+    transition: none;
+  }
 }
 </style>
