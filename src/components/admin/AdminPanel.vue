@@ -414,20 +414,20 @@ onMounted(() => {
   min-height: 0;
   overflow: hidden;
   opacity: 0;
-  transform: translateY(-4px);
-  transition: opacity 220ms ease,
-    transform 320ms cubic-bezier(0.32, 0.72, 0, 1);
+  transition: opacity 160ms ease;
 }
 
 .admin-panel__details--open .admin-panel__details-inner {
   opacity: 1;
-  transform: translateY(0);
+  /* fade só depois que a altura começa a abrir, senão o conteúdo aparece espremido */
+  transition: opacity 200ms ease 100ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .admin-panel__toggle--chevron svg,
   .admin-panel__details,
-  .admin-panel__details-inner {
+  .admin-panel__details-inner,
+  .admin-panel__details--open .admin-panel__details-inner {
     transition: none;
   }
 }
