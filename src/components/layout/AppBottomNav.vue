@@ -3,7 +3,14 @@ import { computed, ref } from 'vue'
 import BrutalButton from '../ui/BrutalButton.vue'
 import { useUIStore } from '../../stores/uiStore'
 import { useAuthStore } from '../../stores/authStore'
-import { PhEye, PhCalendar, PhCalendarDots, PhCalendarDot } from '@phosphor-icons/vue'
+import {
+  PhEye,
+  PhCalendar,
+  PhCalendarDots,
+  PhCalendarDot,
+  PhArrowLeft,
+  PhArrowRight,
+} from '@phosphor-icons/vue'
 
 const uiStore = useUIStore()
 const authStore = useAuthStore()
@@ -26,69 +33,92 @@ function handleCreate() {
 </script>
 
 <template>
-  <nav
-    v-if="!uiStore.isAdminPanelOpen"
-    class="bottom-nav-pill"
-    :aria-label="$t('nav.viewOptions')"
-  >
+  <div v-if="!uiStore.isAdminPanelOpen" class="bottom-nav">
     <BrutalButton
-      class="nav-btn"
-      :aria-label="$t('nav.viewOptions')"
-      :aria-pressed="isViewMenuOpen"
-      @click="isViewMenuOpen = !isViewMenuOpen"
+      class="bottom-nav-arrow"
+      color="var(--accent-color)"
+      aria-label="Período anterior"
+      @click="uiStore.navigatePrev()"
     >
-      <PhEye :size="28" weight="duotone" />
+      <PhArrowLeft :size="24" weight="bold" />
     </BrutalButton>
 
-    <div class="view-options" :class="{ 'is-open': isViewMenuOpen }">
+    <nav class="bottom-nav-pill" :aria-label="$t('nav.viewOptions')">
       <BrutalButton
         class="nav-btn"
-        :color="activeView === 'year' ? 'var(--accent-color)' : undefined"
-        aria-label="Year View"
-        @click="switchView('year')"
+        :aria-label="$t('nav.viewOptions')"
+        :aria-pressed="isViewMenuOpen"
+        @click="isViewMenuOpen = !isViewMenuOpen"
       >
-        <PhCalendar :size="28" weight="duotone" />
+        <PhEye :size="28" weight="duotone" />
       </BrutalButton>
-      <BrutalButton
-        class="nav-btn"
-        :color="activeView === 'month' ? 'var(--accent-color)' : undefined"
-        aria-label="Month View"
-        @click="switchView('month')"
-      >
-        <PhCalendarDots :size="28" weight="duotone" />
-      </BrutalButton>
-      <BrutalButton
-        class="nav-btn"
-        :color="activeView === 'week' ? 'var(--accent-color)' : undefined"
-        aria-label="Week View"
-        @click="switchView('week')"
-      >
-        <PhCalendarDot :size="28" weight="duotone" />
-      </BrutalButton>
-    </div>
 
-    <div class="quick-actions" :class="{ 'is-hidden': isViewMenuOpen }">
-      <BrutalButton
-        class="nav-btn"
-        :color="uiStore.isTodaySelected ? 'var(--accent-color)' : undefined"
-        @click="uiStore.goToToday()"
-      >
-        {{ $t('nav.today') }}
-      </BrutalButton>
-      <BrutalButton class="nav-btn" color="var(--accent-color)" @click="handleCreate()">
-        {{ $t('nav.add') }}
-      </BrutalButton>
-    </div>
-  </nav>
+      <div class="view-options" :class="{ 'is-open': isViewMenuOpen }">
+        <BrutalButton
+          class="nav-btn"
+          :color="activeView === 'year' ? 'var(--accent-color)' : undefined"
+          aria-label="Year View"
+          @click="switchView('year')"
+        >
+          <PhCalendar :size="28" weight="duotone" />
+        </BrutalButton>
+        <BrutalButton
+          class="nav-btn"
+          :color="activeView === 'month' ? 'var(--accent-color)' : undefined"
+          aria-label="Month View"
+          @click="switchView('month')"
+        >
+          <PhCalendarDots :size="28" weight="duotone" />
+        </BrutalButton>
+        <BrutalButton
+          class="nav-btn"
+          :color="activeView === 'week' ? 'var(--accent-color)' : undefined"
+          aria-label="Week View"
+          @click="switchView('week')"
+        >
+          <PhCalendarDot :size="28" weight="duotone" />
+        </BrutalButton>
+      </div>
+
+      <div class="quick-actions" :class="{ 'is-hidden': isViewMenuOpen }">
+        <BrutalButton
+          class="nav-btn"
+          :color="uiStore.isTodaySelected ? 'var(--accent-color)' : undefined"
+          @click="uiStore.goToToday()"
+        >
+          {{ $t('nav.today') }}
+        </BrutalButton>
+        <BrutalButton class="nav-btn" color="var(--accent-color)" @click="handleCreate()">
+          {{ $t('nav.add') }}
+        </BrutalButton>
+      </div>
+    </nav>
+
+    <BrutalButton
+      class="bottom-nav-arrow"
+      color="var(--accent-color)"
+      aria-label="Próximo período"
+      @click="uiStore.navigateNext()"
+    >
+      <PhArrowRight :size="24" weight="bold" />
+    </BrutalButton>
+  </div>
 </template>
 
 <style scoped>
-.bottom-nav-pill {
+.bottom-nav {
   position: fixed;
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  max-width: 95%;
+}
+
+.bottom-nav-pill {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -100,7 +130,23 @@ function handleCreate() {
   overflow: hidden;
   transition: all 0.5s cubic-bezier(0.32, 0.72, 0, 1);
   white-space: nowrap;
-  max-width: 95%;
+  min-width: 0;
+}
+
+.bottom-nav-arrow {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.bottom-nav-arrow:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 0 var(--border-color);
 }
 
 .nav-btn {

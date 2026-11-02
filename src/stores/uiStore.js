@@ -466,6 +466,44 @@ export const useUIStore = defineStore(
     }
 
     /**
+     * Shifts the reference date by `delta` periods of the active view,
+     * staying in the same view. Day view moves `selectedDate` as well,
+     * since that is what the day feed renders.
+     * @param {number} delta
+     */
+    function stepDate(delta) {
+      const isDay = activeView.value === 'day'
+      const next = new Date(
+        isDay ? selectedDate.value ?? currentDate.value : currentDate.value
+      )
+
+      if (activeView.value === 'year') {
+        next.setFullYear(next.getFullYear() + delta)
+      } else if (activeView.value === 'month') {
+        next.setMonth(next.getMonth() + delta)
+      } else {
+        next.setDate(next.getDate() + delta * (isDay ? 1 : 7))
+      }
+
+      currentDate.value = next
+      if (isDay) selectedDate.value = new Date(next)
+    }
+
+    /**
+     * Moves to the previous period of the active view.
+     */
+    function navigatePrev() {
+      stepDate(-1)
+    }
+
+    /**
+     * Moves to the next period of the active view.
+     */
+    function navigateNext() {
+      stepDate(1)
+    }
+
+    /**
      * Navigates back one level in the view hierarchy.
      * day -> week, week -> month, month -> year, year -> -1 year.
      * When leaving the day view, keeps the currentDate anchored to the
@@ -645,6 +683,9 @@ export const useUIStore = defineStore(
       setActiveView,
       nextWeek,
       prevWeek,
+      stepDate,
+      navigatePrev,
+      navigateNext,
       goToPrevious,
       selectDate,
       goToToday,
