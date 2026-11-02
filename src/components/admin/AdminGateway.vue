@@ -5,7 +5,6 @@ import { onClickOutside, onKeyStroke } from '@vueuse/core'
 import {
   PhArrowLeft,
   PhCaretDown,
-  PhCaretUp,
   PhMagnifyingGlass,
 } from '@phosphor-icons/vue'
 import AppHeader from '../layout/AppHeader.vue'
@@ -69,6 +68,10 @@ function toggleSelect(id) {
   selectedIds.value = selectedIds.value.includes(id)
     ? selectedIds.value.filter((x) => x !== id)
     : [...selectedIds.value, id]
+}
+
+function isRowExpanded(id) {
+  return expandedIds.value.includes(id)
 }
 
 function toggleExpanded(id) {
@@ -294,6 +297,7 @@ onKeyStroke('Escape', () => {
             v-for="event in filteredEvents"
             :key="event.id"
             class="cms-row"
+            :class="{ 'row-expanded': isRowExpanded(event.id) }"
           >
             <!-- SUMMARY -->
             <div class="cms-row-summary" @click="toggleExpanded(event.id)">
@@ -320,13 +324,6 @@ onKeyStroke('Escape', () => {
                   {{ getStatusLabel(event.status) }}
                 </span>
                 <PhCaretDown
-                  v-if="!expandedIds.includes(event.id)"
-                  :size="16"
-                  weight="bold"
-                  class="cms-caret"
-                />
-                <PhCaretUp
-                  v-else
                   :size="16"
                   weight="bold"
                   class="cms-caret"
@@ -336,98 +333,104 @@ onKeyStroke('Escape', () => {
 
             <!-- EXPANDED -->
             <div
-              v-if="expandedIds.includes(event.id)"
-              class="cms-row-expanded"
-              @click.stop
+              class="cms-row-expander"
+              :class="{ 'is-expanded': isRowExpanded(event.id) }"
             >
-              <div class="cms-detail-grid">
-                <div>
-                  <strong>Título</strong>
-                  <p>{{ event.title }}</p>
-                </div>
-                <div>
-                  <strong>Data</strong>
-                  <p>{{ formatDateTime(event.start_date) }}</p>
-                </div>
-                <div>
-                  <strong>Local</strong>
-                  <p>{{ event.location }}</p>
-                </div>
-                <div v-if="event.link">
-                  <strong>Link</strong>
-                  <p>
-                    <a
-                      :href="event.link"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {{ event.link }}
-                    </a>
-                  </p>
-                </div>
-                <div v-if="parsePills(event.genres).length">
-                  <strong>Gêneros</strong>
-                  <div class="cms-tags">
-                    <span
-                      v-for="(pill, i) in parsePills(event.genres)"
-                      :key="`g-${i}`"
-                      class="cms-tag"
-                      :style="{
-                        backgroundColor: pill?.COLOR || pill?.color || '#e5e7eb',
-                      }"
-                    >
-                      {{ pill?.LABEL || pill?.label || pill }}
-                    </span>
+              <div
+                class="cms-row-expanded-inner"
+                :inert="!isRowExpanded(event.id)"
+              >
+                <div class="cms-row-expanded-content">
+                  <div class="cms-detail-grid">
+                    <div>
+                      <strong>Título</strong>
+                      <p>{{ event.title }}</p>
+                    </div>
+                    <div>
+                      <strong>Data</strong>
+                      <p>{{ formatDateTime(event.start_date) }}</p>
+                    </div>
+                    <div>
+                      <strong>Local</strong>
+                      <p>{{ event.location }}</p>
+                    </div>
+                    <div v-if="event.link">
+                      <strong>Link</strong>
+                      <p>
+                        <a
+                          :href="event.link"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {{ event.link }}
+                        </a>
+                      </p>
+                    </div>
+                    <div v-if="parsePills(event.genres).length">
+                      <strong>Gêneros</strong>
+                      <div class="cms-tags">
+                        <span
+                          v-for="(pill, i) in parsePills(event.genres)"
+                          :key="`g-${i}`"
+                          class="cms-tag"
+                          :style="{
+                            backgroundColor: pill?.COLOR || pill?.color || '#e5e7eb',
+                          }"
+                        >
+                          {{ pill?.LABEL || pill?.label || pill }}
+                        </span>
+                      </div>
+                    </div>
+                    <div v-if="parsePills(event.lineup).length">
+                      <strong>Lineup</strong>
+                      <div class="cms-tags">
+                        <span
+                          v-for="(pill, i) in parsePills(event.lineup)"
+                          :key="`l-${i}`"
+                          class="cms-tag"
+                          :style="{
+                            backgroundColor: pill?.COLOR || pill?.color || '#e5e7eb',
+                          }"
+                        >
+                          {{ pill?.LABEL || pill?.label || pill }}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div v-if="parsePills(event.lineup).length">
-                  <strong>Lineup</strong>
-                  <div class="cms-tags">
-                    <span
-                      v-for="(pill, i) in parsePills(event.lineup)"
-                      :key="`l-${i}`"
-                      class="cms-tag"
-                      :style="{
-                        backgroundColor: pill?.COLOR || pill?.color || '#e5e7eb',
-                      }"
-                    >
-                      {{ pill?.LABEL || pill?.label || pill }}
-                    </span>
-                  </div>
-                </div>
-              </div>
 
-              <div class="cms-actions">
-                <button type="button" class="cms-btn cms-btn--edit">
-                  Editar Evento
-                </button>
-                <button
-                  type="button"
-                  class="cms-btn cms-btn--approve"
-                  :disabled="event.status === 'approved'"
-                  @click="eventStore.setEventStatus(event.id, 'approved')"
-                >
-                  Aprovar
-                </button>
-                <button
-                  type="button"
-                  class="cms-btn cms-btn--reject"
-                  :disabled="event.status === 'rejected'"
-                  @click="eventStore.setEventStatus(event.id, 'rejected')"
-                >
-                  Rejeitar
-                </button>
-                <button
-                  type="button"
-                  class="cms-btn cms-btn--delete"
-                  @click="requestDelete(event.id)"
-                >
-                  {{
-                    pendingDeleteId === event.id
-                      ? 'Confirmar Exclusão?'
-                      : 'Excluir'
-                  }}
-                </button>
+                  <div class="cms-actions">
+                    <button type="button" class="cms-btn cms-btn--edit">
+                      Editar Evento
+                    </button>
+                    <button
+                      type="button"
+                      class="cms-btn cms-btn--approve"
+                      :disabled="event.status === 'approved'"
+                      @click="eventStore.setEventStatus(event.id, 'approved')"
+                    >
+                      Aprovar
+                    </button>
+                    <button
+                      type="button"
+                      class="cms-btn cms-btn--reject"
+                      :disabled="event.status === 'rejected'"
+                      @click="eventStore.setEventStatus(event.id, 'rejected')"
+                    >
+                      Rejeitar
+                    </button>
+                    <button
+                      type="button"
+                      class="cms-btn cms-btn--delete"
+                      @click="requestDelete(event.id)"
+                    >
+                      {{
+                        pendingDeleteId === event.id
+                          ? 'Confirmar Exclusão?'
+                          : 'Excluir'
+                      }}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -763,11 +766,18 @@ onKeyStroke('Escape', () => {
   border: 2px solid var(--border-color, #000);
   border-radius: var(--radius-md);
   background: var(--surface-color, #fff);
-  transition: all 0.2s ease;
+  transition: box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.2s ease;
   overflow: hidden;
 }
 .cms-row:hover {
   box-shadow: var(--shadow-1, 4px 4px 0 0 #000);
+}
+/* depois do :hover de propósito: mesma especificidade, o expandido ganha */
+.cms-row.row-expanded {
+  box-shadow: var(--shadow-2, 8px 8px 0 0 #000);
+  transform: translateY(-2px);
 }
 .cms-row-summary {
   display: grid;
@@ -802,6 +812,10 @@ onKeyStroke('Escape', () => {
 }
 .cms-caret {
   color: var(--text-muted, #555);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.cms-row.row-expanded .cms-caret {
+  transform: rotate(180deg);
 }
 .cms-status {
   padding: 3px 8px;
@@ -825,13 +839,41 @@ onKeyStroke('Escape', () => {
 /* ============================================================
    EXPANDED
    ============================================================ */
-.cms-row-expanded {
-  padding: 16px;
-  border-top: 2px dashed var(--border-color, #000);
-  background: var(--bg-color, #fafafa);
+/* shortcut: 0fr → 1fr exige Chrome 107+/Safari 16+/Firefox 66+; trocar por max-height fixo se precisar de navegadores antigos */
+.cms-row-expander {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.25s ease;
+}
+.cms-row-expander.is-expanded {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+/* padding/borda ficam no .cms-row-expanded-content: no próprio clipper eles
+   somariam altura e o estado 0fr não fecharia em 0px */
+.cms-row-expanded-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+.cms-row-expanded-content {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding: 16px;
+  border-top: 2px dashed var(--border-color, #000);
+  background: var(--bg-color, #fafafa);
+}
+.cms-row-expanded-content > * {
+  transform: translateY(-8px);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.cms-row-expanded-content > *:nth-child(2) {
+  transition-delay: 40ms;
+}
+.cms-row-expander.is-expanded .cms-row-expanded-content > * {
+  transform: translateY(0);
 }
 .cms-detail-grid {
   display: grid;
@@ -974,6 +1016,24 @@ onKeyStroke('Escape', () => {
   .status-dropdown {
     width: 100%;
     min-width: 0;
+  }
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .cms-row,
+  .cms-row-expander,
+  .cms-row-expanded-content > *,
+  .cms-caret {
+    transition: none;
+  }
+  .cms-row.row-expanded {
+    transform: none;
+  }
+  .cms-row-expanded-content > * {
+    transform: none;
   }
 }
 </style>
