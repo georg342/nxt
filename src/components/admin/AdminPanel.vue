@@ -1,10 +1,47 @@
 <script setup>
-import { onMounted } from 'vue'
-import { PhCheck, PhX } from '@phosphor-icons/vue'
+import { computed, onMounted } from 'vue'
+import {
+  PhCheck,
+  PhX,
+  PhCheckSquare,
+  PhSquare,
+} from '@phosphor-icons/vue'
 import BrutalButton from '../ui/BrutalButton.vue'
 import { useEventStore } from '../../stores/eventStore'
 
 const eventStore = useEventStore()
+
+const selectedCount = computed(
+  () => eventStore.selectedPendingEventIds.length
+)
+const allSelected = computed(
+  () =>
+    eventStore.pendingEvents.length > 0 &&
+    selectedCount.value === eventStore.pendingEvents.length
+)
+
+function isSelected(id) {
+  return eventStore.selectedPendingEventIds.includes(id)
+}
+
+function toggleSelection(id) {
+  const ids = eventStore.selectedPendingEventIds
+  const idx = ids.indexOf(id)
+  if (idx === -1) ids.push(id)
+  else ids.splice(idx, 1)
+}
+
+function toggleSelectAll() {
+  if (allSelected.value) {
+    eventStore.selectedPendingEventIds.splice(0)
+  } else {
+    eventStore.selectedPendingEventIds.splice(
+      0,
+      eventStore.selectedPendingEventIds.length,
+      ...eventStore.pendingEvents.map((e) => e.id)
+    )
+  }
+}
 
 function formatDate(value) {
   if (!value) return ''
@@ -31,6 +68,42 @@ onMounted(() => {
   <section class="admin-panel">
     <h2 class="admin-panel__title">Moderação de Eventos</h2>
 
+    <div
+      v-if="!eventStore.isLoading && eventStore.pendingEvents.length > 0"
+      class="admin-panel__bulk"
+    >
+      <button
+        type="button"
+        class="admin-panel__select-all"
+        @click="toggleSelectAll"
+      >
+        <component
+          :is="allSelected ? PhCheckSquare : PhSquare"
+          :size="18"
+          weight="bold"
+        />
+        <span>{{ allSelected ? 'Desmarcar todos' : 'Selecionar todos' }}</span>
+      </button>
+
+      <div v-if="selectedCount > 0" class="admin-panel__bulk-actions">
+        <span class="admin-panel__bulk-count">{{ selectedCount }} selecionado(s)</span>
+        <BrutalButton
+          class="admin-panel__action admin-panel__action--approve"
+          @click="eventStore.bulkUpdatePendingEvents('approved')"
+        >
+          <PhCheck :size="16" weight="bold" />
+          APROVAR
+        </BrutalButton>
+        <BrutalButton
+          class="admin-panel__action admin-panel__action--reject"
+          @click="eventStore.bulkUpdatePendingEvents('rejected')"
+        >
+          <PhX :size="16" weight="bold" />
+          REJEITAR
+        </BrutalButton>
+      </div>
+    </div>
+
     <p v-if="eventStore.isLoading" class="admin-panel__state">Carregando...</p>
     <p v-else-if="eventStore.pendingEvents.length === 0" class="admin-panel__state">
       Nenhum evento pendente. A paz reina.
@@ -41,8 +114,23 @@ onMounted(() => {
         v-for="event in eventStore.pendingEvents"
         :key="event.id"
         class="admin-panel__card"
+        :class="{ 'admin-panel__card--selected': isSelected(event.id) }"
       >
-        <h3 class="admin-panel__card-title">{{ event.title }}</h3>
+        <header class="admin-panel__card-head">
+          <h3 class="admin-panel__card-title">{{ event.title }}</h3>
+          <button
+            type="button"
+            class="admin-panel__toggle"
+            :aria-pressed="isSelected(event.id)"
+            @click="toggleSelection(event.id)"
+          >
+            <component
+              :is="isSelected(event.id) ? PhCheckSquare : PhSquare"
+              :size="20"
+              weight="bold"
+            />
+          </button>
+        </header>
         <p class="admin-panel__card-meta">{{ formatDate(event.start_date) }}</p>
         <p class="admin-panel__card-meta">{{ event.location }}</p>
 
@@ -183,5 +271,77 @@ onMounted(() => {
 .admin-panel__action--reject {
   background: #fb923c;
   color: #000000;
+}
+
+.admin-panel__bulk {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--surface-color);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-1);
+}
+
+.admin-panel__select-all {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 4px 8px;
+  background: transparent;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-color);
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.admin-panel__bulk-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.admin-panel__bulk-count {
+  flex: 1 1 100%;
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.admin-panel__bulk-actions .admin-panel__action {
+  flex: 1 1 0;
+}
+
+.admin-panel__card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.admin-panel__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  background: transparent;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-color);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.admin-panel__card--selected {
+  outline: 3px solid var(--accent-color);
+  outline-offset: 2px;
 }
 </style>
