@@ -396,10 +396,11 @@ onMounted(() => {
   outline-offset: 2px;
 }
 
+/* shortcut: 0fr → 1fr exige Chrome 107+/Safari 16+/Firefox 66+; trocar por max-height fixo se precisar de navegadores antigos */
 .admin-panel__details {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows 260ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: grid-template-rows 320ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .admin-panel__details--open {
@@ -413,11 +414,14 @@ onMounted(() => {
   min-height: 0;
   overflow: hidden;
   opacity: 0;
-  transition: opacity 200ms ease;
+  transform: translateY(-4px);
+  transition: opacity 220ms ease,
+    transform 320ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .admin-panel__details--open .admin-panel__details-inner {
   opacity: 1;
+  transform: translateY(0);
 }
 
 @media (prefers-reduced-motion: reduce) {
