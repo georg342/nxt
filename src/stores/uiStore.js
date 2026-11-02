@@ -457,6 +457,15 @@ export const useUIStore = defineStore(
     }
 
     /**
+     * Moves back to the previous week without leaving the week view.
+     */
+    function prevWeek() {
+      const prev = new Date(currentDate.value)
+      prev.setDate(prev.getDate() - 7)
+      currentDate.value = prev
+    }
+
+    /**
      * Navigates back one level in the view hierarchy.
      * day -> week, week -> month, month -> year, year -> -1 year.
      * When leaving the day view, keeps the currentDate anchored to the
@@ -635,6 +644,7 @@ export const useUIStore = defineStore(
       toast,
       setActiveView,
       nextWeek,
+      prevWeek,
       goToPrevious,
       selectDate,
       goToToday,

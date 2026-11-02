@@ -41,7 +41,7 @@ function handleDayClick(index) {
             class="week-nav-btn"
             color="var(--accent-color)"
             aria-label="Semana anterior"
-            @click="uiStore.goToPrevious()"
+            @click="uiStore.prevWeek()"
           >
             <PhArrowLeft :size="24" weight="bold" />
           </BrutalButton>
