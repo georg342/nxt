@@ -35,7 +35,8 @@ function handleCreate() {
 <template>
   <div v-if="!uiStore.isAdminPanelOpen" class="bottom-nav">
     <BrutalButton
-      class="nav-btn"
+      class="nav-btn nav-btn--arrow"
+      color="var(--accent-color)"
       aria-label="Período anterior"
       @click="uiStore.navigatePrev()"
     >
@@ -94,7 +95,8 @@ function handleCreate() {
     </nav>
 
     <BrutalButton
-      class="nav-btn"
+      class="nav-btn nav-btn--arrow"
+      color="var(--accent-color)"
       aria-label="Próximo período"
       @click="uiStore.navigateNext()"
     >
@@ -139,6 +141,11 @@ function handleCreate() {
   justify-content: center;
   align-items: center;
   flex-shrink: 0;
+}
+
+.nav-btn--arrow {
+  border-radius: 0;
+  color: var(--accent-contrast);
 }
 
 /* Padding matches the button box-shadow offset (4px); the negative margin
