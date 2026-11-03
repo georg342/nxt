@@ -35,8 +35,7 @@ function handleCreate() {
 <template>
   <div v-if="!uiStore.isAdminPanelOpen" class="bottom-nav">
     <BrutalButton
-      class="bottom-nav-arrow"
-      color="var(--accent-color)"
+      class="nav-btn"
       aria-label="Período anterior"
       @click="uiStore.navigatePrev()"
     >
@@ -95,8 +94,7 @@ function handleCreate() {
     </nav>
 
     <BrutalButton
-      class="bottom-nav-arrow"
-      color="var(--accent-color)"
+      class="nav-btn"
       aria-label="Próximo período"
       @click="uiStore.navigateNext()"
     >
@@ -131,22 +129,6 @@ function handleCreate() {
   transition: all 0.5s cubic-bezier(0.32, 0.72, 0, 1);
   white-space: nowrap;
   min-width: 0;
-}
-
-.bottom-nav-arrow {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-1);
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
-}
-
-.bottom-nav-arrow:active {
-  transform: translate(2px, 2px);
-  box-shadow: 0 0 0 0 var(--border-color);
 }
 
 .nav-btn {
