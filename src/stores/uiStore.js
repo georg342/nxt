@@ -7,7 +7,8 @@ const THEME_DARK = 'dark'
 const DEFAULT_THEME = THEME_LIGHT
 
 const VALID_VIEWS = ['year', 'month', 'week', 'day']
-const DEFAULT_VIEW = 'year'
+// Boot straight into today's day view, mirroring goToToday().
+const DEFAULT_VIEW = 'day'
 
 const MIN_SEARCH_LENGTH = 3
 
@@ -238,7 +239,7 @@ export const useUIStore = defineStore(
     const accentPresets = ref(ACCENT_PRESETS)
     const activeView = ref(DEFAULT_VIEW)
     const currentDate = ref(new Date())
-    const selectedDate = ref(null)
+    const selectedDate = ref(new Date())
     const transitionDirection = ref(DEFAULT_TRANSITION)
     const searchQuery = ref('')
     const isSearchOpen = ref(false)
@@ -705,7 +706,8 @@ export const useUIStore = defineStore(
   {
     persist: {
       key: 'wnxt-ui',
-      pick: ['theme', 'locale', 'activeView', 'accentPreset'],
+      // activeView is intentionally not persisted so every boot starts at today.
+      pick: ['theme', 'locale', 'accentPreset'],
     },
   }
 )
