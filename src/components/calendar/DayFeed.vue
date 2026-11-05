@@ -219,7 +219,7 @@ watch(
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  text-align: left;
+  text-align: center;
   color: var(--accent-color);
 }
 
@@ -230,14 +230,14 @@ watch(
   display: block;
   width: 100%;
   margin: 0;
-  padding-top: 8px;
-  padding-bottom: 8px;
+  padding-top: 6px;
+  padding-bottom: 4px;
   font-size: 0.75rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   white-space: nowrap;
-  text-align: left;
+  text-align: center;
   color: var(--text-color);
   background-color: var(--bg-color);
   box-shadow: 0 4px 6px -6px rgba(0, 0, 0, 0.2);
