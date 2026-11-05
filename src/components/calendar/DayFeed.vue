@@ -228,10 +228,9 @@ watch(
   top: 0;
   z-index: 10;
   display: block;
-  width: 100%;
-  margin: 0;
-  padding-top: 6px;
-  padding-bottom: 4px;
+  width: auto;
+  margin: 0 -16px;
+  padding: 6px 16px 4px;
   font-size: 0.75rem;
   font-weight: 900;
   text-transform: uppercase;
