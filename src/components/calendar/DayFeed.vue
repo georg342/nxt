@@ -239,7 +239,7 @@ watch(
   text-align: center;
   color: var(--text-color);
   background-color: var(--bg-color);
-  box-shadow: 0 4px 6px -4px rgba(0, 0, 0, 0.15);
+  /* box-shadow: 4px 4px 6px 0px rgba(0, 0, 0, 0.35); */
 }
 
 .day-feed__group {
