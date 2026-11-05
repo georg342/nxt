@@ -150,5 +150,7 @@ function handleCreate() {
 .bottom-nav .nav-btn--add {
   font-size: 22px;
   line-height: 1;
+  /* "+" renders low inside its line box; extra bottom padding lifts the glyph */
+  padding-bottom: calc(8px + 6px);
 }
 </style>
