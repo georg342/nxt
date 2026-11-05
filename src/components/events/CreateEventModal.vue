@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { PhX } from '@phosphor-icons/vue'
 import BrutalButton from '../ui/BrutalButton.vue'
@@ -25,6 +25,35 @@ const form = ref({
   genres: [],
 })
 
+const isEditing = computed(() => Boolean(eventStore.editingEvent))
+
+const submitLabel = computed(() => {
+  if (isSubmitting.value) return t('createEvent.submitting')
+  return isEditing.value ? 'Salvar Alterações' : t('createEvent.submit')
+})
+
+// Rows may hold genres/lineup as JSON strings or { LABEL, COLOR } pills.
+function toTags(value) {
+  if (!value) return []
+  const list = Array.isArray(value) ? value : [value]
+  return list
+    .map((item) => {
+      if (typeof item !== 'string') return item?.LABEL ?? item?.label ?? null
+      try {
+        const parsed = JSON.parse(item)
+        return parsed?.LABEL ?? parsed?.label ?? parsed
+      } catch {
+        return item
+      }
+    })
+    .filter(Boolean)
+}
+
+// datetime-local expects YYYY-MM-DDTHH:mm; the API returns full ISO strings.
+function toPickerValue(value) {
+  return value ? String(value).slice(0, 16) : ''
+}
+
 function resetForm() {
   form.value = {
     title: '',
@@ -36,6 +65,26 @@ function resetForm() {
   }
   submitError.value = null
 }
+
+watch(
+  () => eventStore.editingEvent,
+  (event) => {
+    if (!event) {
+      resetForm()
+      return
+    }
+    form.value = {
+      title: event.title ?? '',
+      start_date: toPickerValue(event.start_date),
+      location: event.location ?? '',
+      link: event.link ?? '',
+      lineup: toTags(event.lineup),
+      genres: toTags(event.genres),
+    }
+    submitError.value = null
+  },
+  { immediate: true }
+)
 
 async function handleSubmit() {
   if (isSubmitting.value) return
@@ -52,9 +101,19 @@ async function handleSubmit() {
       genres: form.value.genres,
     }
 
-    await eventStore.addEvent(eventData)
-
-    uiStore.showToast(t('createEvent.success'), 'success')
+    if (isEditing.value) {
+      const updated = await eventStore.updateEvent(
+        eventStore.editingEvent.id,
+        eventData
+      )
+      if (!updated) {
+        submitError.value = t('createEvent.error')
+        return
+      }
+    } else {
+      await eventStore.addEvent(eventData)
+      uiStore.showToast(t('createEvent.success'), 'success')
+    }
 
     resetForm()
     uiStore.closeCreateEventModal()
@@ -67,6 +126,7 @@ async function handleSubmit() {
 
 function handleClose() {
   if (isSubmitting.value) return
+  eventStore.cancelEditing()
   resetForm()
   uiStore.closeCreateEventModal()
 }
@@ -157,7 +217,7 @@ function handleClose() {
             color="var(--accent-color)"
             :disabled="isSubmitting"
           >
-            {{ isSubmitting ? t('createEvent.submitting') : t('createEvent.submit') }}
+            {{ submitLabel }}
           </BrutalButton>
         </div>
       </form>
