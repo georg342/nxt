@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import EventCard from './EventCard.vue'
 import { useEventStore } from '../../stores/eventStore'
 import { useUIStore } from '../../stores/uiStore'
@@ -36,9 +36,15 @@ const filteredEvents = computed(() => {
   })
 })
 
-onMounted(() => {
-  eventStore.loadEvents()
-})
+// Refetch on every entry into the day view and whenever the selected day
+// changes (arrow navigation keeps the component mounted).
+watch(
+  () => uiStore.selectedDate,
+  () => {
+    eventStore.loadEvents()
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
