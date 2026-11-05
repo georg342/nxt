@@ -161,14 +161,6 @@ function handleCreate() {
   display: none;
 }
 
-.bottom-nav.is-menu-open .nav-btn--arrow:first-child {
-  transform: translateX(calc(-50vw - 120px));
-}
-
-.bottom-nav.is-menu-open .nav-btn--arrow:last-child {
-  transform: translateX(calc(50vw + 120px));
-}
-
 /* Padding matches the button box-shadow offset (4px); the negative margin
    cancels it in layout so the collapse animation via max-width is unaffected.
    This prevents the hard offset shadow from being clipped by overflow: hidden. */
