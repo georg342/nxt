@@ -151,14 +151,7 @@ function handleCreate() {
   border-radius: var(--radius-button); 
   color: var(--accent-contrast);
   align-self: center;
-  /* Footstep easing: plateaus + bursts make the arrow "walk" out. Opacity
-     holds until the arrow clears the viewport edge, then fades. */
-  transition:
-    transform 0.7s linear(
-      0, 0 8%, 0.08 18%, 0.08 26%, 0.22 34%, 0.22 42%, 0.45 50%,
-      0.45 58%, 0.68 66%, 0.68 74%, 0.9 82%, 0.9 90%, 1
-    ),
-    opacity 0.3s ease-in-out 0.3s;
+  transition: transform 0.2s ease-out;
 }
 
 /* Arrows walk off-screen while the view menu is open. */
@@ -171,16 +164,14 @@ function handleCreate() {
   /* -24px cancels the 48px width, so the arrow occupies no pill space. */
   margin: 0 -24px;
   pointer-events: none;
-  /* Safety net for the off-screen walk: nothing stays visible if it stalls. */
-  opacity: 0;
 }
 
 .bottom-nav.is-menu-open .nav-btn--arrow:first-child {
-  transform: translateX(calc(-50vw - 120px)) rotate(-14deg);
+  transform: translateX(calc(-50vw - 120px));
 }
 
 .bottom-nav.is-menu-open .nav-btn--arrow:last-child {
-  transform: translateX(calc(50vw + 120px)) rotate(14deg);
+  transform: translateX(calc(50vw + 120px));
 }
 
 /* Padding matches the button box-shadow offset (4px); the negative margin
