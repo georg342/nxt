@@ -151,21 +151,31 @@ function handleCreate() {
   border-radius: var(--radius-button); 
   color: var(--accent-contrast);
   align-self: center;
-  transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.4s ease;
+  /* Footstep easing: plateaus + bursts make the arrow "walk" out, no fade. */
+  transition: transform 0.7s linear(
+    0, 0 8%, 0.08 18%, 0.08 26%, 0.22 34%, 0.22 42%, 0.45 50%,
+    0.45 58%, 0.68 66%, 0.68 74%, 0.9 82%, 0.9 90%, 1
+  );
 }
 
-/* Arrows fly off-screen while the view menu is open. */
+/* Arrows walk off-screen while the view menu is open. */
+.bottom-nav.is-menu-open {
+  /* Arrows are gone: drop their footprint so the pill can use the full width. */
+  gap: 0;
+}
+
 .bottom-nav.is-menu-open .nav-btn--arrow {
-  opacity: 0;
+  /* -24px cancels the 48px width, so the arrow occupies no pill space. */
+  margin: 0 -24px;
   pointer-events: none;
 }
 
 .bottom-nav.is-menu-open .nav-btn--arrow:first-child {
-  transform: translateX(calc(-50vw - 120px));
+  transform: translateX(calc(-50vw - 120px)) rotate(-14deg);
 }
 
 .bottom-nav.is-menu-open .nav-btn--arrow:last-child {
-  transform: translateX(calc(50vw + 120px));
+  transform: translateX(calc(50vw + 120px)) rotate(14deg);
 }
 
 /* Padding matches the button box-shadow offset (4px); the negative margin
