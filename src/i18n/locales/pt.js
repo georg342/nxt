@@ -35,6 +35,9 @@ export default {
       genres: 'Gêneros',
       commaSeparated: 'Separe por vírgula',
     },
+    list: {
+      sortByDate: 'Ordenar por data',
+    },
   },
   createEvent: {
     title: 'Sugestão de Evento',

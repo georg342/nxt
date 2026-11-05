@@ -1,9 +1,12 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { onClickOutside, onKeyStroke } from '@vueuse/core'
 import {
+  PhArrowDown,
   PhArrowLeft,
+  PhArrowUp,
   PhCaretDown,
   PhMagnifyingGlass,
 } from '@phosphor-icons/vue'
@@ -12,11 +15,13 @@ import { useUIStore } from '../../stores/uiStore'
 import { useEventStore } from '../../stores/eventStore'
 
 const router = useRouter()
+const { t } = useI18n()
 const uiStore = useUIStore()
 const eventStore = useEventStore()
 
 const searchQuery = ref('')
 const statusFilter = ref('all')
+const dateSortOrder = ref(null)
 const isStatusDropdownOpen = ref(false)
 const statusOptions = [
   { label: 'TODOS OS STATUS', value: 'all' },
@@ -37,6 +42,12 @@ const filteredEvents = computed(() => {
   }
   if (statusFilter.value !== 'all') {
     list = list.filter((e) => e.status === statusFilter.value)
+  }
+  if (dateSortOrder.value) {
+    list = [...list].sort(
+      (a, b) => new Date(a.start_date) - new Date(b.start_date)
+    )
+    if (dateSortOrder.value === 'desc') list.reverse()
   }
   return list
 })
@@ -62,6 +73,10 @@ function toggleSelectAll() {
 function selectStatus(value) {
   statusFilter.value = value
   isStatusDropdownOpen.value = false
+}
+
+function toggleDateSort() {
+  dateSortOrder.value = dateSortOrder.value === 'asc' ? 'desc' : 'asc'
 }
 
 function toggleSelect(id) {
@@ -266,6 +281,26 @@ onKeyStroke('Escape', () => {
               </ul>
             </Transition>
           </div>
+
+          <button
+            type="button"
+            class="cms-btn cms-btn--sort"
+            :class="{ 'is-active': dateSortOrder }"
+            :aria-pressed="Boolean(dateSortOrder)"
+            @click="toggleDateSort"
+          >
+            <PhArrowUp
+              v-if="dateSortOrder === 'asc'"
+              :size="14"
+              weight="bold"
+            />
+            <PhArrowDown
+              v-else-if="dateSortOrder === 'desc'"
+              :size="14"
+              weight="bold"
+            />
+            {{ t('admin.list.sortByDate') }}
+          </button>
 
           <div class="cms-bulk">
             <label class="cms-select-all">
@@ -954,6 +989,16 @@ onKeyStroke('Escape', () => {
 .cms-btn--bulk {
   background: #e5e7eb;
 }
+.cms-btn--sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-color, #fff);
+}
+.cms-btn--sort.is-active {
+  background: var(--accent-color, #a3e635);
+  color: var(--accent-contrast, #000);
+}
 .cms-btn--edit {
   background: #60a5fa;
 }
@@ -1004,13 +1049,32 @@ onKeyStroke('Escape', () => {
   .cms-inner {
     gap: 16px;
   }
-  .cms-row-summary,
   .cms-list-header {
     grid-template-columns: 32px 1fr auto;
   }
+  .cms-row-summary {
+    grid-template-columns: 32px 1fr auto;
+    grid-template-areas:
+      'check name status'
+      'check date status';
+    row-gap: 2px;
+  }
+  .cms-row-summary > .cms-cell--checkbox {
+    grid-area: check;
+  }
+  .cms-row-summary > .cms-cell--name {
+    grid-area: name;
+  }
+  .cms-row-summary > .cms-cell--date {
+    grid-area: date;
+    font-size: 0.7rem;
+    color: var(--text-muted, #555);
+  }
+  .cms-row-summary > .cms-cell--status {
+    grid-area: status;
+  }
   .cms-list-header > :nth-child(3),
   .cms-list-header > :nth-child(4),
-  .cms-cell--date,
   .cms-cell--location {
     display: none;
   }

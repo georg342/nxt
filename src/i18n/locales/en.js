@@ -35,6 +35,9 @@ export default {
       genres: 'Genres',
       commaSeparated: 'Separate with commas',
     },
+    list: {
+      sortByDate: 'Sort by date',
+    },
   },
   createEvent: {
     title: 'Send a suggestion',
