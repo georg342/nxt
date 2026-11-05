@@ -308,6 +308,23 @@ export const useUIStore = defineStore(
       return formatted.charAt(0).toUpperCase() + formatted.slice(1)
     }
 
+    /**
+     * Formats a `YYYY-MM-DD` key as day + month (e.g., "11 de novembro").
+     * Built in local time to avoid the UTC shift of `new Date(isoDate)`.
+     * @param {string} isoDate
+     * @returns {string}
+     */
+    function formatDayMonth(isoDate) {
+      if (!isoDate) return ''
+      const [year, month, day] = String(isoDate).slice(0, 10).split('-').map(Number)
+      const date = new Date(year, month - 1, day)
+      if (Number.isNaN(date.getTime())) return ''
+      return new Intl.DateTimeFormat(intlLocale.value, {
+        day: 'numeric',
+        month: 'long',
+      }).format(date)
+    }
+
     const isTodaySelected = computed(() => {
       if (activeView.value !== 'day') return false
       const target = selectedDate.value ?? currentDate.value
@@ -699,6 +716,7 @@ export const useUIStore = defineStore(
       hasMinSearchLength,
       searchResults,
       formatEventDate,
+      formatDayMonth,
       setTheme,
       toggleTheme,
       toggleLocale,
