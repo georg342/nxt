@@ -220,7 +220,7 @@ watch(
   top: 0;
   z-index: 10;
   margin: 0;
-  padding-top: 8px;
+  padding-top: 5px;
   padding-bottom: 8px;
   font-size: 0.75rem;
   font-weight: 900;
