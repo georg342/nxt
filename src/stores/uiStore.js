@@ -170,15 +170,13 @@ const LOCALE_MAP = {
 }
 
 /**
- * Returns a new Date set to Monday 00:00 of the week containing `date`.
+ * Returns a new Date set to Sunday 00:00 of the week containing `date`.
  * @param {Date} date
  * @returns {Date}
  */
-function getMondayOfWeek(date) {
+function getWeekStart(date) {
   const result = new Date(date)
-  const day = result.getDay()
-  const diff = day === 0 ? -6 : 1 - day
-  result.setDate(result.getDate() + diff)
+  result.setDate(result.getDate() - result.getDay())
   result.setHours(0, 0, 0, 0)
   return result
 }
@@ -353,18 +351,18 @@ export const useUIStore = defineStore(
       }
 
       if (activeView.value === 'week') {
-        const monday = getMondayOfWeek(date)
-        const sunday = new Date(monday)
-        sunday.setDate(monday.getDate() + 6)
+        const weekStart = getWeekStart(date)
+        const weekEnd = new Date(weekStart)
+        weekEnd.setDate(weekStart.getDate() + 6)
 
-        const sameMonth = monday.getMonth() === sunday.getMonth()
+        const sameMonth = weekStart.getMonth() === weekEnd.getMonth()
         const startLabel = sameMonth
-          ? formatShortDate(monday, intl).split(' ')[1]
-          : formatShortDate(monday, intl)
-        const endLabel = formatShortDate(sunday, intl)
+          ? formatShortDate(weekStart, intl).split(' ')[1]
+          : formatShortDate(weekStart, intl)
+        const endLabel = formatShortDate(weekEnd, intl)
 
         return sameMonth
-          ? `${formatShortDate(monday, intl).split(' ')[0]} ${startLabel} - ${endLabel}`
+          ? `${formatShortDate(weekStart, intl).split(' ')[0]} ${startLabel} - ${endLabel}`
           : `${startLabel} - ${endLabel}`
       }
 
@@ -382,15 +380,15 @@ export const useUIStore = defineStore(
     })
 
     const weekDaysData = computed(() => {
-      const monday = getMondayOfWeek(currentDate.value)
+      const weekStart = getWeekStart(currentDate.value)
       const intl = intlLocale.value
       const weekdayFormatter = new Intl.DateTimeFormat(intl, {
         weekday: 'short',
       })
 
       return Array.from({ length: 7 }, (_, i) => {
-        const day = new Date(monday)
-        day.setDate(monday.getDate() + i)
+        const day = new Date(weekStart)
+        day.setDate(weekStart.getDate() + i)
         return {
           dateNum: day.getDate(),
           dayName: weekdayFormatter.format(day).replace('.', '').toUpperCase(),

@@ -5,14 +5,12 @@ import { useUIStore } from '../../stores/uiStore'
 const uiStore = useUIStore()
 
 function handleDayClick(index) {
-  const monday = new Date(uiStore.currentDate)
-  const day = monday.getDay()
-  const diff = day === 0 ? -6 : 1 - day
-  monday.setDate(monday.getDate() + diff)
-  monday.setHours(0, 0, 0, 0)
+  const weekStart = new Date(uiStore.currentDate)
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay())
+  weekStart.setHours(0, 0, 0, 0)
 
-  const target = new Date(monday)
-  target.setDate(monday.getDate() + index)
+  const target = new Date(weekStart)
+  target.setDate(weekStart.getDate() + index)
   uiStore.selectDate(target)
 }
 </script>
