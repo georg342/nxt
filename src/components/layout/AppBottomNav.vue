@@ -145,6 +145,5 @@ function handleCreate() {
 
 .bottom-nav .nav-btn--active {
   background: var(--accent-color);
-  color: var(--accent-contrast);
 }
 </style>
