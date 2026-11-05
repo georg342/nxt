@@ -30,6 +30,9 @@ export default {
     close: 'Close',
   },
   admin: {
+    auth: {
+      unauthorized: 'Access denied. Admins only.',
+    },
     form: {
       lineup: 'Lineup',
       genres: 'Genres',

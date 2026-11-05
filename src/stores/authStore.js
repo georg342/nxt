@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { supabase } from '../lib/supabase'
+import { SupabaseEventRepository } from '../repositories/SupabaseEventRepository'
 
 const MASTER_EMAIL = 'getoledo.123@gmail.com'
 
@@ -13,14 +14,26 @@ export const useAuthStore = defineStore('auth', () => {
     () => Boolean(user.value) && user.value.email === MASTER_EMAIL
   )
 
-  function initAuth() {
-    supabase.auth.getSession().then(({ data }) => {
-      user.value = data?.session?.user ?? null
-    })
+  async function initAuth() {
+    const { data } = await supabase.auth.getSession()
+    user.value = data?.session?.user ?? null
 
     supabase.auth.onAuthStateChange((_event, session) => {
       user.value = session?.user ?? null
     })
+  }
+
+  /**
+   * Verifies the session email against admin_users (read-only; table is
+   * managed manually in the Supabase dashboard).
+   * @returns {Promise<boolean>}
+   */
+  async function checkIsAdmin() {
+    const email = user.value?.email
+    if (!email) return false
+
+    const repository = new SupabaseEventRepository()
+    return repository.isAdminEmail(email)
   }
 
   async function loginWithGoogle() {
@@ -60,6 +73,7 @@ export const useAuthStore = defineStore('auth', () => {
     isSuperAdmin,
     isAuthModalOpen,
     initAuth,
+    checkIsAdmin,
     loginWithGoogle,
     logout,
     openAuthModal,

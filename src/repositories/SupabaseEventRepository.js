@@ -152,6 +152,26 @@ export class SupabaseEventRepository extends EventService {
   }
 
   /**
+   * Read-only check: is this email listed in admin_users?
+   * @param {string} email
+   * @returns {Promise<boolean>}
+   */
+  async isAdminEmail(email) {
+    const { data, error } = await supabase
+      .from('admin_users')
+      .select('email')
+      .eq('email', email)
+      .maybeSingle()
+
+    if (error) {
+      console.error('[SupabaseEventRepository] isAdminEmail error:', error)
+      return false
+    }
+
+    return Boolean(data)
+  }
+
+  /**
    * Fetches ALL events (no status filter) for admin CMS.
    * @returns {Promise<Array>}
    */
