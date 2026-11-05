@@ -69,7 +69,7 @@ const upcomingGroups = computed(() => {
     if (!groups.has(key)) {
       groups.set(key, {
         key,
-        label: uiStore.formatEventDate(key),
+        label: uiStore.formatDayMonth(key),
         events: [],
       })
     }
