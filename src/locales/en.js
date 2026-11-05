@@ -26,6 +26,13 @@ export default {
     signInWithGoogle: 'Sign in with Google',
     close: 'Close',
   },
+  admin: {
+    form: {
+      lineup: 'Lineup',
+      genres: 'Genres',
+      commaSeparated: 'Separate with commas',
+    },
+  },
   createEvent: {
     title: 'Send a suggestion',
     close: 'Close',

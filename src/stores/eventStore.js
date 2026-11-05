@@ -5,11 +5,16 @@ import { useAuthStore } from './authStore'
 import { useUIStore } from './uiStore'
 import { Logger } from '../utils/logger.js'
 
+// Accepts comma-separated text, plain strings or { label, color } pills and
+// always returns a clean array of strings for the database.
 function normalizeList(value) {
-  if (Array.isArray(value)) return value
-  return (value || '')
-    .split(',')
-    .map((s) => s.trim())
+  const list = Array.isArray(value) ? value : String(value ?? '').split(',')
+  return list
+    .map((item) => {
+      if (typeof item === 'string') return item.trim()
+      const label = item?.label ?? item?.LABEL ?? ''
+      return String(label).trim()
+    })
     .filter(Boolean)
 }
 

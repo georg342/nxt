@@ -32,7 +32,8 @@ const submitLabel = computed(() => {
   return isEditing.value ? 'Salvar Alterações' : t('createEvent.submit')
 })
 
-// Rows may hold genres/lineup as JSON strings or { LABEL, COLOR } pills.
+// Rows may hold genres/lineup as JSON strings, { LABEL, COLOR } pills or
+// comma-separated text. Only non-empty labels survive.
 function toTags(value) {
   if (!value) return []
   const list = Array.isArray(value) ? value : [value]
@@ -41,12 +42,13 @@ function toTags(value) {
       if (typeof item !== 'string') return item?.LABEL ?? item?.label ?? null
       try {
         const parsed = JSON.parse(item)
-        return parsed?.LABEL ?? parsed?.label ?? parsed
+        if (typeof parsed === 'string') return parsed
+        return parsed?.LABEL ?? parsed?.label ?? null
       } catch {
         return item
       }
     })
-    .filter(Boolean)
+    .filter((tag) => typeof tag === 'string' && tag.trim().length > 0)
 }
 
 // datetime-local expects YYYY-MM-DDTHH:mm; the API returns full ISO strings.
@@ -197,14 +199,16 @@ function handleClose() {
           <div class="create-event__field">
             <TagInput
               v-model="form.lineup"
-              :label="t('createEvent.fields.lineup')"
+              :label="t('admin.form.lineup')"
+              :placeholder="t('admin.form.commaSeparated')"
             />
           </div>
 
           <div class="create-event__field">
             <TagInput
               v-model="form.genres"
-              :label="t('createEvent.fields.genres')"
+              :label="t('admin.form.genres')"
+              :placeholder="t('admin.form.commaSeparated')"
             />
           </div>
 
