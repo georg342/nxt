@@ -33,6 +33,7 @@ const activeView = computed(() => uiStore.activeView)
 .home-view__viewport {
   position: relative;
   height: 100%;
-  overflow: clip;
+  display: flex;
+  flex-direction: column;
 }
 </style>

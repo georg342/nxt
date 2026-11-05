@@ -167,8 +167,11 @@ watch(
 .day-feed {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   gap: 16px;
   padding: 0 16px 16px;
   scrollbar-width: none;
@@ -235,7 +238,7 @@ watch(
   white-space: nowrap;
   text-align: left;
   color: var(--text-color);
-  background-color: var(--surface-color);
+  background-color: var(--bg-color);
   box-shadow: 0 4px 6px -6px rgba(0, 0, 0, 0.2);
 }
 
