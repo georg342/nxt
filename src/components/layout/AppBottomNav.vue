@@ -33,7 +33,11 @@ function handleCreate() {
 </script>
 
 <template>
-  <div v-if="!uiStore.isAdminPanelOpen" class="bottom-nav">
+  <div
+    v-if="!uiStore.isAdminPanelOpen"
+    class="bottom-nav"
+    :class="{ 'is-menu-open': isViewMenuOpen }"
+  >
     <BrutalButton
       class="nav-btn nav-btn--arrow"
       color="var(--accent-color)"
@@ -147,6 +151,21 @@ function handleCreate() {
   border-radius: var(--radius-button); 
   color: var(--accent-contrast);
   align-self: center;
+  transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.4s ease;
+}
+
+/* Arrows fly off-screen while the view menu is open. */
+.bottom-nav.is-menu-open .nav-btn--arrow {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.bottom-nav.is-menu-open .nav-btn--arrow:first-child {
+  transform: translateX(calc(-50vw - 120px));
+}
+
+.bottom-nav.is-menu-open .nav-btn--arrow:last-child {
+  transform: translateX(calc(50vw + 120px));
 }
 
 /* Padding matches the button box-shadow offset (4px); the negative margin
