@@ -32,7 +32,8 @@ const activeView = computed(() => uiStore.activeView)
 <style scoped>
 .home-view__viewport {
   position: relative;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
 }

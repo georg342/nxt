@@ -169,6 +169,7 @@ watch(
   flex-direction: column;
   flex: 1;
   min-height: 0;
+  position: relative;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
