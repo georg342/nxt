@@ -76,6 +76,7 @@ function handleClose() {
 <style scoped>
 .app-subheader {
   position: relative;
+  z-index: 20; /* keeps sticky day titles from painting over the subheader border */
   display: flex;
   align-items: center;
   justify-content: space-between;
