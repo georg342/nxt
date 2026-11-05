@@ -134,24 +134,6 @@ export class SupabaseEventRepository extends EventService {
   }
 
   /**
-   * Inserts a new admin user into the admin_users table.
-   * @param {string} newAdminId
-   * @returns {Promise<{ error: Object|null }>}
-   */
-  async addAdminUser(newAdminId) {
-    const { error } = await supabase
-      .from('admin_users')
-      .insert([{ user_id: newAdminId }])
-
-    if (error) {
-      console.error('[SupabaseEventRepository] addAdminUser error:', error)
-      throw error
-    }
-
-    return { error: null }
-  }
-
-  /**
    * Read-only check: is this email listed in admin_users?
    * @param {string} email
    * @returns {Promise<boolean>}

@@ -177,22 +177,6 @@ export const useEventStore = defineStore('events', () => {
     }
   }
 
-  async function addAdminUser(newAdminId) {
-    const uiStore = useUIStore()
-
-    try {
-      const repository = new SupabaseEventRepository()
-      await repository.addAdminUser(newAdminId)
-      Logger.info('EventStore', 'Admin user added', newAdminId)
-      uiStore.showToast('Admin adicionado', 'success')
-      return { success: true }
-    } catch (err) {
-      Logger.error('EventStore', 'Failed to add admin user', err)
-      uiStore.showToast('Falha ao adicionar admin', 'error')
-      return { success: false }
-    }
-  }
-
   async function loadEvents() {
     isLoading.value = true
     error.value = null
@@ -295,6 +279,5 @@ export const useEventStore = defineStore('events', () => {
     approveEvent,
     rejectEvent,
     bulkUpdatePendingEvents,
-    addAdminUser,
   }
 })
