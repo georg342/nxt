@@ -146,6 +146,7 @@ function handleCreate() {
 .nav-btn--arrow {
   border-radius: var(--radius-button); 
   color: var(--accent-contrast);
+  align-self: center;
 }
 
 /* Padding matches the button box-shadow offset (4px); the negative margin
