@@ -170,7 +170,7 @@ watch(
   height: 100%;
   overflow-y: auto;
   gap: 16px;
-  padding: 16px;
+  padding: 0 16px 16px;
   scrollbar-width: none;
   -ms-overflow-style: none;
   box-sizing: border-box;
@@ -190,6 +190,10 @@ watch(
 
 .day-feed::-webkit-scrollbar {
   display: none;
+}
+
+.day-feed > :first-child {
+  margin-top: 16px;
 }
 
 .day-feed__state {
@@ -219,8 +223,10 @@ watch(
   position: sticky;
   top: 0;
   z-index: 10;
+  display: block;
+  width: 100%;
   margin: 0;
-  padding-top: 5px;
+  padding-top: 8px;
   padding-bottom: 8px;
   font-size: 0.75rem;
   font-weight: 900;
@@ -229,7 +235,8 @@ watch(
   white-space: nowrap;
   text-align: left;
   color: var(--text-color);
-  background-color: var(--bg-color);
+  background-color: var(--surface-color);
+  box-shadow: 0 4px 6px -6px rgba(0, 0, 0, 0.2);
 }
 
 .day-feed__group {

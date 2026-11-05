@@ -18,12 +18,12 @@ import AppSubHeader from './AppSubHeader.vue'
   height: 100dvh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: clip;
 }
 
 .app-layout__main {
   flex: 1;
-  overflow: hidden;
+  overflow: clip;
   position: relative;
   padding-bottom: 100px;
   box-sizing: border-box;
