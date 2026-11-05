@@ -4,8 +4,11 @@ import { onClickOutside, onKeyStroke } from '@vueuse/core'
 import { PhSun, PhMoon, PhGlobe, PhCheck } from '@phosphor-icons/vue'
 import BrutalButton from '../ui/BrutalButton.vue'
 import { useUIStore } from '../../stores/uiStore'
+import { useAuthStore } from '../../stores/authStore'
+import i18n from '../../i18n'
 
 const uiStore = useUIStore()
+const authStore = useAuthStore()
 
 const isColorPickerOpen = ref(false)
 const colorPickerRef = ref(null)
@@ -13,8 +16,17 @@ const colorPickerRef = ref(null)
 let adminTimer = null
 
 const startAdminTimer = () => {
-  adminTimer = setTimeout(() => {
-    uiStore.openAdminPanel()
+  adminTimer = setTimeout(async () => {
+    if (!authStore.user) {
+      authStore.openAuthModal()
+      return
+    }
+
+    if (await authStore.checkIsAdmin()) {
+      uiStore.openAdminPanel()
+    } else {
+      uiStore.showToast(i18n.global.t('admin.auth.unauthorized'), 'error')
+    }
   }, 2000)
 }
 
