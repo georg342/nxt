@@ -1,8 +1,27 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useUIStore } from '../../stores/uiStore'
 
 const uiStore = useUIStore()
+
+const transitionDirection = ref('next')
+
+const monthKey = computed(() => {
+  const base = uiStore.currentDate ?? new Date()
+  return `${base.getFullYear()}-${base.getMonth()}`
+})
+
+// Navigation is triggered outside this component, so derive the direction
+// from the month delta instead of a local handler.
+watch(
+  () => {
+    const base = uiStore.currentDate ?? new Date()
+    return base.getFullYear() * 12 + base.getMonth()
+  },
+  (next, prev) => {
+    transitionDirection.value = next > prev ? 'next' : 'prev'
+  }
+)
 
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 
@@ -45,25 +64,32 @@ function handleDayClick(cell) {
       </span>
     </div>
 
-    <div class="month-grid__days">
-      <template
-        v-for="(cell, index) in days"
-        :key="index"
-      >
-        <button
-          v-if="cell.type === 'day'"
-          type="button"
-          class="month-grid__day"
-          :aria-label="`Day ${cell.value}`"
-          @click="handleDayClick(cell)"
-        >
-          {{ cell.value }}
-        </button>
+    <div class="month-grid__track">
+      <Transition :name="`slide-${transitionDirection}`">
         <div
-          v-else
-          class="month-grid__empty"
-        />
-      </template>
+          :key="monthKey"
+          class="month-grid__days"
+        >
+          <template
+            v-for="(cell, index) in days"
+            :key="index"
+          >
+            <button
+              v-if="cell.type === 'day'"
+              type="button"
+              class="month-grid__day"
+              :aria-label="`Day ${cell.value}`"
+              @click="handleDayClick(cell)"
+            >
+              {{ cell.value }}
+            </button>
+            <div
+              v-else
+              class="month-grid__empty"
+            />
+          </template>
+        </div>
+      </Transition>
     </div>
   </div>
 </template>
@@ -95,13 +121,20 @@ function handleDayClick(cell) {
   color: var(--text-muted);
 }
 
+.month-grid__track {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .month-grid__days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 4px;
-  flex: 1;
-  min-height: 0;
+  height: 100%;
   align-content: start;
+  background-color: var(--bg-color);
 }
 
 .month-grid__day,
@@ -135,5 +168,40 @@ function handleDayClick(cell) {
   color: var(--accent-contrast);
   transform: translate(-2px, -2px);
   box-shadow: 2px 2px 0 0 var(--border-color);
+}
+
+.slide-next-enter-active,
+.slide-next-leave-active,
+.slide-prev-enter-active,
+.slide-prev-leave-active {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.slide-next-leave-active,
+.slide-prev-leave-active {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+.slide-next-enter-from {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.slide-next-leave-to {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.slide-prev-enter-from {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.slide-prev-leave-to {
+  transform: translateX(100%);
+  opacity: 0;
 }
 </style>
