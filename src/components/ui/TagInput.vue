@@ -158,7 +158,7 @@ function removeTag(index) {
 
 .tag-input__field {
   width: 100%;
-  padding: 14px 4px 4px;
+  padding: 18px 4px 4px;
   font: inherit;
   font-size: 0.875rem;
   font-weight: 700;
