@@ -23,6 +23,9 @@ export default {
   dayView: {
     upcomingEvents: 'Próximos eventos',
   },
+  event: {
+    viewOnInstagram: 'Ver no Instagram',
+  },
   auth: {
     title: 'Bem-vindo',
     description: 'Verifique sua identidade para sugerir festas',

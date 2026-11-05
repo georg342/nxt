@@ -1,8 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue'
-import { PhCalendarBlank, PhClock, PhMapPin } from '@phosphor-icons/vue'
+import { PhCalendarBlank, PhClock, PhInstagramLogo, PhMapPin } from '@phosphor-icons/vue'
 import BrutalCard from '../ui/BrutalCard.vue'
-import BrutalButton from '../ui/BrutalButton.vue'
 import { useUIStore } from '../../stores/uiStore'
 
 const props = defineProps({
@@ -134,13 +133,18 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
             {{ pill?.LABEL || pill?.label || pill }}
           </span>
         </div>
-        <BrutalButton
-          v-show="isExpanded"
-          color="var(--accent-color)"
+        <a
+          v-if="event.link && event.link.trim() !== ''"
+          :href="event.link"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="event-card__instagram"
+          :aria-label="$t('event.viewOnInstagram')"
           @click.stop
         >
-          Tickets
-        </BrutalButton>
+          <PhInstagramLogo :size="20" weight="bold" />
+          <span>Instagram</span>
+        </a>
       </div>
     </Transition>
   </BrutalCard>
@@ -212,6 +216,27 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
   font-size: 0.875rem;
   font-weight: 700;
   color: var(--text-color);
+}
+
+.event-card__instagram {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width) solid var(--border-color);
+  box-shadow: var(--shadow-1);
+  background: var(--accent-color);
+  color: #000;
+  font-weight: 900;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.event-card__instagram:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
 }
 
 .accordion-enter-active,

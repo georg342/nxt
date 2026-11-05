@@ -23,6 +23,9 @@ export default {
   dayView: {
     upcomingEvents: 'Upcoming events',
   },
+  event: {
+    viewOnInstagram: 'View on Instagram',
+  },
   auth: {
     title: 'Welcome',
     description: 'Sign in to suggest events.',
