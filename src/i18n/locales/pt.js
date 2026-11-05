@@ -25,7 +25,7 @@ export default {
   },
   auth: {
     title: 'Bem-vindo',
-    description: 'Faça login para sugerir e gerenciar festas.',
+    description: 'Verifique sua identidade para sugerir festas',
     signInWithGoogle: 'Entrar com Google',
     close: 'Fechar',
   },

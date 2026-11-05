@@ -25,7 +25,7 @@ export default {
   },
   auth: {
     title: 'Welcome',
-    description: 'Sign in to suggest and manage events.',
+    description: 'Sign in to suggest events.',
     signInWithGoogle: 'Sign in with Google',
     close: 'Close',
   },
