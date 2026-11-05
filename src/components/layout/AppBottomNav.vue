@@ -144,7 +144,7 @@ function handleCreate() {
 }
 
 .nav-btn--arrow {
-  border-radius: 0;
+  border-radius: var(--radius-button); 
   color: var(--accent-contrast);
 }
 
