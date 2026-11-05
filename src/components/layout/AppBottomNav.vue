@@ -154,16 +154,11 @@ function handleCreate() {
   transition: transform 0.2s ease-out;
 }
 
-/* Arrows walk off-screen while the view menu is open. */
-.bottom-nav.is-menu-open {
-  /* Arrows are gone: drop their footprint so the pill can use the full width. */
-  gap: 0;
-}
-
 .bottom-nav.is-menu-open .nav-btn--arrow {
   /* -24px cancels the 48px width, so the arrow occupies no pill space. */
   margin: 0 -24px;
   pointer-events: none;
+  display: none;
 }
 
 .bottom-nav.is-menu-open .nav-btn--arrow:first-child {
