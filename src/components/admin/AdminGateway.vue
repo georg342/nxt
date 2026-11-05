@@ -89,6 +89,11 @@ function requestDelete(id) {
   }
 }
 
+function handleEdit(event) {
+  uiStore.startEditing(event)
+  uiStore.openCreateEventModal()
+}
+
 function handleBulkAction() {
   uiStore.showToast('Ação em massa em breve', 'success')
 }
@@ -399,7 +404,11 @@ onKeyStroke('Escape', () => {
                   </div>
 
                   <div class="cms-actions">
-                    <button type="button" class="cms-btn cms-btn--edit">
+                    <button
+                      type="button"
+                      class="cms-btn cms-btn--edit"
+                      @click="handleEdit(event)"
+                    >
                       Editar Evento
                     </button>
                     <button

@@ -49,6 +49,27 @@ export class SupabaseEventRepository extends EventService {
   }
 
   /**
+   * Updates an event's editable fields. Status is excluded so an admin edit
+   * never demotes an approved event back to pending.
+   * @param {string} eventId
+   * @param {Object} eventData
+   * @returns {Promise<{ error: Object|null }>}
+   */
+  async updateEvent(eventId, eventData) {
+    const { error } = await supabase
+      .from('events')
+      .update(eventData)
+      .eq('id', eventId)
+
+    if (error) {
+      console.error('[SupabaseEventRepository] updateEvent error:', error)
+      throw error
+    }
+
+    return { error: null }
+  }
+
+  /**
    * Fetches pending events ordered by created_at ascending.
    * @returns {Promise<Array>}
    */

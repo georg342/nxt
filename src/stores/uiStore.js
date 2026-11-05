@@ -244,6 +244,7 @@ export const useUIStore = defineStore(
     const searchQuery = ref('')
     const isSearchOpen = ref(false)
     const isCreateEventModalOpen = ref(false)
+    const editingEvent = ref(null)
     const isAdminPanelOpen = ref(false)
     const toast = ref({ show: false, message: '', type: 'success' })
     let toastTimeoutId = null
@@ -645,6 +646,21 @@ export const useUIStore = defineStore(
     }
 
     /**
+     * Stages an event for editing; CreateEventModal reads this to switch modes.
+     * @param {Object|null} event
+     */
+    function startEditing(event) {
+      editingEvent.value = event
+    }
+
+    /**
+     * Clears the staged event, returning the modal to creation mode.
+     */
+    function cancelEditing() {
+      editingEvent.value = null
+    }
+
+    /**
      * Opens the admin CMS panel.
      */
     function openAdminPanel() {
@@ -692,6 +708,7 @@ export const useUIStore = defineStore(
       searchQuery,
       isSearchOpen,
       isCreateEventModalOpen,
+      editingEvent,
       isAdminPanelOpen,
       toast,
       setActiveView,
@@ -710,6 +727,8 @@ export const useUIStore = defineStore(
       toggleSearch,
       openCreateEventModal,
       closeCreateEventModal,
+      startEditing,
+      cancelEditing,
       openAdminPanel,
       closeAdminPanel,
       toggleAdminPanel,

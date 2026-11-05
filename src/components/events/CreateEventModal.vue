@@ -25,7 +25,7 @@ const form = ref({
   genres: [],
 })
 
-const isEditing = computed(() => Boolean(eventStore.editingEvent))
+const isEditing = computed(() => Boolean(uiStore.editingEvent))
 
 const submitLabel = computed(() => {
   if (isSubmitting.value) return t('createEvent.submitting')
@@ -67,7 +67,7 @@ function resetForm() {
 }
 
 watch(
-  () => eventStore.editingEvent,
+  () => uiStore.editingEvent,
   (event) => {
     if (!event) {
       resetForm()
@@ -103,7 +103,7 @@ async function handleSubmit() {
 
     if (isEditing.value) {
       const updated = await eventStore.updateEvent(
-        eventStore.editingEvent.id,
+        uiStore.editingEvent.id,
         eventData
       )
       if (!updated) {
@@ -115,6 +115,7 @@ async function handleSubmit() {
       uiStore.showToast(t('createEvent.success'), 'success')
     }
 
+    uiStore.cancelEditing()
     resetForm()
     uiStore.closeCreateEventModal()
   } catch (err) {
@@ -126,7 +127,7 @@ async function handleSubmit() {
 
 function handleClose() {
   if (isSubmitting.value) return
-  eventStore.cancelEditing()
+  uiStore.cancelEditing()
   resetForm()
   uiStore.closeCreateEventModal()
 }

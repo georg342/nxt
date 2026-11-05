@@ -5,6 +5,14 @@ import { useAuthStore } from './authStore'
 import { useUIStore } from './uiStore'
 import { Logger } from '../utils/logger.js'
 
+function normalizeList(value) {
+  if (Array.isArray(value)) return value
+  return (value || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+}
+
 export const useEventStore = defineStore('events', () => {
   const events = ref([])
   const allEvents = ref([])
@@ -31,18 +39,8 @@ export const useEventStore = defineStore('events', () => {
         start_date: eventData.start_date,
         location: eventData.location,
         link: eventData.link || null,
-        lineup: Array.isArray(eventData.lineup)
-          ? eventData.lineup
-          : (eventData.lineup || '')
-              .split(',')
-              .map((s) => s.trim())
-              .filter(Boolean),
-        genres: Array.isArray(eventData.genres)
-          ? eventData.genres
-          : (eventData.genres || '')
-              .split(',')
-              .map((s) => s.trim())
-              .filter(Boolean),
+        lineup: normalizeList(eventData.lineup),
+        genres: normalizeList(eventData.genres),
         status: 'pending',
         created_by: authStore.user.id,
       }
@@ -58,6 +56,48 @@ export const useEventStore = defineStore('events', () => {
       Logger.error('EventStore', 'Failed to create event', err)
       error.value = err?.message ?? 'Failed to create event'
       throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * Updates an existing event and refreshes the calendar.
+   * @param {string} eventId
+   * @param {Object} eventData
+   * @returns {Promise<boolean>}
+   */
+  async function updateEvent(eventId, eventData) {
+    const uiStore = useUIStore()
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const payload = {
+        title: eventData.title,
+        start_date: eventData.start_date,
+        location: eventData.location,
+        link: eventData.link || null,
+        lineup: normalizeList(eventData.lineup),
+        genres: normalizeList(eventData.genres),
+      }
+
+      const repository = new SupabaseEventRepository()
+      await repository.updateEvent(eventId, payload)
+
+      const target = allEvents.value.find((evt) => evt.id === eventId)
+      if (target) Object.assign(target, payload)
+
+      await loadEvents()
+
+      Logger.info('EventStore', 'Event updated', eventId)
+      uiStore.showToast('Evento atualizado', 'success')
+      return true
+    } catch (err) {
+      Logger.error('EventStore', 'Failed to update event', err)
+      error.value = err?.message ?? 'Failed to update event'
+      uiStore.showToast('Falha ao atualizar evento', 'error')
+      return false
     } finally {
       isLoading.value = false
     }
@@ -241,6 +281,7 @@ export const useEventStore = defineStore('events', () => {
     isLoading,
     error,
     addEvent,
+    updateEvent,
     loadEvents,
     fetchAllEvents,
     setEventStatus,
