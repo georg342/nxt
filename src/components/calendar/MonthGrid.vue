@@ -33,21 +33,40 @@ const days = computed(() => {
   const daysInMonth = new Date(year, month + 1, 0).getDate()
 
   const cells = []
-  for (let i = 0; i < firstDay; i += 1) {
-    cells.push({ type: 'empty', value: null, date: null })
+  // Day numbers <= 0 or past the month roll into the adjacent months.
+  for (let offset = firstDay; offset > 0; offset -= 1) {
+    const date = new Date(year, month, 1 - offset)
+    cells.push({ value: date.getDate(), date, isOutsideMonth: true })
   }
   for (let day = 1; day <= daysInMonth; day += 1) {
-    cells.push({ type: 'day', value: day, date: new Date(year, month, day) })
+    cells.push({
+      value: day,
+      date: new Date(year, month, day),
+      isOutsideMonth: false,
+    })
   }
-  const totalCells = Math.ceil(cells.length / 7) * 7
-  while (cells.length < totalCells) {
-    cells.push({ type: 'empty', value: null, date: null })
+  let nextDay = 1
+  while (cells.length % 7 !== 0) {
+    cells.push({
+      value: nextDay,
+      date: new Date(year, month + 1, nextDay),
+      isOutsideMonth: true,
+    })
+    nextDay += 1
   }
   return cells
 })
 
+function ariaLabelFor(date) {
+  const iso = [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0'),
+  ].join('-')
+  return uiStore.formatEventDate(iso)
+}
+
 function handleDayClick(cell) {
-  if (!cell.date) return
   uiStore.selectDate(cell.date)
 }
 </script>
@@ -75,18 +94,14 @@ function handleDayClick(cell) {
             :key="index"
           >
             <button
-              v-if="cell.type === 'day'"
               type="button"
               class="month-grid__day"
-              :aria-label="`Day ${cell.value}`"
+              :class="{ 'is-outside-month': cell.isOutsideMonth }"
+              :aria-label="ariaLabelFor(cell.date)"
               @click="handleDayClick(cell)"
             >
               {{ cell.value }}
             </button>
-            <div
-              v-else
-              class="month-grid__empty"
-            />
           </template>
         </div>
       </Transition>
@@ -137,8 +152,7 @@ function handleDayClick(cell) {
   background-color: var(--bg-color);
 }
 
-.month-grid__day,
-.month-grid__empty {
+.month-grid__day {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -157,17 +171,25 @@ function handleDayClick(cell) {
   transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 }
 
-.month-grid__empty {
-  background-color: transparent;
-  border-color: transparent;
-}
-
 .month-grid__day:hover,
 .month-grid__day:active {
   background-color: var(--accent-color);
   color: var(--accent-contrast);
   transform: translate(-2px, -2px);
   box-shadow: 2px 2px 0 0 var(--border-color);
+}
+
+.month-grid__day.is-outside-month {
+  opacity: 0.4;
+  border-color: var(--text-muted);
+  box-shadow: none;
+}
+
+.month-grid__day.is-outside-month:hover,
+.month-grid__day.is-outside-month:active {
+  opacity: 0.6;
+  transform: none;
+  box-shadow: none;
 }
 
 .slide-next-enter-active,
