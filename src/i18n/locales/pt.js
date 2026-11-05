@@ -57,6 +57,7 @@ export default {
       startDate: 'Data e Hora',
       location: 'Localização',
       link: 'Link do Evento',
+      linkWarning: 'Apenas links do Instagram são aceitos (ex.: instagram.com/...)',
       lineup: 'Lineup (separado por vírgula)',
       genres: 'Gêneros (separado por vírgula)',
     },

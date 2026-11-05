@@ -57,6 +57,7 @@ export default {
       startDate: 'Date & Time',
       location: 'Location',
       link: 'Event Link',
+      linkWarning: 'Only Instagram links are accepted (e.g. instagram.com/...)',
       lineup: 'Lineup (comma-separated)',
       genres: 'Genres (comma-separated)',
     },

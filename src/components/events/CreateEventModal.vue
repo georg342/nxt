@@ -32,6 +32,14 @@ const submitLabel = computed(() => {
   return isEditing.value ? 'Salvar Alterações' : t('createEvent.submit')
 })
 
+const INSTAGRAM_URL = /^(https?:\/\/)?(www\.|m\.)?instagram\.com\/.+/i
+
+// Empty link is allowed; anything else must point to instagram.com.
+const isLinkValid = computed(() => {
+  const link = form.value.link.trim()
+  return link === '' || INSTAGRAM_URL.test(link)
+})
+
 // Rows may hold genres/lineup as JSON strings, { LABEL, COLOR } pills or
 // comma-separated text. Only non-empty labels survive.
 function toTags(value) {
@@ -89,7 +97,7 @@ watch(
 )
 
 async function handleSubmit() {
-  if (isSubmitting.value) return
+  if (isSubmitting.value || !isLinkValid.value) return
   isSubmitting.value = true
   submitError.value = null
 
@@ -194,6 +202,9 @@ function handleClose() {
               />
               <label class="create-event__label">{{ t('createEvent.fields.link') }}</label>
             </div>
+            <p v-if="!isLinkValid" class="create-event__warning">
+              {{ t('createEvent.fields.linkWarning') }}
+            </p>
           </div>
 
           <div class="create-event__field">
@@ -220,7 +231,7 @@ function handleClose() {
             type="submit"
             class="create-event__submit"
             color="var(--accent-color)"
-            :disabled="isSubmitting"
+            :disabled="isSubmitting || !isLinkValid"
           >
             {{ submitLabel }}
           </BrutalButton>
@@ -385,6 +396,14 @@ function handleClose() {
   font-size: 0.75rem;
   font-weight: 900;
   color: #d32f2f;
+}
+
+.create-event__warning {
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: #e65100;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .create-event__submit {
