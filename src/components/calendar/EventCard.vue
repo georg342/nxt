@@ -143,7 +143,6 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
           @click.stop
         >
           <PhInstagramLogo :size="20" weight="bold" />
-          <span>Instagram</span>
         </a>
       </div>
     </Transition>
@@ -219,19 +218,16 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
 }
 
 .event-card__instagram {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2);
-  width: 100%;
-  padding: var(--space-2) var(--space-3);
+  width: fit-content;
+  margin-left: auto;
+  padding: 8px;
   border: var(--border-width) solid var(--border-color);
-  box-shadow: var(--shadow-1);
+  box-shadow: 2px 2px 0 var(--border-color);
   background: var(--accent-color);
   color: #000;
-  font-weight: 900;
-  text-transform: uppercase;
-  text-decoration: none;
 }
 
 .event-card__instagram:active {
