@@ -109,10 +109,6 @@ function handleEdit(event) {
   uiStore.openCreateEventModal()
 }
 
-function handleBulkAction() {
-  uiStore.showToast('Ação em massa em breve', 'success')
-}
-
 function handleClose() {
   uiStore.closeAdminPanel()
   router.push('/')
@@ -312,14 +308,6 @@ onKeyStroke('Escape', () => {
               />
               <span>Selecionar Todos</span>
             </label>
-            <button
-              type="button"
-              class="cms-btn cms-btn--bulk"
-              :disabled="selectedIds.length === 0"
-              @click="handleBulkAction()"
-            >
-              Ações em Massa
-            </button>
           </div>
         </div>
 
