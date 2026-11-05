@@ -982,6 +982,7 @@ onKeyStroke('Escape', () => {
   align-items: center;
   gap: 6px;
   background: var(--surface-color, #fff);
+  color: var(--text-color, #000);
 }
 .cms-btn--sort.is-active {
   background: var(--accent-color, #a3e635);
