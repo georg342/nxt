@@ -35,7 +35,7 @@ const uiStore = useUIStore()
 <style scoped>
 .toast {
   position: fixed;
-  bottom: 96px;
+  bottom: 120px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 10000;

@@ -262,7 +262,7 @@ button svg,
 /* ---------- Button Variant: actionBtnWhiteText ---------- */
 /* Opt-in variant that forces button text/icons to white.
    Uses compound selectors so specificity (0,1,1 / 0,2,0) reliably beats
-   `button`, `[role="button"]`, `.nb-button` and `.admin-fab` color rules. */
+   `button`, `[role="button"]`, `.nb-button`*/
 button.actionBtnWhiteText,
 [role="button"].actionBtnWhiteText,
 .nb-button.actionBtnWhiteText {

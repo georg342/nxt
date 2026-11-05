@@ -149,7 +149,6 @@ function handleCreate() {
 
 .nav-btn--arrow {
   border-radius: var(--radius-button); 
-  color: var(--accent-contrast);
   align-self: center;
   transition: transform 0.2s ease-out;
 }
