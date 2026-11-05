@@ -90,7 +90,7 @@ function handleCreate() {
       >
         {{ $t('nav.today') }}
       </BrutalButton>
-      <BrutalButton class="nav-btn" @click="handleCreate()">
+      <BrutalButton class="nav-btn nav-btn--add" @click="handleCreate()">
         {{ $t('nav.add') }}
       </BrutalButton>
     </template>
@@ -145,5 +145,10 @@ function handleCreate() {
 
 .bottom-nav .nav-btn--active {
   background: var(--accent-color);
+}
+
+.bottom-nav .nav-btn--add {
+  font-size: 32px;
+  line-height: 1;
 }
 </style>
