@@ -148,7 +148,7 @@ function handleCreate() {
 }
 
 .bottom-nav .nav-btn--add {
-  font-size: 32px;
+  font-size: 22px;
   line-height: 1;
 }
 </style>
