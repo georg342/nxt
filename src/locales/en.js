@@ -20,6 +20,9 @@ export default {
     hint: 'Type at least 3 characters to search.',
     empty: 'No events found.',
   },
+  dayView: {
+    upcomingEvents: 'Upcoming events',
+  },
   auth: {
     title: 'Welcome',
     description: 'Sign in to suggest and manage events.',

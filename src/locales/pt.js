@@ -20,6 +20,9 @@ export default {
     hint: 'Digite ao menos 3 caracteres para buscar.',
     empty: 'Nenhum evento encontrado.',
   },
+  dayView: {
+    upcomingEvents: 'Próximos eventos',
+  },
   auth: {
     title: 'Bem-vindo',
     description: 'Faça login para sugerir e gerenciar festas.',
