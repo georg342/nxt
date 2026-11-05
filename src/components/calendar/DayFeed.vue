@@ -11,6 +11,37 @@ const { t } = useI18n()
 
 const expandedEventId = ref(null)
 
+const touchStartX = ref(0)
+const touchStartY = ref(0)
+const touchEndX = ref(0)
+const touchEndY = ref(0)
+
+function handleTouchStart(event) {
+  const touch = event.changedTouches[0]
+  touchStartX.value = touch.clientX
+  touchStartY.value = touch.clientY
+}
+
+function handleTouchEnd(event) {
+  const touch = event.changedTouches[0]
+  touchEndX.value = touch.clientX
+  touchEndY.value = touch.clientY
+  handleSwipe()
+}
+
+function handleSwipe() {
+  const deltaX = touchEndX.value - touchStartX.value
+  const deltaY = touchEndY.value - touchStartY.value
+
+  if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+    if (deltaX > 50) {
+      uiStore.navigatePrev()
+    } else if (deltaX < -50) {
+      uiStore.navigateNext()
+    }
+  }
+}
+
 function toggleEvent(id) {
   expandedEventId.value = expandedEventId.value === id ? null : id
 }
@@ -90,7 +121,11 @@ watch(
 </script>
 
 <template>
-  <div class="day-feed">
+  <div
+    class="day-feed"
+    @touchstart.passive="handleTouchStart"
+    @touchend.passive="handleTouchEnd"
+  >
     <p v-if="eventStore.isLoading" class="day-feed__state">Loading...</p>
     <template v-else>
       <p v-if="filteredEvents.length === 0" class="day-feed__state">
@@ -105,15 +140,15 @@ watch(
         @toggle="toggleEvent(event.id)"
       />
       <template v-if="upcomingGroups.length > 0">
-        <div class="day-feed__divider">
+        <h2 class="day-feed__section-title">
           {{ t('dayView.upcomingEvents') }}
-        </div>
+        </h2>
         <section
           v-for="group in upcomingGroups"
           :key="group.key"
           class="day-feed__group"
         >
-          <h2 class="day-feed__group-title">{{ group.label }}</h2>
+          <h3 class="day-feed__group-title">{{ group.label }}</h3>
           <EventCard
             v-for="event in group.events"
             :key="event.id"
@@ -170,30 +205,31 @@ watch(
   background: var(--surface-color);
 }
 
-.day-feed__divider,
+.day-feed__section-title {
+  margin: 8px 0 0;
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-align: left;
+  color: var(--accent-color);
+}
+
 .day-feed__group-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
   margin: 0;
-  padding: 8px 0;
+  padding-top: 8px;
+  padding-bottom: 8px;
   font-size: 0.75rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   white-space: nowrap;
+  text-align: left;
   color: var(--text-color);
-  background: transparent;
-}
-
-.day-feed__divider::before,
-.day-feed__divider::after,
-.day-feed__group-title::before,
-.day-feed__group-title::after {
-  content: '';
-  flex: 1;
-  height: 2px;
-  background: var(--text-color);
+  background-color: var(--bg-color);
 }
 
 .day-feed__group {

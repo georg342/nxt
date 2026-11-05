@@ -177,6 +177,18 @@ body {
   transform: translateY(-5px);
 }
 
+/* ---------- Fade Slide (date title) ---------- */
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(5px);
+}
+
 /* ---------- iOS 18 Spatial Navigation ---------- */
 .ios-push-enter-active,
 .ios-push-leave-active,

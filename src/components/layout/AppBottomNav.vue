@@ -33,174 +33,118 @@ function handleCreate() {
 </script>
 
 <template>
-  <div
+  <nav
     v-if="!uiStore.isAdminPanelOpen"
     class="bottom-nav"
-    :class="{ 'is-menu-open': isViewMenuOpen }"
+    :aria-label="$t('nav.viewOptions')"
   >
     <BrutalButton
-      class="nav-btn nav-btn--arrow"
-      color="var(--accent-color)"
+      class="nav-btn"
       aria-label="Período anterior"
       @click="uiStore.navigatePrev()"
     >
       <PhArrowLeft :size="24" weight="bold" />
     </BrutalButton>
 
-    <nav class="bottom-nav-pill" :aria-label="$t('nav.viewOptions')">
+    <BrutalButton
+      class="nav-btn"
+      :aria-label="$t('nav.viewOptions')"
+      :aria-pressed="isViewMenuOpen"
+      @click="isViewMenuOpen = !isViewMenuOpen"
+    >
+      <PhEye :size="24" weight="duotone" />
+    </BrutalButton>
+
+    <template v-if="isViewMenuOpen">
       <BrutalButton
         class="nav-btn"
-        :aria-label="$t('nav.viewOptions')"
-        :aria-pressed="isViewMenuOpen"
-        @click="isViewMenuOpen = !isViewMenuOpen"
+        :class="{ 'nav-btn--active': activeView === 'year' }"
+        aria-label="Year View"
+        @click="switchView('year')"
       >
-        <PhEye :size="28" weight="duotone" />
+        <PhCalendar :size="24" weight="duotone" />
       </BrutalButton>
+      <BrutalButton
+        class="nav-btn"
+        :class="{ 'nav-btn--active': activeView === 'month' }"
+        aria-label="Month View"
+        @click="switchView('month')"
+      >
+        <PhCalendarDots :size="24" weight="duotone" />
+      </BrutalButton>
+      <BrutalButton
+        class="nav-btn"
+        :class="{ 'nav-btn--active': activeView === 'week' }"
+        aria-label="Week View"
+        @click="switchView('week')"
+      >
+        <PhCalendarDot :size="24" weight="duotone" />
+      </BrutalButton>
+    </template>
 
-      <div class="view-options" :class="{ 'is-open': isViewMenuOpen }">
-        <BrutalButton
-          class="nav-btn"
-          :color="activeView === 'year' ? 'var(--accent-color)' : undefined"
-          aria-label="Year View"
-          @click="switchView('year')"
-        >
-          <PhCalendar :size="28" weight="duotone" />
-        </BrutalButton>
-        <BrutalButton
-          class="nav-btn"
-          :color="activeView === 'month' ? 'var(--accent-color)' : undefined"
-          aria-label="Month View"
-          @click="switchView('month')"
-        >
-          <PhCalendarDots :size="28" weight="duotone" />
-        </BrutalButton>
-        <BrutalButton
-          class="nav-btn"
-          :color="activeView === 'week' ? 'var(--accent-color)' : undefined"
-          aria-label="Week View"
-          @click="switchView('week')"
-        >
-          <PhCalendarDot :size="28" weight="duotone" />
-        </BrutalButton>
-      </div>
-
-      <div class="quick-actions" :class="{ 'is-hidden': isViewMenuOpen }">
-        <BrutalButton
-          class="nav-btn"
-          :color="uiStore.isTodaySelected ? 'var(--accent-color)' : undefined"
-          @click="uiStore.goToToday()"
-        >
-          {{ $t('nav.today') }}
-        </BrutalButton>
-        <BrutalButton class="nav-btn" color="var(--accent-color)" @click="handleCreate()">
-          {{ $t('nav.add') }}
-        </BrutalButton>
-      </div>
-    </nav>
+    <template v-else>
+      <BrutalButton
+        class="nav-btn"
+        :class="{ 'nav-btn--active': uiStore.isTodaySelected }"
+        @click="uiStore.goToToday()"
+      >
+        {{ $t('nav.today') }}
+      </BrutalButton>
+      <BrutalButton class="nav-btn" @click="handleCreate()">
+        {{ $t('nav.add') }}
+      </BrutalButton>
+    </template>
 
     <BrutalButton
-      class="nav-btn nav-btn--arrow"
-      color="var(--accent-color)"
+      class="nav-btn"
       aria-label="Próximo período"
       @click="uiStore.navigateNext()"
     >
       <PhArrowRight :size="24" weight="bold" />
     </BrutalButton>
-  </div>
+  </nav>
 </template>
 
 <style scoped>
 .bottom-nav {
   position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1000;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 50;
   display: flex;
-  align-items: stretch;
-  gap: 12px;
-  max-width: 95%;
-}
-
-.bottom-nav-pill {
-  display: flex;
+  justify-content: space-around;
   align-items: center;
-  gap: 8px;
-  padding: 12px;
-  background: var(--bg-color);
-  border: 2px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-2);
-  overflow: hidden;
-  transition: all 0.5s cubic-bezier(0.32, 0.72, 0, 1);
-  white-space: nowrap;
-  min-width: 0;
+  padding: 10px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  background-color: var(--surface-color);
+  border-top: var(--border-width-strong) solid var(--border-color);
 }
 
-.nav-btn {
-  min-width: 48px;
-  min-height: 48px;
+.bottom-nav .nav-btn {
+  min-width: 44px;
+  min-height: 44px;
   padding: 8px;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: var(--radius-button);
+  color: var(--text-color);
+  transition: background-color 0.15s ease;
 }
 
-.nav-btn--arrow {
-  border-radius: var(--radius-button); 
-  align-self: center;
-  transition: transform 0.2s ease-out;
+.bottom-nav .nav-btn:hover,
+.bottom-nav .nav-btn:active {
+  transform: none;
+  box-shadow: none;
 }
 
-.bottom-nav.is-menu-open .nav-btn--arrow {
-  /* -24px cancels the 48px width, so the arrow occupies no pill space. */
-  margin: 0 -24px;
-  pointer-events: none;
-  display: none;
-}
-
-/* Padding matches the button box-shadow offset (4px); the negative margin
-   cancels it in layout so the collapse animation via max-width is unaffected.
-   This prevents the hard offset shadow from being clipped by overflow: hidden. */
-.view-options {
-  display: flex;
-  gap: 8px;
-  max-width: 0px;
-  opacity: 0;
-  transform: translateX(-20px);
-  transition: all 0.5s cubic-bezier(0.32, 0.72, 0, 1);
-  pointer-events: none;
-  overflow: hidden;
-  flex-shrink: 0;
-  padding: 4px;
-  margin: -4px;
-}
-
-.view-options.is-open {
-  max-width: 300px;
-  opacity: 1;
-  transform: translateX(0);
-  pointer-events: auto;
-}
-
-.quick-actions {
-  display: flex;
-  gap: 8px;
-  max-width: 300px;
-  opacity: 1;
-  transform: translateX(0);
-  transition: all 0.5s cubic-bezier(0.32, 0.72, 0, 1);
-  overflow: hidden;
-  flex-shrink: 0;
-  padding: 4px;
-  margin: -4px;
-}
-
-.quick-actions.is-hidden {
-  max-width: 0px;
-  opacity: 0;
-  transform: translateX(40px);
-  pointer-events: none;
+.bottom-nav .nav-btn--active {
+  background: var(--accent-color);
+  color: var(--accent-contrast);
 }
 </style>

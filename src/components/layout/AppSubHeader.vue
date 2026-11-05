@@ -1,6 +1,6 @@
 <script setup>
 import { nextTick, ref, watch } from 'vue'
-import { PhCaretLeft, PhMagnifyingGlass, PhX } from '@phosphor-icons/vue'
+import { PhCaretLeft, PhX } from '@phosphor-icons/vue'
 import { useUIStore } from '../../stores/uiStore'
 
 const uiStore = useUIStore()
@@ -33,7 +33,7 @@ function handleClose() {
       <PhCaretLeft :size="20" weight="bold" />
     </button>
 
-    <Transition name="fade-text" mode="out-in">
+    <Transition name="fade-slide" mode="out-in">
       <input
         v-if="uiStore.isSearchOpen"
         ref="inputRef"
@@ -69,15 +69,6 @@ function handleClose() {
       @click="handleClose"
     >
       <PhX :size="20" weight="bold" />
-    </button>
-    <button
-      v-else
-      type="button"
-      class="app-subheader__action"
-      :aria-label="$t('search.open')"
-      @click="uiStore.openSearch()"
-    >
-      <PhMagnifyingGlass :size="20" weight="bold" />
     </button>
   </div>
 </template>

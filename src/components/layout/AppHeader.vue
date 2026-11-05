@@ -1,7 +1,13 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { onClickOutside, onKeyStroke } from '@vueuse/core'
-import { PhSun, PhMoon, PhGlobe, PhCheck } from '@phosphor-icons/vue'
+import {
+  PhSun,
+  PhMoon,
+  PhGlobe,
+  PhCheck,
+  PhMagnifyingGlass,
+} from '@phosphor-icons/vue'
 import BrutalButton from '../ui/BrutalButton.vue'
 import { useUIStore } from '../../stores/uiStore'
 import { useAuthStore } from '../../stores/authStore'
@@ -63,6 +69,15 @@ onMounted(() => {
     </span>
 
     <div class="app-header__controls">
+      <BrutalButton
+        v-if="!uiStore.isSearchOpen"
+        class="app-header__control-btn"
+        :aria-label="$t('search.open')"
+        @click="uiStore.openSearch()"
+      >
+        <PhMagnifyingGlass :size="18" weight="duotone" />
+      </BrutalButton>
+
       <div ref="colorPickerRef" class="accent-picker">
         <BrutalButton
           class="app-header__control-btn accent-picker__trigger"
