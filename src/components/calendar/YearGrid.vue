@@ -6,8 +6,9 @@ const MONTHS = [
   'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC',
 ]
 
-const months = MONTHS.map((month) => ({
+const months = MONTHS.map((month, index) => ({
   month,
+  index,
   eventCount: Math.floor(Math.random() * 20),
 }))
 </script>
@@ -18,6 +19,7 @@ const months = MONTHS.map((month) => ({
       v-for="item in months"
       :key="item.month"
       :month="item.month"
+      :index="item.index"
       :event-count="item.eventCount"
     />
   </div>

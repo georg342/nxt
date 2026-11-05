@@ -544,6 +544,19 @@ export const useUIStore = defineStore(
     }
 
     /**
+     * Opens the month view for the given month of the currently displayed year.
+     * @param {number} monthIndex 0-11
+     */
+    function goToMonth(monthIndex) {
+      const next = new Date(currentDate.value)
+      // setDate first so short months don't overflow (e.g. Feb 31).
+      next.setDate(1)
+      next.setMonth(monthIndex)
+      currentDate.value = next
+      setActiveView('month')
+    }
+
+    /**
      * Opens the day view for today's date.
      */
     function goToToday() {
@@ -689,6 +702,7 @@ export const useUIStore = defineStore(
       navigateNext,
       goToPrevious,
       selectDate,
+      goToMonth,
       goToToday,
       goToCurrentWeek,
       openSearch,
