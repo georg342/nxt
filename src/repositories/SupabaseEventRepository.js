@@ -1,6 +1,15 @@
 import { EventService } from '../services/EventService'
 import { supabase } from '../lib/supabase'
 
+function mapEventRow(row) {
+  if (!row) return row
+  const genres = Array.isArray(row.event_genres)
+    ? row.event_genres.map((eg) => eg.genre).filter(Boolean)
+    : []
+  const { event_genres, ...rest } = row
+  return { ...rest, genres }
+}
+
 /**
  * Supabase-backed implementation of EventService.
  */
@@ -18,7 +27,7 @@ export class SupabaseEventRepository extends EventService {
   async fetchEvents(startDate, endDate) {
     const { data, error } = await supabase
       .from('events')
-      .select('*')
+      .select('*, event_genres(genre:genres(*))')
       .eq('status', 'approved')
       .order('start_date', { ascending: true })
 
@@ -27,7 +36,7 @@ export class SupabaseEventRepository extends EventService {
       return []
     }
 
-    return data ?? []
+    return (data ?? []).map(mapEventRow)
   }
 
   /**
@@ -35,17 +44,32 @@ export class SupabaseEventRepository extends EventService {
    * @param {Object} eventData
    * @returns {Promise<Object|null>}
    */
-  async createEvent(eventData) {
+  async createEvent(eventData, genreIds = []) {
     const { data, error } = await supabase
       .from('events')
       .insert([eventData])
+      .select()
+      .single()
 
     if (error) {
       console.error('[SupabaseEventRepository] createEvent error:', error)
       throw error
     }
 
-    return data ?? null
+    if (Array.isArray(genreIds) && genreIds.length > 0 && data?.id) {
+      const rows = genreIds.map((genre_id) => ({ event_id: data.id, genre_id }))
+      const { error: pivotError } = await supabase
+        .from('event_genres')
+        .insert(rows)
+
+      // shortcut: evento já existe se o pivot falhar, sem rollback transacional
+      if (pivotError) {
+        console.error('[SupabaseEventRepository] createEvent genre pivot error:', pivotError)
+        throw pivotError
+      }
+    }
+
+    return data
   }
 
   /**
@@ -55,7 +79,7 @@ export class SupabaseEventRepository extends EventService {
    * @param {Object} eventData
    * @returns {Promise<{ error: Object|null }>}
    */
-  async updateEvent(eventId, eventData) {
+  async updateEvent(eventId, eventData, genreIds = []) {
     const { error } = await supabase
       .from('events')
       .update(eventData)
@@ -64,6 +88,28 @@ export class SupabaseEventRepository extends EventService {
     if (error) {
       console.error('[SupabaseEventRepository] updateEvent error:', error)
       throw error
+    }
+
+    const { error: deleteError } = await supabase
+      .from('event_genres')
+      .delete()
+      .eq('event_id', eventId)
+
+    if (deleteError) {
+      console.error('[SupabaseEventRepository] updateEvent pivot delete error:', deleteError)
+      throw deleteError
+    }
+
+    if (Array.isArray(genreIds) && genreIds.length > 0) {
+      const rows = genreIds.map((genre_id) => ({ event_id: eventId, genre_id }))
+      const { error: insertError } = await supabase
+        .from('event_genres')
+        .insert(rows)
+
+      if (insertError) {
+        console.error('[SupabaseEventRepository] updateEvent pivot insert error:', insertError)
+        throw insertError
+      }
     }
 
     return { error: null }
@@ -77,7 +123,7 @@ export class SupabaseEventRepository extends EventService {
     try {
       const { data, error } = await supabase
         .from('events')
-        .select('*')
+        .select('*, event_genres(genre:genres(*))')
         .eq('status', 'pending')
         .order('created_at', { ascending: true })
 
@@ -86,7 +132,7 @@ export class SupabaseEventRepository extends EventService {
         return []
       }
 
-      return data ?? []
+      return (data ?? []).map(mapEventRow)
     } catch (err) {
       console.error('Supabase RLS Error:', err)
       return []
@@ -160,7 +206,7 @@ export class SupabaseEventRepository extends EventService {
   async fetchAllEvents() {
     const { data, error } = await supabase
       .from('events')
-      .select('*')
+      .select('*, event_genres(genre:genres(*))')
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -168,7 +214,7 @@ export class SupabaseEventRepository extends EventService {
       throw error
     }
 
-    return data ?? []
+    return (data ?? []).map(mapEventRow)
   }
 
   /**

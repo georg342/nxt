@@ -34,126 +34,6 @@ const ACCENT_PRESETS = [
 
 const DEFAULT_ACCENT = 'yellow'
 
-const MOCK_EVENTS = [
-  {
-    id: 1,
-    title: 'Neon Warehouse',
-    date: '2026-10-31',
-    time: '22:00',
-    location: 'Vila Madalena, SP',
-    genres: ['Techno', 'Deep House', 'Breaks'],
-    lineup: ['DJ Vertex', 'Luna Flux', 'Kairo'],
-  },
-  {
-    id: 2,
-    title: 'Basement Sessions',
-    date: '2026-11-07',
-    time: '23:30',
-    location: 'Centro, SP',
-    genres: ['Minimal Techno', 'Deep House', 'Ambient'],
-    lineup: ['Sublevel', 'Mara Vex'],
-  },
-  {
-    id: 3,
-    title: 'Sunrise Rooftop',
-    date: '2026-11-15',
-    time: '05:00',
-    location: 'Pinheiros, SP',
-    genres: ['Melodic Techno', 'Progressive House', 'Downtempo'],
-    lineup: ['Aurora', 'Nyx'],
-  },
-  {
-    id: 4,
-    title: 'Forest Ritual',
-    date: '2026-11-21',
-    time: '23:00',
-    location: 'Juquitiba, SP',
-    genres: ['Psytrance', 'Full On', 'Forest', 'Ambient'],
-    lineup: ['Shakti', 'Mandala', 'Yggdrasil', 'Terra Viva', 'Nebula'],
-  },
-  {
-    id: 5,
-    title: 'Bassline Bunker',
-    date: '2026-11-28',
-    time: '23:59',
-    location: 'Barra Funda, SP',
-    genres: ['Drum & Bass', 'Neurofunk', 'Jungle', 'Breaks'],
-    lineup: ['Subsonic', 'Raven', 'Kortex'],
-  },
-  {
-    id: 6,
-    title: 'Hard Asylum',
-    date: '2026-12-05',
-    time: '22:30',
-    location: 'Santo André, SP',
-    genres: ['Hardstyle', 'Rawstyle', 'Uptempo', 'Hard Techno'],
-    lineup: ['Overdrive', 'Khaos', 'Vandal', 'Riot', 'Fúria', 'Titan'],
-  },
-  {
-    id: 7,
-    title: 'Disco Fever',
-    date: '2026-12-12',
-    time: '21:00',
-    location: 'Bela Vista, SP',
-    genres: ['Nu Disco', 'Italo Disco', 'Funk', 'House'],
-    lineup: ['Groove Machine'],
-  },
-  {
-    id: 8,
-    title: 'Ambient Drift',
-    date: '2026-12-19',
-    time: '18:00',
-    location: 'Ibirapuera, SP',
-    genres: ['Ambient', 'Downtempo', 'IDM', 'Experimental'],
-    lineup: ['Aether', 'Solstice'],
-  },
-  {
-    id: 9,
-    title: 'Big Room Blast',
-    date: '2026-12-31',
-    time: '23:00',
-    location: 'Anhembi, SP',
-    genres: ['EDM', 'Big Room', 'Electro House', 'Future Bass'],
-    lineup: ['Pulse', 'Nova', 'Zephyr', 'Blaze', 'Echo', 'Titan', 'Vortex', 'Halo'],
-  },
-  {
-    id: 10,
-    title: 'Breaks & Beats',
-    date: '2027-01-09',
-    time: '22:00',
-    location: 'Pinheiros, SP',
-    genres: ['Breaks', 'Breakbeat', 'Big Beat', 'Electro'],
-    lineup: ['Fractal', 'Rhythm Kid', 'Loopmaster'],
-  },
-  {
-    id: 11,
-    title: 'Trance Odyssey',
-    date: '2027-01-16',
-    time: '23:30',
-    location: 'Moema, SP',
-    genres: ['Uplifting Trance', 'Progressive Trance', 'Vocal Trance', 'Psytrance'],
-    lineup: ['Celestia', 'Aurora', 'Nyx', 'Starlight', 'Orion'],
-  },
-  {
-    id: 12,
-    title: 'Tech House Lab',
-    date: '2027-01-23',
-    time: '22:00',
-    location: 'Itaim Bibi, SP',
-    genres: ['Tech House', 'Minimal House', 'Deep House', 'Minimal Techno'],
-    lineup: ['Groove Lab', 'Bassline', 'Deepcut'],
-  },
-  {
-    id: 13,
-    title: 'Dubstep Arena',
-    date: '2027-01-30',
-    time: '23:00',
-    location: 'Lapa, SP',
-    genres: ['Dubstep', 'Riddim', 'Trap', 'Drum & Bass'],
-    lineup: ['Wobble', 'Grim', 'Bassdrop', 'Havoc'],
-  },
-]
-
 const VIEW_DEPTH = {
   year: 1,
   month: 2,
@@ -277,26 +157,6 @@ export const useUIStore = defineStore(
     const hasMinSearchLength = computed(
       () => normalizedSearchQuery.value.length >= MIN_SEARCH_LENGTH
     )
-
-    const searchResults = computed(() => {
-      if (!hasSearchQuery.value) return MOCK_EVENTS
-      if (!hasMinSearchLength.value) return []
-      const q = normalizedSearchQuery.value
-
-      return MOCK_EVENTS.filter((event) => {
-        const haystack = [
-          event.title,
-          event.date,
-          event.time,
-          event.location,
-          ...event.genres,
-          ...event.lineup,
-        ]
-          .join(' ')
-          .toLowerCase()
-        return haystack.includes(q)
-      })
-    })
 
     /**
      * Formats an event date as a full localized string (e.g., "Saturday, October 31, 2026").
@@ -724,7 +584,6 @@ export const useUIStore = defineStore(
       isTodaySelected,
       hasSearchQuery,
       hasMinSearchLength,
-      searchResults,
       formatEventDate,
       formatDayMonth,
       setTheme,
