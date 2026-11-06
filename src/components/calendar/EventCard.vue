@@ -134,36 +134,38 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
             {{ genre.name }}
           </span>
         </div>
-        <div
-          v-if="parsePills(event.lineup).length"
-          class="event-card__lineup"
-        >
-          <template
-            v-for="(pill, index) in parsePills(event.lineup)"
-            :key="`lineup-${index}`"
+        <div class="event-card__footer">
+          <div
+            v-if="parsePills(event.lineup).length"
+            class="event-card__lineup"
           >
-            <span class="lineup-item">
-              {{ pill?.LABEL || pill?.label || pill }}
-            </span>
-            <span
-              v-if="index < parsePills(event.lineup).length - 1"
-              class="lineup-separator"
+            <template
+              v-for="(pill, index) in parsePills(event.lineup)"
+              :key="`lineup-${index}`"
             >
-              ·
-            </span>
-          </template>
+              <span class="lineup-item">
+                {{ pill?.LABEL || pill?.label || pill }}
+              </span>
+              <span
+                v-if="index < parsePills(event.lineup).length - 1"
+                class="lineup-separator"
+              >
+                ·
+              </span>
+            </template>
+          </div>
+          <a
+            v-if="event.link && event.link.trim() !== ''"
+            :href="event.link"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="event-card__instagram"
+            :aria-label="$t('event.viewOnInstagram')"
+            @click.stop
+          >
+            <PhInstagramLogo :size="20" weight="bold" />
+          </a>
         </div>
-        <a
-          v-if="event.link && event.link.trim() !== ''"
-          :href="event.link"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="event-card__instagram"
-          :aria-label="$t('event.viewOnInstagram')"
-          @click.stop
-        >
-          <PhInstagramLogo :size="20" weight="bold" />
-        </a>
       </div>
     </Transition>
   </BrutalCard>
@@ -240,11 +242,22 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
   color: black;
 }
 
+.event-card__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 12px;
+  margin-top: var(--space-1);
+}
+
 .event-card__lineup {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
+  flex: 1;
+  min-width: 0;
   font-size: 0.875rem;
   font-weight: 700;
   color: var(--text-color);
@@ -264,7 +277,7 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
   align-items: center;
   justify-content: center;
   width: fit-content;
-  margin-left: auto;
+  flex-shrink: 0;
   padding: 8px;
   border: var(--border-width) solid var(--border-color);
   box-shadow: 2px 2px 0 var(--border-color);
