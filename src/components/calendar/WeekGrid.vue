@@ -58,7 +58,11 @@ const weekDays = computed(() =>
       ? badges.length - (MAX_BADGE_SLOTS - 1)
       : 0
 
-    return { ...day, genreBadges: visibleBadges, hiddenBadgesCount }
+    // dateKey is YYYY-MM-DD; the card shows DD/MM.
+    const [, month, dayOfMonth] = day.dateKey.split('-')
+    const dateDisplay = `${dayOfMonth}/${month}`
+
+    return { ...day, dateDisplay, genreBadges: visibleBadges, hiddenBadgesCount }
   })
 )
 
@@ -127,7 +131,7 @@ function handleDayClick(index) {
             </div>
             <div class="day-date-info">
               <span class="week-grid__label">{{ day.dayName }}</span>
-              <span class="week-grid__date">{{ day.dateNum }}</span>
+              <span class="week-grid__date">{{ day.dateDisplay }}</span>
             </div>
           </div>
         </BrutalCard>
@@ -177,7 +181,7 @@ function handleDayClick(index) {
 
 .week-grid__label {
   font-weight: 900;
-  font-size: 0.75rem;
+  font-size: 0.65rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -185,7 +189,7 @@ function handleDayClick(index) {
 
 .week-grid__date {
   font-weight: 900;
-  font-size: 2.5rem;
+  font-size: 1.75rem;
   line-height: 1;
 }
 
@@ -204,10 +208,11 @@ function handleDayClick(index) {
   flex-direction: row;
   flex-wrap: nowrap;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 4px;
   width: 100%;
   max-width: 100%;
+  padding-left: 4px;
   overflow: hidden;
   flex-shrink: 0;
 }
