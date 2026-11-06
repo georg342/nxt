@@ -138,14 +138,20 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
           v-if="parsePills(event.lineup).length"
           class="event-card__lineup"
         >
-          <span
+          <template
             v-for="(pill, index) in parsePills(event.lineup)"
             :key="`lineup-${index}`"
-            class="pill"
-            :style="{ backgroundColor: pill?.COLOR || pill?.color || '#e5e7eb' }"
           >
-            {{ pill?.LABEL || pill?.label || pill }}
-          </span>
+            <span class="lineup-item">
+              {{ pill?.LABEL || pill?.label || pill }}
+            </span>
+            <span
+              v-if="index < parsePills(event.lineup).length - 1"
+              class="lineup-separator"
+            >
+              ·
+            </span>
+          </template>
         </div>
         <a
           v-if="event.link && event.link.trim() !== ''"
@@ -237,9 +243,20 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
 .event-card__lineup {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
   font-size: 0.875rem;
   font-weight: 700;
   color: var(--text-color);
+}
+
+.lineup-item {
+  line-height: 1.2;
+}
+
+.lineup-separator {
+  color: var(--text-muted);
+  font-weight: 900;
 }
 
 .event-card__instagram {
