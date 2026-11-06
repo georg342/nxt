@@ -58,7 +58,12 @@ const weekDays = computed(() =>
       ? badges.length - (MAX_BADGE_SLOTS - 1)
       : 0
 
-    return { ...day, genreBadges: visibleBadges, hiddenBadgesCount }
+    return {
+      ...day,
+      hasEvents: dayEvents.length > 0,
+      genreBadges: visibleBadges,
+      hiddenBadgesCount,
+    }
   })
 )
 
@@ -101,6 +106,7 @@ function handleDayClick(index) {
           v-for="(day, index) in weekDays"
           :key="day.dateKey"
           class="week-grid__day day-card"
+          :class="{ 'is-empty': !day.hasEvents }"
           @click="handleDayClick(index)"
         >
           <div class="day-card-inner">
@@ -173,6 +179,15 @@ function handleDayClick(index) {
 /* 7º dia ocupa a linha de baixo inteira */
 .week-grid__day:last-child {
   grid-column: 1 / -1;
+}
+
+.week-grid__day.is-empty {
+  opacity: 0.4;
+  /* bloqueia clique e toque por completo */
+  pointer-events: none;
+  box-shadow: none;
+  transform: none;
+  filter: grayscale(80%);
 }
 
 .week-grid__label {
