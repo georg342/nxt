@@ -54,13 +54,21 @@ function formatTime(dateString) {
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
+// Busca filtra a view atual no lugar; sem busca, usa a lista completa.
+const baseEvents = computed(() => {
+  if (uiStore.isSearchOpen && uiStore.hasMinSearchLength) {
+    return eventStore.filteredEvents
+  }
+  return eventStore.events
+})
+
 const filteredEvents = computed(() => {
   const referenceDate = uiStore.selectedDate ?? new Date()
   const targetYear = referenceDate.getFullYear()
   const targetMonth = referenceDate.getMonth()
   const targetDay = referenceDate.getDate()
 
-  return eventStore.events.filter((event) => {
+  return baseEvents.value.filter((event) => {
     if (!event.start_date) return false
     const eventDate = new Date(event.start_date)
     return (
@@ -87,7 +95,7 @@ const upcomingGroups = computed(() => {
   )
 
   const groups = new Map()
-  for (const event of eventStore.events) {
+  for (const event of baseEvents.value) {
     if (!event.start_date) continue
     const eventDate = new Date(event.start_date)
     if (Number.isNaN(eventDate.getTime())) continue

@@ -12,9 +12,17 @@ const uiStore = useUIStore()
 const eventStore = useEventStore()
 const genreStore = useGenreStore()
 
+// Busca filtra a view atual no lugar; sem busca, usa a lista completa.
+const baseEvents = computed(() => {
+  if (uiStore.isSearchOpen && uiStore.hasMinSearchLength) {
+    return eventStore.filteredEvents
+  }
+  return eventStore.events
+})
+
 const eventsByDateKey = computed(() => {
   const map = new Map()
-  for (const event of eventStore.events) {
+  for (const event of baseEvents.value) {
     const key = String(event.start_date ?? '').slice(0, 10)
     if (!key) continue
     if (!map.has(key)) map.set(key, [])
