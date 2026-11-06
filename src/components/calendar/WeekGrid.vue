@@ -209,6 +209,7 @@ function handleDayClick(index) {
   display: grid;
   grid-template-columns: repeat(2, 22px);
   grid-template-rows: repeat(3, 22px);
+  grid-auto-flow: column;
   height: max-content;
   min-height: 74px;
   gap: 4px;
