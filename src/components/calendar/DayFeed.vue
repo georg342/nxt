@@ -12,6 +12,7 @@ const uiStore = useUIStore()
 const { t } = useI18n()
 
 const expandedEventId = ref(null)
+const slideDirection = ref('slide-next')
 
 const touchStartX = ref(0)
 const touchStartY = ref(0)
@@ -115,7 +116,12 @@ const upcomingGroups = computed(() => {
 // changes (arrow navigation keeps the component mounted).
 watch(
   () => uiStore.selectedDate,
-  () => {
+  (newDate, oldDate) => {
+    // immediate: true fires without a previous value; keep the default direction.
+    if (oldDate && newDate && newDate.getTime() !== oldDate.getTime()) {
+      slideDirection.value = newDate > oldDate ? 'slide-next' : 'slide-prev'
+    }
+
     eventStore.loadEvents()
     // Safety net: bootstrap may have failed to fetch genres.
     if (genreStore.genres.length === 0) {
@@ -137,35 +143,37 @@ watch(
       <p v-if="filteredEvents.length === 0" class="day-feed__state">
         {{ t('dayView.noEvents') }}
       </p>
-      <EventCard
-        v-for="event in filteredEvents"
-        :key="event.id"
-        :event="event"
-        :time="formatTime(event.start_date)"
-        :expanded="expandedEventId === event.id"
-        @toggle="toggleEvent(event.id)"
-      />
-      <template v-if="upcomingGroups.length > 0">
-        <h2 class="day-feed__section-title">
-          {{ t('dayView.upcomingEvents') }}
-        </h2>
-        <section
-          v-for="group in upcomingGroups"
-          :key="group.key"
-          class="day-feed__group"
-        >
-          <h3 class="day-feed__group-title">{{ group.label }}</h3>
-          <EventCard
-            v-for="event in group.events"
-            :key="event.id"
-            :event="event"
-            :time="formatTime(event.start_date)"
-            :expanded="expandedEventId === event.id"
-            @toggle="toggleEvent(event.id)"
-          />
-        </section>
-      </template>
-    </template>
+        <EventCard
+          v-for="event in filteredEvents"
+          :key="event.id"
+          :event="event"
+          :time="formatTime(event.start_date)"
+          :expanded="expandedEventId === event.id"
+          @toggle="toggleEvent(event.id)"
+        />
+        <template v-if="upcomingGroups.length > 0">
+          <h2 class="day-feed__section-title">
+            {{ t('dayView.upcomingEvents') }}
+          </h2>
+          <section
+            v-for="group in upcomingGroups"
+            :key="group.key"
+            class="day-feed__group"
+          >
+            <h3 class="day-feed__group-title">{{ group.label }}</h3>
+            <EventCard
+              v-for="event in group.events"
+              :key="event.id"
+              :event="event"
+              :time="formatTime(event.start_date)"
+              :expanded="expandedEventId === event.id"
+              @toggle="toggleEvent(event.id)"
+            />
+          </section>
+        </template>
+      </div>
+      <p v-else key="loading" class="day-feed__state">Loading...</p>
+    </Transition>
   </div>
 </template>
 
@@ -253,5 +261,75 @@ watch(
   flex-direction: column;
   gap: 16px;
 }
+
+/* Wrapper of one day's content; its gap replaces the flex gap the
+   Transition's extra nesting level would otherwise lose. */
+.day-feed__content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Base transitions */
+.slide-next-enter-active,
+.slide-next-leave-active,
+.slide-prev-enter-active,
+.slide-prev-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+/* Leaving element out of flow, so the shell keeps its scroll height.
+   No `padding: inherit` here: .day-feed padding is horizontal-only and
+   would shift the leaving content sideways. */
+.slide-next-leave-active,
+.slide-prev-leave-active {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+/* Animate the cards themselves (cascade effect) */
+.slide-next-enter-active .event-card,
+.slide-next-leave-active .event-card,
+.slide-prev-enter-active .event-card,
+.slide-prev-leave-active .event-card {
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* NEXT day: leave left, enter from right */
+.slide-next-enter-from .event-card {
+  transform: translateX(40px);
+  opacity: 0;
+}
+
+.slide-next-leave-to .event-card {
+  transform: translateX(-40px);
+  opacity: 0;
+}
+
+/* PREV day: leave right, enter from left */
+.slide-prev-enter-from .event-card {
+  transform: translateX(-40px);
+  opacity: 0;
+}
+
+.slide-prev-leave-to .event-card {
+  transform: translateX(40px);
+  opacity: 0;
+}
+
+/* Stagger for up to 10 cards */
+.event-card:nth-child(1) { transition-delay: 0ms; }
+.event-card:nth-child(2) { transition-delay: 40ms; }
+.event-card:nth-child(3) { transition-delay: 80ms; }
+.event-card:nth-child(4) { transition-delay: 120ms; }
+.event-card:nth-child(5) { transition-delay: 160ms; }
+.event-card:nth-child(6) { transition-delay: 200ms; }
+.event-card:nth-child(7) { transition-delay: 240ms; }
+.event-card:nth-child(8) { transition-delay: 280ms; }
+.event-card:nth-child(9) { transition-delay: 320ms; }
+.event-card:nth-child(10) { transition-delay: 360ms; }
 
 </style>
