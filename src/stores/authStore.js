@@ -2,14 +2,17 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { supabase } from '../lib/supabase'
 import { SupabaseEventRepository } from '../repositories/SupabaseEventRepository'
+import { useUIStore } from '../stores/uiStore'
 
 const MASTER_EMAIL = 'getoledo.123@gmail.com'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
   const isAuthModalOpen = ref(false)
+  // Resultado de admin_users para o usuário atual; nunca inferido do login.
+  const isVerifiedAdmin = ref(false)
 
-  const isAdmin = computed(() => Boolean(user.value))
+  const isAdmin = computed(() => Boolean(user.value) && isVerifiedAdmin.value)
   const isSuperAdmin = computed(
     () => Boolean(user.value) && user.value.email === MASTER_EMAIL
   )
@@ -18,8 +21,19 @@ export const useAuthStore = defineStore('auth', () => {
     const { data } = await supabase.auth.getSession()
     user.value = data?.session?.user ?? null
 
+    if (user.value) {
+      await checkIsAdmin()
+    }
+
     supabase.auth.onAuthStateChange((_event, session) => {
       user.value = session?.user ?? null
+      // cache pertence ao usuário anterior; invalida e revalida sem bloquear
+      isVerifiedAdmin.value = false
+      if (user.value) {
+        checkIsAdmin().catch((err) =>
+          console.error('[authStore] revalidate admin failed:', err)
+        )
+      }
     })
   }
 
@@ -30,10 +44,16 @@ export const useAuthStore = defineStore('auth', () => {
    */
   async function checkIsAdmin() {
     const email = user.value?.email
-    if (!email) return false
+    if (!email) {
+      isVerifiedAdmin.value = false
+      return false
+    }
+
+    if (isVerifiedAdmin.value) return true
 
     const repository = new SupabaseEventRepository()
-    return repository.isAdminEmail(email)
+    isVerifiedAdmin.value = await repository.isAdminEmail(email)
+    return isVerifiedAdmin.value
   }
 
   async function loginWithGoogle() {
@@ -57,6 +77,9 @@ export const useAuthStore = defineStore('auth', () => {
     if (error) {
       console.error('[authStore] logout error:', error)
     }
+
+    isVerifiedAdmin.value = false
+    useUIStore().closeAdminPanel()
   }
 
   function openAuthModal() {
@@ -70,6 +93,7 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     user,
     isAdmin,
+    isVerifiedAdmin,
     isSuperAdmin,
     isAuthModalOpen,
     initAuth,

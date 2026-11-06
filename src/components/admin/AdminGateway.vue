@@ -12,12 +12,14 @@ import {
 } from '@phosphor-icons/vue'
 import AppHeader from '../layout/AppHeader.vue'
 import AdminGenresManager from './AdminGenresManager.vue'
+import { useAuthStore } from '../../stores/authStore'
 import { useUIStore } from '../../stores/uiStore'
 import { useEventStore } from '../../stores/eventStore'
 import { useGenreStore } from '../../stores/genreStore'
 
 const router = useRouter()
 const { t } = useI18n()
+const authStore = useAuthStore()
 const uiStore = useUIStore()
 const eventStore = useEventStore()
 const genreStore = useGenreStore()
@@ -205,6 +207,13 @@ function parsePills(data) {
 }
 
 onMounted(async () => {
+  // defesa em profundidade: o guard do router pode ter rodado há muito tempo
+  if (!authStore.user || !(await authStore.checkIsAdmin())) {
+    uiStore.closeAdminPanel()
+    router.replace('/')
+    return
+  }
+
   if (genreStore.genres.length === 0) genreStore.loadGenres()
 
   console.log('[AdminGateway] mounted — starting fetchAllEvents')
