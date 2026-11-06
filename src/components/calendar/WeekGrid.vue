@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, onBeforeUnmount, ref } from 'vue'
 import BrutalCard from '../ui/BrutalCard.vue'
 import { useUIStore } from '../../stores/uiStore'
 import { useEventStore } from '../../stores/eventStore'
@@ -7,6 +7,12 @@ import { useGenreStore } from '../../stores/genreStore'
 import { Logger } from '../../utils/logger'
 
 const MAX_BADGE_SLOTS = 6
+const MAX_ANIMATED_BADGES = 4
+
+const animatingBadgeKey = ref(null)
+const typedText = ref('')
+// Timers pendentes; limpar no unmount interrompe a sequência inteira.
+const timers = new Set()
 
 const uiStore = useUIStore()
 const eventStore = useEventStore()
@@ -59,9 +65,10 @@ const weekDays = computed(() =>
 
     const badges = [...counts.values()].sort((a, b) => b.count - a.count)
     const hasOverflow = badges.length > MAX_BADGE_SLOTS
-    const visibleBadges = hasOverflow
-      ? badges.slice(0, MAX_BADGE_SLOTS - 1)
-      : badges
+    // key única: o mesmo gênero pode aparecer em vários dias.
+    const visibleBadges = (
+      hasOverflow ? badges.slice(0, MAX_BADGE_SLOTS - 1) : badges
+    ).map((badge) => ({ ...badge, key: `${day.dateKey}-${badge.id}` }))
     const hiddenBadgesCount = hasOverflow
       ? badges.length - (MAX_BADGE_SLOTS - 1)
       : 0
@@ -75,6 +82,40 @@ const weekDays = computed(() =>
   })
 )
 
+function delay(ms) {
+  return new Promise((resolve) => {
+    const id = setTimeout(() => {
+      timers.delete(id)
+      resolve()
+    }, ms)
+    timers.add(id)
+  })
+}
+
+async function runBadgeAnimations() {
+  const badges = weekDays.value
+    .flatMap((day) => day.genreBadges)
+    .slice(0, MAX_ANIMATED_BADGES)
+
+  for (const badge of badges) {
+    animatingBadgeKey.value = badge.key
+
+    for (const char of badge.name) {
+      typedText.value += char
+      await delay(50)
+    }
+    await delay(1200)
+
+    while (typedText.value.length > 0) {
+      typedText.value = typedText.value.slice(0, -1)
+      await delay(30)
+    }
+    await delay(200)
+
+    animatingBadgeKey.value = null
+  }
+}
+
 onMounted(async () => {
   if (genreStore.genres.length === 0) {
     await genreStore.loadGenres()
@@ -87,9 +128,19 @@ onMounted(async () => {
     } else {
       Logger.info('WeekGrid', 'Events fetched', eventStore.events.length)
     }
-    return
+  } else {
+    Logger.info('WeekGrid', 'Using cached events', eventStore.events.length)
   }
-  Logger.info('WeekGrid', 'Using cached events', eventStore.events.length)
+
+  await delay(800)
+  await runBadgeAnimations()
+})
+
+onBeforeUnmount(() => {
+  for (const id of timers) clearTimeout(id)
+  timers.clear()
+  animatingBadgeKey.value = null
+  typedText.value = ''
 })
 
 function handleDayClick(index) {
@@ -124,12 +175,14 @@ function handleDayClick(index) {
             >
               <span
                 v-for="badge in day.genreBadges"
-                :key="badge.id"
+                :key="badge.key"
                 class="genre-count-badge"
+                :class="{ 'is-expanding': animatingBadgeKey === badge.key }"
                 :style="{ backgroundColor: badge.color }"
                 :title="`${badge.name}: ${badge.count}`"
               >
-                {{ badge.count }}
+                <template v-if="animatingBadgeKey === badge.key">{{ typedText }}</template>
+                <template v-else>{{ badge.count }}</template>
               </span>
               <span
                 v-if="day.hiddenBadgesCount > 0"
@@ -253,6 +306,16 @@ function handleDayClick(index) {
   color: #000;
   line-height: 1;
   flex-shrink: 0;
+  transition: width 0.2s ease, border-radius 0.2s ease, padding 0.2s ease;
+}
+
+.genre-count-badge.is-expanding {
+  width: auto;
+  min-width: 22px;
+  padding: 0 6px;
+  border-radius: 6px;
+  z-index: 10;
+  white-space: nowrap;
 }
 
 .genre-count-badge--more {
