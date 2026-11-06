@@ -98,8 +98,11 @@ function handleDayClick(index) {
           class="week-grid__day day-card"
           @click="handleDayClick(index)"
         >
-          <div class="day-card-inner">
-            <div class="day-badges-cluster">
+          <div
+            class="day-card-inner"
+            :class="{ 'has-badges': day.genreBadges.length > 0 }"
+          >
+            <div v-if="day.genreBadges.length > 0" class="day-badges-cluster">
               <span
                 v-for="badge in day.genreBadges"
                 :key="badge.id"
@@ -176,10 +179,14 @@ function handleDayClick(index) {
 .day-card-inner {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   width: 100%;
   height: 100%;
   gap: 8px;
+}
+
+.day-card-inner.has-badges {
+  justify-content: space-between;
 }
 
 .day-badges-cluster {
