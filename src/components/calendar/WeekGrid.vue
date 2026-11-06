@@ -4,6 +4,7 @@ import BrutalCard from '../ui/BrutalCard.vue'
 import { useUIStore } from '../../stores/uiStore'
 import { useEventStore } from '../../stores/eventStore'
 import { getGenreColor } from '../../utils/genreColor'
+import { Logger } from '../../utils/logger'
 
 const MAX_GENRE_BADGES = 3
 
@@ -44,8 +45,8 @@ const eventsByDateKey = computed(() => {
   return map
 })
 
-const weekDays = computed(() =>
-  uiStore.weekDaysData.map((day) => {
+const weekDays = computed(() => {
+  const days = uiStore.weekDaysData.map((day) => {
     const dayEvents = eventsByDateKey.value.get(day.dateKey) ?? []
     const genres = [...new Set(dayEvents.flatMap((e) => parseGenres(e.genres)))]
     return {
@@ -56,10 +57,36 @@ const weekDays = computed(() =>
       })),
     }
   })
-)
 
-onMounted(() => {
-  if (eventStore.events.length === 0) eventStore.loadEvents()
+  Logger.info(
+    'WeekGrid',
+    'weekDays computed — genre trace',
+    days.map((day) => {
+      const dayEvents = eventsByDateKey.value.get(day.dateKey) ?? []
+      return {
+        dateKey: day.dateKey,
+        dayName: day.dayName,
+        events: dayEvents.length,
+        rawGenres: dayEvents.map((e) => e.genres),
+        badges: day.genres.map((g) => g.label),
+      }
+    })
+  )
+
+  return days
+})
+
+onMounted(async () => {
+  if (eventStore.events.length === 0) {
+    await eventStore.loadEvents()
+    if (eventStore.error) {
+      Logger.error('WeekGrid', 'Events fetch failed', eventStore.error)
+    } else {
+      Logger.info('WeekGrid', 'Events fetched', eventStore.events.length)
+    }
+    return
+  }
+  Logger.info('WeekGrid', 'Using cached events', eventStore.events.length)
 })
 
 function handleDayClick(index) {
