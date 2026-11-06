@@ -1,9 +1,9 @@
 <script setup>
 import { computed, ref } from 'vue'
-import { PhCalendarBlank, PhClock, PhMapPin } from '@phosphor-icons/vue'
+import { PhCalendarBlank, PhClock, PhInstagramLogo, PhMapPin } from '@phosphor-icons/vue'
 import BrutalCard from '../ui/BrutalCard.vue'
-import BrutalButton from '../ui/BrutalButton.vue'
 import { useUIStore } from '../../stores/uiStore'
+import { useGenreStore } from '../../stores/genreStore'
 
 const props = defineProps({
   event: {
@@ -21,6 +21,7 @@ const props = defineProps({
 })
 
 const uiStore = useUIStore()
+const genreStore = useGenreStore()
 
 const isExpanded = ref(false)
 
@@ -61,7 +62,20 @@ function getShortAddress(address) {
   return address.length > 30 ? `${address.slice(0, 30)}…` : address
 }
 
-const formattedDate = computed(() => uiStore.formatEventDate(props.event.date))
+const formattedDate = computed(() =>
+  uiStore.formatEventDate(props.event.start_date?.slice(0, 10))
+)
+
+// Resolves relational genre rows (or legacy strings) into display pills.
+const genrePills = computed(() =>
+  parsePills(props.event.genres).map((pill) =>
+    genreStore.getGenreDisplay(
+      typeof pill === 'string'
+        ? pill
+        : pill?.id ?? pill?.name ?? pill?.LABEL ?? pill?.label
+    )
+  )
+)
 
 function formatTime(dateString) {
   if (!dateString) return ''
@@ -90,7 +104,6 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
         <div
           v-if="displayTime"
           class="event-time"
-          style="display: flex; align-items: center; gap: 4px; margin-top: 4px; font-weight: 600;"
         >
           <PhClock :size="18" weight="duotone" />
           <span>{{ displayTime }}</span>
@@ -109,38 +122,50 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
         class="event-card__body"
       >
         <div
-          v-if="parsePills(event.genres).length"
+          v-if="genrePills.length"
           class="event-card__genres"
         >
           <span
-            v-for="(pill, index) in parsePills(event.genres)"
+            v-for="(genre, index) in genrePills"
             :key="`genre-${index}`"
             class="pill"
-            :style="{ backgroundColor: pill?.COLOR || pill?.color || '#e5e7eb' }"
+            :style="{ backgroundColor: genre.color }"
           >
-            {{ pill?.LABEL || pill?.label || pill }}
+            {{ genre.name }}
           </span>
         </div>
-        <div
-          v-if="parsePills(event.lineup).length"
-          class="event-card__lineup"
-        >
-          <span
-            v-for="(pill, index) in parsePills(event.lineup)"
-            :key="`lineup-${index}`"
-            class="pill"
-            :style="{ backgroundColor: pill?.COLOR || pill?.color || '#e5e7eb' }"
+        <div class="event-card__footer">
+          <div
+            v-if="parsePills(event.lineup).length"
+            class="event-card__lineup"
           >
-            {{ pill?.LABEL || pill?.label || pill }}
-          </span>
+            <template
+              v-for="(pill, index) in parsePills(event.lineup)"
+              :key="`lineup-${index}`"
+            >
+              <span class="lineup-item">
+                {{ pill?.LABEL || pill?.label || pill }}
+              </span>
+              <span
+                v-if="index < parsePills(event.lineup).length - 1"
+                class="lineup-separator"
+              >
+                ·
+              </span>
+            </template>
+          </div>
+          <a
+            v-if="event.link && event.link.trim() !== ''"
+            :href="event.link"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="event-card__instagram"
+            :aria-label="$t('event.viewOnInstagram')"
+            @click.stop
+          >
+            <PhInstagramLogo :size="20" weight="bold" />
+          </a>
         </div>
-        <BrutalButton
-          v-show="isExpanded"
-          color="var(--accent-color)"
-          @click.stop
-        >
-          Tickets
-        </BrutalButton>
       </div>
     </Transition>
   </BrutalCard>
@@ -166,12 +191,23 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
 
 .event-card__meta {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
 }
 
 .event-card__meta-item {
   display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  max-width: 100%;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.event-time {
+  display: flex;
   align-items: center;
   gap: var(--space-1);
   font-size: 0.875rem;
@@ -206,12 +242,50 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
   color: black;
 }
 
+.event-card__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 12px;
+  margin-top: var(--space-1);
+}
+
 .event-card__lineup {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
   font-size: 0.875rem;
   font-weight: 700;
   color: var(--text-color);
+}
+
+.lineup-item {
+  line-height: 1.2;
+}
+
+.lineup-separator {
+  color: var(--text-muted);
+  font-weight: 900;
+}
+
+.event-card__instagram {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  flex-shrink: 0;
+  padding: 8px;
+  border: var(--border-width) solid var(--border-color);
+  background: transparent;
+  color: var(--text-color);
+}
+
+.event-card__instagram:active {
+  opacity: 0.6;
 }
 
 .accordion-enter-active,

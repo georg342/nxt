@@ -1,11 +1,20 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { onClickOutside, onKeyStroke } from '@vueuse/core'
-import { PhSun, PhMoon, PhGlobe, PhCheck } from '@phosphor-icons/vue'
+import {
+  PhSun,
+  PhMoon,
+  PhGlobe,
+  PhCheck,
+  PhMagnifyingGlass,
+} from '@phosphor-icons/vue'
 import BrutalButton from '../ui/BrutalButton.vue'
 import { useUIStore } from '../../stores/uiStore'
+import { useAuthStore } from '../../stores/authStore'
+import i18n from '../../i18n'
 
 const uiStore = useUIStore()
+const authStore = useAuthStore()
 
 const isColorPickerOpen = ref(false)
 const colorPickerRef = ref(null)
@@ -13,8 +22,17 @@ const colorPickerRef = ref(null)
 let adminTimer = null
 
 const startAdminTimer = () => {
-  adminTimer = setTimeout(() => {
-    uiStore.openAdminPanel()
+  adminTimer = setTimeout(async () => {
+    if (!authStore.user) {
+      authStore.openAuthModal()
+      return
+    }
+
+    if (await authStore.checkIsAdmin()) {
+      uiStore.openAdminPanel()
+    } else {
+      uiStore.showToast(i18n.global.t('admin.auth.unauthorized'), 'error')
+    }
   }, 2000)
 }
 
@@ -51,6 +69,15 @@ onMounted(() => {
     </span>
 
     <div class="app-header__controls">
+      <BrutalButton
+        v-if="!uiStore.isSearchOpen"
+        class="app-header__control-btn"
+        :aria-label="$t('search.open')"
+        @click="uiStore.openSearch()"
+      >
+        <PhMagnifyingGlass :size="18" weight="duotone" />
+      </BrutalButton>
+
       <div ref="colorPickerRef" class="accent-picker">
         <BrutalButton
           class="app-header__control-btn accent-picker__trigger"

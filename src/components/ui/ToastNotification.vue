@@ -1,5 +1,5 @@
 <script setup>
-import { PhX, PhCheckCircle, PhWarningCircle } from '@phosphor-icons/vue'
+import { PhCheckCircle, PhWarningCircle } from '@phosphor-icons/vue'
 import { useUIStore } from '../../stores/uiStore'
 
 const uiStore = useUIStore()
@@ -13,6 +13,7 @@ const uiStore = useUIStore()
       :class="`toast--${uiStore.toast.type}`"
       role="status"
       aria-live="polite"
+      @click="uiStore.hideToast()"
     >
       <PhCheckCircle
         v-if="uiStore.toast.type === 'success'"
@@ -27,14 +28,6 @@ const uiStore = useUIStore()
         weight="bold"
       />
       <span class="toast__message">{{ uiStore.toast.message }}</span>
-      <button
-        type="button"
-        class="toast__close"
-        aria-label="Close"
-        @click="uiStore.hideToast()"
-      >
-        <PhX :size="16" weight="bold" />
-      </button>
     </div>
   </Transition>
 </template>
@@ -42,7 +35,7 @@ const uiStore = useUIStore()
 <style scoped>
 .toast {
   position: fixed;
-  bottom: 96px;
+  bottom: 120px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 10000;
@@ -61,6 +54,7 @@ const uiStore = useUIStore()
   font-size: 0.875rem;
   font-weight: 900;
   letter-spacing: 0.02em;
+  cursor: pointer;
 }
 
 .toast--success {
@@ -88,20 +82,6 @@ const uiStore = useUIStore()
   white-space: nowrap;
   overflow-wrap: break-word;
   word-break: break-word;
-}
-
-.toast__close {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  background: transparent;
-  border: 2px solid currentColor;
-  border-radius: var(--radius-md);
-  color: inherit;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
 }
 
 .toast-enter-active,

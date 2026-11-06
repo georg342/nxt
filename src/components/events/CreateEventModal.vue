@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { PhX } from '@phosphor-icons/vue'
 import BrutalButton from '../ui/BrutalButton.vue'
@@ -8,10 +8,12 @@ import TagInput from '../ui/TagInput.vue'
 import LocationAutocomplete from '../ui/LocationAutocomplete.vue'
 import { useUIStore } from '../../stores/uiStore'
 import { useEventStore } from '../../stores/eventStore'
+import { useGenreStore } from '../../stores/genreStore'
 
 const { t } = useI18n()
 const uiStore = useUIStore()
 const eventStore = useEventStore()
+const genreStore = useGenreStore()
 
 const isSubmitting = ref(false)
 const submitError = ref(null)
@@ -22,8 +24,78 @@ const form = ref({
   location: '',
   link: '',
   lineup: [],
-  genres: [],
+  genreIds: [],
 })
+
+const isEditing = computed(() => Boolean(uiStore.editingEvent))
+
+const genreGroups = computed(() =>
+  genreStore.parentGenres.map((parent) => ({
+    id: parent.id,
+    name: parent.name,
+    color: genreStore.getGenreDisplay(parent.id).color,
+    children: genreStore.genres
+      .filter((genre) => genre.parent_id === parent.id)
+      .map((child) => ({
+        id: child.id,
+        name: child.name,
+        // Child chip wears the parent color, per the store priority rule.
+        color: genreStore.getGenreDisplay(child.id).color,
+      })),
+  }))
+)
+
+function toggleGenre(genreId) {
+  const selected = form.value.genreIds
+  const index = selected.indexOf(genreId)
+  if (index === -1) selected.push(genreId)
+  else selected.splice(index, 1)
+}
+
+watch(
+  () => uiStore.isCreateEventModalOpen,
+  (isOpen) => {
+    if (isOpen && genreStore.genres.length === 0) genreStore.loadGenres()
+  },
+  { immediate: true }
+)
+
+const submitLabel = computed(() => {
+  if (isSubmitting.value) return t('createEvent.submitting')
+  return isEditing.value ? t('admin.actions.save') : t('createEvent.submit')
+})
+
+const INSTAGRAM_URL = /^(https?:\/\/)?(www\.|m\.)?instagram\.com\/.+/i
+
+// Empty link is allowed; anything else must point to instagram.com.
+const isLinkValid = computed(() => {
+  const link = form.value.link.trim()
+  return link === '' || INSTAGRAM_URL.test(link)
+})
+
+// Rows may hold genres/lineup as JSON strings, { LABEL, COLOR } pills or
+// comma-separated text. Only non-empty labels survive.
+function toTags(value) {
+  if (!value) return []
+  const list = Array.isArray(value) ? value : [value]
+  return list
+    .map((item) => {
+      if (typeof item !== 'string') return item?.LABEL ?? item?.label ?? null
+      try {
+        const parsed = JSON.parse(item)
+        if (typeof parsed === 'string') return parsed
+        return parsed?.LABEL ?? parsed?.label ?? null
+      } catch {
+        return item
+      }
+    })
+    .filter((tag) => typeof tag === 'string' && tag.trim().length > 0)
+}
+
+// datetime-local expects YYYY-MM-DDTHH:mm; the API returns full ISO strings.
+function toPickerValue(value) {
+  return value ? String(value).slice(0, 16) : ''
+}
 
 function resetForm() {
   form.value = {
@@ -32,13 +104,33 @@ function resetForm() {
     location: '',
     link: '',
     lineup: [],
-    genres: [],
+    genreIds: [],
   }
   submitError.value = null
 }
 
+watch(
+  () => uiStore.editingEvent,
+  (event) => {
+    if (!event) {
+      resetForm()
+      return
+    }
+    form.value = {
+      title: event.title ?? '',
+      start_date: toPickerValue(event.start_date),
+      location: event.location ?? '',
+      link: event.link ?? '',
+      lineup: toTags(event.lineup),
+      genreIds: (event.genres ?? []).map((genre) => genre.id).filter(Boolean),
+    }
+    submitError.value = null
+  },
+  { immediate: true }
+)
+
 async function handleSubmit() {
-  if (isSubmitting.value) return
+  if (isSubmitting.value || !isLinkValid.value) return
   isSubmitting.value = true
   submitError.value = null
 
@@ -49,13 +141,24 @@ async function handleSubmit() {
       location: form.value.location.trim(),
       link: form.value.link.trim(),
       lineup: form.value.lineup,
-      genres: form.value.genres,
+      genreIds: form.value.genreIds,
     }
 
-    await eventStore.addEvent(eventData)
+    if (isEditing.value) {
+      const updated = await eventStore.updateEvent(
+        uiStore.editingEvent.id,
+        eventData
+      )
+      if (!updated) {
+        submitError.value = t('createEvent.error')
+        return
+      }
+    } else {
+      await eventStore.addEvent(eventData)
+      uiStore.showToast(t('createEvent.success'), 'success')
+    }
 
-    uiStore.showToast(t('createEvent.success'), 'success')
-
+    uiStore.cancelEditing()
     resetForm()
     uiStore.closeCreateEventModal()
   } catch (err) {
@@ -67,6 +170,7 @@ async function handleSubmit() {
 
 function handleClose() {
   if (isSubmitting.value) return
+  uiStore.cancelEditing()
   resetForm()
   uiStore.closeCreateEventModal()
 }
@@ -131,20 +235,57 @@ function handleClose() {
               />
               <label class="create-event__label">{{ t('createEvent.fields.link') }}</label>
             </div>
+            <p v-if="!isLinkValid" class="create-event__warning">
+              {{ t('createEvent.fields.linkWarning') }}
+            </p>
           </div>
 
           <div class="create-event__field">
             <TagInput
               v-model="form.lineup"
-              :label="t('createEvent.fields.lineup')"
+              :label="t('admin.form.lineup')"
+              :placeholder="t('admin.form.commaSeparated')"
             />
           </div>
 
           <div class="create-event__field">
-            <TagInput
-              v-model="form.genres"
-              :label="t('createEvent.fields.genres')"
-            />
+            <span>{{ t('admin.form.genres') }}</span>
+            <div class="genre-selector">
+              <div
+                v-for="group in genreGroups"
+                :key="group.id"
+                class="genre-selector__group"
+              >
+                <button
+                  type="button"
+                  class="genre-chip"
+                  :class="{ 'genre-chip--selected': form.genreIds.includes(group.id) }"
+                  :style="
+                    form.genreIds.includes(group.id)
+                      ? { backgroundColor: group.color }
+                      : null
+                  "
+                  @click="toggleGenre(group.id)"
+                >
+                  {{ group.name }}
+                </button>
+                <button
+                  v-for="child in group.children"
+                  :key="child.id"
+                  type="button"
+                  class="genre-chip genre-chip--child"
+                  :class="{ 'genre-chip--selected': form.genreIds.includes(child.id) }"
+                  :style="
+                    form.genreIds.includes(child.id)
+                      ? { backgroundColor: child.color }
+                      : null
+                  "
+                  @click="toggleGenre(child.id)"
+                >
+                  {{ child.name }}
+                </button>
+              </div>
+            </div>
           </div>
 
           <p v-if="submitError" class="create-event__error">{{ submitError }}</p>
@@ -155,9 +296,9 @@ function handleClose() {
             type="submit"
             class="create-event__submit"
             color="var(--accent-color)"
-            :disabled="isSubmitting"
+            :disabled="isSubmitting || !isLinkValid"
           >
-            {{ isSubmitting ? t('createEvent.submitting') : t('createEvent.submit') }}
+            {{ submitLabel }}
           </BrutalButton>
         </div>
       </form>
@@ -316,10 +457,61 @@ function handleClose() {
   color: var(--text-color);
 }
 
+.genre-selector {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  background: var(--bg-color);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.genre-selector__group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.genre-chip {
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-color);
+  background: var(--surface-color);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-1);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.genre-chip--child {
+  font-size: 0.65rem;
+  box-shadow: none;
+}
+
+.genre-chip--selected {
+  color: #000000;
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
 .create-event__error {
   font-size: 0.75rem;
   font-weight: 900;
   color: #d32f2f;
+}
+
+.create-event__warning {
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: #e65100;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .create-event__submit {

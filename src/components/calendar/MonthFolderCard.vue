@@ -1,9 +1,14 @@
 <script setup>
 import { useUIStore } from '../../stores/uiStore'
 
-defineProps({
+const props = defineProps({
   month: {
     type: String,
+    required: true,
+  },
+  // 0-11, anchors the month view on the clicked card.
+  index: {
+    type: Number,
     required: true,
   },
   eventCount: {
@@ -15,7 +20,7 @@ defineProps({
 const uiStore = useUIStore()
 
 function handleClick() {
-  uiStore.setActiveView('month')
+  uiStore.goToMonth(props.index)
 }
 </script>
 

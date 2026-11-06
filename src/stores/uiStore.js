@@ -7,7 +7,8 @@ const THEME_DARK = 'dark'
 const DEFAULT_THEME = THEME_LIGHT
 
 const VALID_VIEWS = ['year', 'month', 'week', 'day']
-const DEFAULT_VIEW = 'year'
+// Boot straight into today's day view, mirroring goToToday().
+const DEFAULT_VIEW = 'day'
 
 const MIN_SEARCH_LENGTH = 3
 
@@ -33,126 +34,6 @@ const ACCENT_PRESETS = [
 
 const DEFAULT_ACCENT = 'yellow'
 
-const MOCK_EVENTS = [
-  {
-    id: 1,
-    title: 'Neon Warehouse',
-    date: '2026-10-31',
-    time: '22:00',
-    location: 'Vila Madalena, SP',
-    genres: ['Techno', 'Deep House', 'Breaks'],
-    lineup: ['DJ Vertex', 'Luna Flux', 'Kairo'],
-  },
-  {
-    id: 2,
-    title: 'Basement Sessions',
-    date: '2026-11-07',
-    time: '23:30',
-    location: 'Centro, SP',
-    genres: ['Minimal Techno', 'Deep House', 'Ambient'],
-    lineup: ['Sublevel', 'Mara Vex'],
-  },
-  {
-    id: 3,
-    title: 'Sunrise Rooftop',
-    date: '2026-11-15',
-    time: '05:00',
-    location: 'Pinheiros, SP',
-    genres: ['Melodic Techno', 'Progressive House', 'Downtempo'],
-    lineup: ['Aurora', 'Nyx'],
-  },
-  {
-    id: 4,
-    title: 'Forest Ritual',
-    date: '2026-11-21',
-    time: '23:00',
-    location: 'Juquitiba, SP',
-    genres: ['Psytrance', 'Full On', 'Forest', 'Ambient'],
-    lineup: ['Shakti', 'Mandala', 'Yggdrasil', 'Terra Viva', 'Nebula'],
-  },
-  {
-    id: 5,
-    title: 'Bassline Bunker',
-    date: '2026-11-28',
-    time: '23:59',
-    location: 'Barra Funda, SP',
-    genres: ['Drum & Bass', 'Neurofunk', 'Jungle', 'Breaks'],
-    lineup: ['Subsonic', 'Raven', 'Kortex'],
-  },
-  {
-    id: 6,
-    title: 'Hard Asylum',
-    date: '2026-12-05',
-    time: '22:30',
-    location: 'Santo André, SP',
-    genres: ['Hardstyle', 'Rawstyle', 'Uptempo', 'Hard Techno'],
-    lineup: ['Overdrive', 'Khaos', 'Vandal', 'Riot', 'Fúria', 'Titan'],
-  },
-  {
-    id: 7,
-    title: 'Disco Fever',
-    date: '2026-12-12',
-    time: '21:00',
-    location: 'Bela Vista, SP',
-    genres: ['Nu Disco', 'Italo Disco', 'Funk', 'House'],
-    lineup: ['Groove Machine'],
-  },
-  {
-    id: 8,
-    title: 'Ambient Drift',
-    date: '2026-12-19',
-    time: '18:00',
-    location: 'Ibirapuera, SP',
-    genres: ['Ambient', 'Downtempo', 'IDM', 'Experimental'],
-    lineup: ['Aether', 'Solstice'],
-  },
-  {
-    id: 9,
-    title: 'Big Room Blast',
-    date: '2026-12-31',
-    time: '23:00',
-    location: 'Anhembi, SP',
-    genres: ['EDM', 'Big Room', 'Electro House', 'Future Bass'],
-    lineup: ['Pulse', 'Nova', 'Zephyr', 'Blaze', 'Echo', 'Titan', 'Vortex', 'Halo'],
-  },
-  {
-    id: 10,
-    title: 'Breaks & Beats',
-    date: '2027-01-09',
-    time: '22:00',
-    location: 'Pinheiros, SP',
-    genres: ['Breaks', 'Breakbeat', 'Big Beat', 'Electro'],
-    lineup: ['Fractal', 'Rhythm Kid', 'Loopmaster'],
-  },
-  {
-    id: 11,
-    title: 'Trance Odyssey',
-    date: '2027-01-16',
-    time: '23:30',
-    location: 'Moema, SP',
-    genres: ['Uplifting Trance', 'Progressive Trance', 'Vocal Trance', 'Psytrance'],
-    lineup: ['Celestia', 'Aurora', 'Nyx', 'Starlight', 'Orion'],
-  },
-  {
-    id: 12,
-    title: 'Tech House Lab',
-    date: '2027-01-23',
-    time: '22:00',
-    location: 'Itaim Bibi, SP',
-    genres: ['Tech House', 'Minimal House', 'Deep House', 'Minimal Techno'],
-    lineup: ['Groove Lab', 'Bassline', 'Deepcut'],
-  },
-  {
-    id: 13,
-    title: 'Dubstep Arena',
-    date: '2027-01-30',
-    time: '23:00',
-    location: 'Lapa, SP',
-    genres: ['Dubstep', 'Riddim', 'Trap', 'Drum & Bass'],
-    lineup: ['Wobble', 'Grim', 'Bassdrop', 'Havoc'],
-  },
-]
-
 const VIEW_DEPTH = {
   year: 1,
   month: 2,
@@ -169,17 +50,26 @@ const LOCALE_MAP = {
 }
 
 /**
- * Returns a new Date set to Monday 00:00 of the week containing `date`.
+ * Returns a new Date set to Sunday 00:00 of the week containing `date`.
  * @param {Date} date
  * @returns {Date}
  */
-function getMondayOfWeek(date) {
+function getWeekStart(date) {
   const result = new Date(date)
-  const day = result.getDay()
-  const diff = day === 0 ? -6 : 1 - day
-  result.setDate(result.getDate() + diff)
+  result.setDate(result.getDate() - result.getDay())
   result.setHours(0, 0, 0, 0)
   return result
+}
+
+/**
+ * Formats a Date as a local `YYYY-MM-DD` key, matching `event.start_date`.
+ * @param {Date} date
+ * @returns {string}
+ */
+function toDateKey(date) {
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${date.getFullYear()}-${month}-${day}`
 }
 
 /**
@@ -238,11 +128,12 @@ export const useUIStore = defineStore(
     const accentPresets = ref(ACCENT_PRESETS)
     const activeView = ref(DEFAULT_VIEW)
     const currentDate = ref(new Date())
-    const selectedDate = ref(null)
+    const selectedDate = ref(new Date())
     const transitionDirection = ref(DEFAULT_TRANSITION)
     const searchQuery = ref('')
     const isSearchOpen = ref(false)
     const isCreateEventModalOpen = ref(false)
+    const editingEvent = ref(null)
     const isAdminPanelOpen = ref(false)
     const toast = ref({ show: false, message: '', type: 'success' })
     let toastTimeoutId = null
@@ -267,26 +158,6 @@ export const useUIStore = defineStore(
       () => normalizedSearchQuery.value.length >= MIN_SEARCH_LENGTH
     )
 
-    const searchResults = computed(() => {
-      if (!hasSearchQuery.value) return MOCK_EVENTS
-      if (!hasMinSearchLength.value) return []
-      const q = normalizedSearchQuery.value
-
-      return MOCK_EVENTS.filter((event) => {
-        const haystack = [
-          event.title,
-          event.date,
-          event.time,
-          event.location,
-          ...event.genres,
-          ...event.lineup,
-        ]
-          .join(' ')
-          .toLowerCase()
-        return haystack.includes(q)
-      })
-    })
-
     /**
      * Formats an event date as a full localized string (e.g., "Saturday, October 31, 2026").
      * Locked to America/Sao_Paulo timezone.
@@ -304,6 +175,23 @@ export const useUIStore = defineStore(
         timeZone: 'America/Sao_Paulo',
       }).format(date)
       return formatted.charAt(0).toUpperCase() + formatted.slice(1)
+    }
+
+    /**
+     * Formats a `YYYY-MM-DD` key as day + month (e.g., "11 de novembro").
+     * Built in local time to avoid the UTC shift of `new Date(isoDate)`.
+     * @param {string} isoDate
+     * @returns {string}
+     */
+    function formatDayMonth(isoDate) {
+      if (!isoDate) return ''
+      const [year, month, day] = String(isoDate).slice(0, 10).split('-').map(Number)
+      const date = new Date(year, month - 1, day)
+      if (Number.isNaN(date.getTime())) return ''
+      return new Intl.DateTimeFormat(intlLocale.value, {
+        day: 'numeric',
+        month: 'long',
+      }).format(date)
     }
 
     const isTodaySelected = computed(() => {
@@ -334,18 +222,18 @@ export const useUIStore = defineStore(
       }
 
       if (activeView.value === 'week') {
-        const monday = getMondayOfWeek(date)
-        const sunday = new Date(monday)
-        sunday.setDate(monday.getDate() + 6)
+        const weekStart = getWeekStart(date)
+        const weekEnd = new Date(weekStart)
+        weekEnd.setDate(weekStart.getDate() + 6)
 
-        const sameMonth = monday.getMonth() === sunday.getMonth()
+        const sameMonth = weekStart.getMonth() === weekEnd.getMonth()
         const startLabel = sameMonth
-          ? formatShortDate(monday, intl).split(' ')[1]
-          : formatShortDate(monday, intl)
-        const endLabel = formatShortDate(sunday, intl)
+          ? formatShortDate(weekStart, intl).split(' ')[1]
+          : formatShortDate(weekStart, intl)
+        const endLabel = formatShortDate(weekEnd, intl)
 
         return sameMonth
-          ? `${formatShortDate(monday, intl).split(' ')[0]} ${startLabel} - ${endLabel}`
+          ? `${formatShortDate(weekStart, intl).split(' ')[0]} ${startLabel} - ${endLabel}`
           : `${startLabel} - ${endLabel}`
       }
 
@@ -363,16 +251,17 @@ export const useUIStore = defineStore(
     })
 
     const weekDaysData = computed(() => {
-      const monday = getMondayOfWeek(currentDate.value)
+      const weekStart = getWeekStart(currentDate.value)
       const intl = intlLocale.value
       const weekdayFormatter = new Intl.DateTimeFormat(intl, {
         weekday: 'short',
       })
 
       return Array.from({ length: 7 }, (_, i) => {
-        const day = new Date(monday)
-        day.setDate(monday.getDate() + i)
+        const day = new Date(weekStart)
+        day.setDate(weekStart.getDate() + i)
         return {
+          dateKey: toDateKey(day),
           dateNum: day.getDate(),
           dayName: weekdayFormatter.format(day).replace('.', '').toUpperCase(),
         }
@@ -457,6 +346,53 @@ export const useUIStore = defineStore(
     }
 
     /**
+     * Moves back to the previous week without leaving the week view.
+     */
+    function prevWeek() {
+      const prev = new Date(currentDate.value)
+      prev.setDate(prev.getDate() - 7)
+      currentDate.value = prev
+    }
+
+    /**
+     * Shifts the reference date by `delta` periods of the active view,
+     * staying in the same view. Day view moves `selectedDate` as well,
+     * since that is what the day feed renders.
+     * @param {number} delta
+     */
+    function stepDate(delta) {
+      const isDay = activeView.value === 'day'
+      const next = new Date(
+        isDay ? selectedDate.value ?? currentDate.value : currentDate.value
+      )
+
+      if (activeView.value === 'year') {
+        next.setFullYear(next.getFullYear() + delta)
+      } else if (activeView.value === 'month') {
+        next.setMonth(next.getMonth() + delta)
+      } else {
+        next.setDate(next.getDate() + delta * (isDay ? 1 : 7))
+      }
+
+      currentDate.value = next
+      if (isDay) selectedDate.value = new Date(next)
+    }
+
+    /**
+     * Moves to the previous period of the active view.
+     */
+    function navigatePrev() {
+      stepDate(-1)
+    }
+
+    /**
+     * Moves to the next period of the active view.
+     */
+    function navigateNext() {
+      stepDate(1)
+    }
+
+    /**
      * Navigates back one level in the view hierarchy.
      * day -> week, week -> month, month -> year, year -> -1 year.
      * When leaving the day view, keeps the currentDate anchored to the
@@ -493,6 +429,19 @@ export const useUIStore = defineStore(
     function selectDate(date) {
       selectedDate.value = new Date(date)
       setActiveView('day')
+    }
+
+    /**
+     * Opens the month view for the given month of the currently displayed year.
+     * @param {number} monthIndex 0-11
+     */
+    function goToMonth(monthIndex) {
+      const next = new Date(currentDate.value)
+      // setDate first so short months don't overflow (e.g. Feb 31).
+      next.setDate(1)
+      next.setMonth(monthIndex)
+      currentDate.value = next
+      setActiveView('month')
     }
 
     /**
@@ -584,6 +533,21 @@ export const useUIStore = defineStore(
     }
 
     /**
+     * Stages an event for editing; CreateEventModal reads this to switch modes.
+     * @param {Object|null} event
+     */
+    function startEditing(event) {
+      editingEvent.value = event
+    }
+
+    /**
+     * Clears the staged event, returning the modal to creation mode.
+     */
+    function cancelEditing() {
+      editingEvent.value = null
+    }
+
+    /**
      * Opens the admin CMS panel.
      */
     function openAdminPanel() {
@@ -620,8 +584,8 @@ export const useUIStore = defineStore(
       isTodaySelected,
       hasSearchQuery,
       hasMinSearchLength,
-      searchResults,
       formatEventDate,
+      formatDayMonth,
       setTheme,
       toggleTheme,
       toggleLocale,
@@ -631,12 +595,18 @@ export const useUIStore = defineStore(
       searchQuery,
       isSearchOpen,
       isCreateEventModalOpen,
+      editingEvent,
       isAdminPanelOpen,
       toast,
       setActiveView,
       nextWeek,
+      prevWeek,
+      stepDate,
+      navigatePrev,
+      navigateNext,
       goToPrevious,
       selectDate,
+      goToMonth,
       goToToday,
       goToCurrentWeek,
       openSearch,
@@ -644,6 +614,8 @@ export const useUIStore = defineStore(
       toggleSearch,
       openCreateEventModal,
       closeCreateEventModal,
+      startEditing,
+      cancelEditing,
       openAdminPanel,
       closeAdminPanel,
       toggleAdminPanel,
@@ -654,7 +626,8 @@ export const useUIStore = defineStore(
   {
     persist: {
       key: 'wnxt-ui',
-      pick: ['theme', 'locale', 'activeView', 'accentPreset'],
+      // activeView is intentionally not persisted so every boot starts at today.
+      pick: ['theme', 'locale', 'accentPreset'],
     },
   }
 )

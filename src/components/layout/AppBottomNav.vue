@@ -3,7 +3,14 @@ import { computed, ref } from 'vue'
 import BrutalButton from '../ui/BrutalButton.vue'
 import { useUIStore } from '../../stores/uiStore'
 import { useAuthStore } from '../../stores/authStore'
-import { PhEye, PhCalendar, PhCalendarDots, PhCalendarDot } from '@phosphor-icons/vue'
+import {
+  PhEye,
+  PhCalendar,
+  PhCalendarDots,
+  PhCalendarDot,
+  PhArrowLeft,
+  PhArrowRight,
+} from '@phosphor-icons/vue'
 
 const uiStore = useUIStore()
 const authStore = useAuthStore()
@@ -28,132 +35,122 @@ function handleCreate() {
 <template>
   <nav
     v-if="!uiStore.isAdminPanelOpen"
-    class="bottom-nav-pill"
+    class="bottom-nav"
     :aria-label="$t('nav.viewOptions')"
   >
+    <BrutalButton
+      class="nav-btn"
+      aria-label="Período anterior"
+      @click="uiStore.navigatePrev()"
+    >
+      <PhArrowLeft :size="24" weight="bold" />
+    </BrutalButton>
+
     <BrutalButton
       class="nav-btn"
       :aria-label="$t('nav.viewOptions')"
       :aria-pressed="isViewMenuOpen"
       @click="isViewMenuOpen = !isViewMenuOpen"
     >
-      <PhEye :size="28" weight="duotone" />
+      <PhEye :size="24" weight="duotone" />
     </BrutalButton>
 
-    <div class="view-options" :class="{ 'is-open': isViewMenuOpen }">
+    <template v-if="isViewMenuOpen">
       <BrutalButton
         class="nav-btn"
-        :color="activeView === 'year' ? 'var(--accent-color)' : undefined"
+        :class="{ 'nav-btn--active': activeView === 'year' }"
         aria-label="Year View"
         @click="switchView('year')"
       >
-        <PhCalendar :size="28" weight="duotone" />
+        <PhCalendar :size="24" weight="duotone" />
       </BrutalButton>
       <BrutalButton
         class="nav-btn"
-        :color="activeView === 'month' ? 'var(--accent-color)' : undefined"
+        :class="{ 'nav-btn--active': activeView === 'month' }"
         aria-label="Month View"
         @click="switchView('month')"
       >
-        <PhCalendarDots :size="28" weight="duotone" />
+        <PhCalendarDots :size="24" weight="duotone" />
       </BrutalButton>
       <BrutalButton
         class="nav-btn"
-        :color="activeView === 'week' ? 'var(--accent-color)' : undefined"
+        :class="{ 'nav-btn--active': activeView === 'week' }"
         aria-label="Week View"
         @click="switchView('week')"
       >
-        <PhCalendarDot :size="28" weight="duotone" />
+        <PhCalendarDot :size="24" weight="duotone" />
       </BrutalButton>
-    </div>
+    </template>
 
-    <div class="quick-actions" :class="{ 'is-hidden': isViewMenuOpen }">
+    <template v-else>
       <BrutalButton
         class="nav-btn"
-        :color="uiStore.isTodaySelected ? 'var(--accent-color)' : undefined"
+        :class="{ 'nav-btn--active': uiStore.isTodaySelected }"
         @click="uiStore.goToToday()"
       >
         {{ $t('nav.today') }}
       </BrutalButton>
-      <BrutalButton class="nav-btn" color="var(--accent-color)" @click="handleCreate()">
+      <BrutalButton class="nav-btn nav-btn--add" @click="handleCreate()">
         {{ $t('nav.add') }}
       </BrutalButton>
-    </div>
+    </template>
+
+    <BrutalButton
+      class="nav-btn"
+      aria-label="Próximo período"
+      @click="uiStore.navigateNext()"
+    >
+      <PhArrowRight :size="24" weight="bold" />
+    </BrutalButton>
   </nav>
 </template>
 
 <style scoped>
-.bottom-nav-pill {
+.bottom-nav {
   position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1000;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 50;
   display: flex;
+  justify-content: space-around;
   align-items: center;
-  gap: 8px;
-  padding: 12px;
-  background: var(--bg-color);
-  border: 2px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-2);
-  overflow: hidden;
-  transition: all 0.5s cubic-bezier(0.32, 0.72, 0, 1);
-  white-space: nowrap;
-  max-width: 95%;
+  padding: 10px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  background-color: var(--surface-color);
+  border-top: var(--border-width-strong) solid var(--border-color);
 }
 
-.nav-btn {
-  min-width: 48px;
-  min-height: 48px;
+.bottom-nav .nav-btn {
+  min-width: 44px;
+  min-height: 44px;
   padding: 8px;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: var(--radius-button);
+  color: var(--text-color);
+  transition: background-color 0.15s ease;
 }
 
-/* Padding matches the button box-shadow offset (4px); the negative margin
-   cancels it in layout so the collapse animation via max-width is unaffected.
-   This prevents the hard offset shadow from being clipped by overflow: hidden. */
-.view-options {
-  display: flex;
-  gap: 8px;
-  max-width: 0px;
-  opacity: 0;
-  transform: translateX(-20px);
-  transition: all 0.5s cubic-bezier(0.32, 0.72, 0, 1);
-  pointer-events: none;
-  overflow: hidden;
-  flex-shrink: 0;
-  padding: 4px;
-  margin: -4px;
+.bottom-nav .nav-btn:hover,
+.bottom-nav .nav-btn:active {
+  transform: none;
+  box-shadow: none;
 }
 
-.view-options.is-open {
-  max-width: 300px;
-  opacity: 1;
-  transform: translateX(0);
-  pointer-events: auto;
+.bottom-nav .nav-btn--active {
+  background: var(--accent-color);
 }
 
-.quick-actions {
-  display: flex;
-  gap: 8px;
-  max-width: 300px;
-  opacity: 1;
-  transform: translateX(0);
-  transition: all 0.5s cubic-bezier(0.32, 0.72, 0, 1);
-  overflow: hidden;
-  flex-shrink: 0;
-  padding: 4px;
-  margin: -4px;
-}
-
-.quick-actions.is-hidden {
-  max-width: 0px;
-  opacity: 0;
-  transform: translateX(40px);
-  pointer-events: none;
+.bottom-nav .nav-btn--add {
+  font-size: 22px;
+  line-height: 1;
+  /* "+" renders low inside its line box; extra bottom padding lifts the glyph */
+  padding-bottom: calc(8px + 6px);
 }
 </style>

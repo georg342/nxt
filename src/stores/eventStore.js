@@ -1,9 +1,22 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { SupabaseEventRepository } from '../repositories/SupabaseEventRepository'
 import { useAuthStore } from './authStore'
 import { useUIStore } from './uiStore'
 import { Logger } from '../utils/logger.js'
+
+// Accepts comma-separated text, plain strings or { label, color } pills and
+// always returns a clean array of strings for the database.
+function normalizeList(value) {
+  const list = Array.isArray(value) ? value : String(value ?? '').split(',')
+  return list
+    .map((item) => {
+      if (typeof item === 'string') return item.trim()
+      const label = item?.label ?? item?.LABEL ?? ''
+      return String(label).trim()
+    })
+    .filter(Boolean)
+}
 
 export const useEventStore = defineStore('events', () => {
   const events = ref([])
@@ -12,6 +25,29 @@ export const useEventStore = defineStore('events', () => {
   const selectedPendingEventIds = ref([])
   const isLoading = ref(false)
   const error = ref(null)
+
+  const uiStore = useUIStore()
+
+  const hasActiveFilters = computed(() => uiStore.hasMinSearchLength)
+
+  const filteredEvents = computed(() => {
+    if (!uiStore.hasMinSearchLength) return []
+    const q = uiStore.searchQuery.trim().toLowerCase()
+    if (!q) return []
+
+    return events.value.filter((event) => {
+      const haystack = [
+        event.title,
+        event.location,
+        ...(event.lineup ?? []),
+        ...(event.genres ?? []).map((g) => g.name),
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+      return haystack.includes(q)
+    })
+  })
 
   async function addEvent(eventData) {
     isLoading.value = true
@@ -26,23 +62,14 @@ export const useEventStore = defineStore('events', () => {
         return
       }
 
+      const genreIds = Array.isArray(eventData.genreIds) ? eventData.genreIds : []
+
       const payload = {
         title: eventData.title,
         start_date: eventData.start_date,
         location: eventData.location,
         link: eventData.link || null,
-        lineup: Array.isArray(eventData.lineup)
-          ? eventData.lineup
-          : (eventData.lineup || '')
-              .split(',')
-              .map((s) => s.trim())
-              .filter(Boolean),
-        genres: Array.isArray(eventData.genres)
-          ? eventData.genres
-          : (eventData.genres || '')
-              .split(',')
-              .map((s) => s.trim())
-              .filter(Boolean),
+        lineup: normalizeList(eventData.lineup),
         status: 'pending',
         created_by: authStore.user.id,
       }
@@ -50,7 +77,7 @@ export const useEventStore = defineStore('events', () => {
       Logger.info('EventStore', 'Sending EXACT payload to Supabase', payload)
 
       const repository = new SupabaseEventRepository()
-      const created = await repository.createEvent(payload)
+      const created = await repository.createEvent(payload, genreIds)
       Logger.info('EventStore', 'Event created successfully')
       await loadEvents()
       return created
@@ -58,6 +85,50 @@ export const useEventStore = defineStore('events', () => {
       Logger.error('EventStore', 'Failed to create event', err)
       error.value = err?.message ?? 'Failed to create event'
       throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * Updates an existing event and refreshes the calendar.
+   * @param {string} eventId
+   * @param {Object} eventData
+   * @returns {Promise<boolean>}
+   */
+  async function updateEvent(eventId, eventData) {
+    const uiStore = useUIStore()
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const genreIds = Array.isArray(eventData.genreIds) ? eventData.genreIds : []
+
+      const payload = {
+        title: eventData.title,
+        start_date: eventData.start_date,
+        location: eventData.location,
+        link: eventData.link || null,
+        lineup: normalizeList(eventData.lineup),
+      }
+
+      const repository = new SupabaseEventRepository()
+      await repository.updateEvent(eventId, payload, genreIds)
+
+      const target = allEvents.value.find((evt) => evt.id === eventId)
+      if (target) Object.assign(target, payload)
+
+      await loadEvents()
+      await fetchAllEvents()
+
+      Logger.info('EventStore', 'Event updated', eventId)
+      uiStore.showToast('Evento atualizado', 'success')
+      return true
+    } catch (err) {
+      Logger.error('EventStore', 'Failed to update event', err)
+      error.value = err?.message ?? 'Failed to update event'
+      uiStore.showToast('Falha ao atualizar evento', 'error')
+      return false
     } finally {
       isLoading.value = false
     }
@@ -129,22 +200,6 @@ export const useEventStore = defineStore('events', () => {
     } catch (err) {
       Logger.error('EventStore', 'Failed to bulk update events', err)
       uiStore.showToast('Falha ao atualizar eventos', 'error')
-    }
-  }
-
-  async function addAdminUser(newAdminId) {
-    const uiStore = useUIStore()
-
-    try {
-      const repository = new SupabaseEventRepository()
-      await repository.addAdminUser(newAdminId)
-      Logger.info('EventStore', 'Admin user added', newAdminId)
-      uiStore.showToast('Admin adicionado', 'success')
-      return { success: true }
-    } catch (err) {
-      Logger.error('EventStore', 'Failed to add admin user', err)
-      uiStore.showToast('Falha ao adicionar admin', 'error')
-      return { success: false }
     }
   }
 
@@ -240,7 +295,10 @@ export const useEventStore = defineStore('events', () => {
     selectedPendingEventIds,
     isLoading,
     error,
+    hasActiveFilters,
+    filteredEvents,
     addEvent,
+    updateEvent,
     loadEvents,
     fetchAllEvents,
     setEventStatus,
@@ -249,6 +307,5 @@ export const useEventStore = defineStore('events', () => {
     approveEvent,
     rejectEvent,
     bulkUpdatePendingEvents,
-    addAdminUser,
   }
 })

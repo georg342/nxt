@@ -1,30 +1,41 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { onClickOutside, onKeyStroke } from '@vueuse/core'
 import {
+  PhArrowDown,
   PhArrowLeft,
+  PhArrowUp,
   PhCaretDown,
-  PhCaretUp,
   PhMagnifyingGlass,
 } from '@phosphor-icons/vue'
 import AppHeader from '../layout/AppHeader.vue'
+import AdminGenresManager from './AdminGenresManager.vue'
+import { useAuthStore } from '../../stores/authStore'
 import { useUIStore } from '../../stores/uiStore'
 import { useEventStore } from '../../stores/eventStore'
+import { useGenreStore } from '../../stores/genreStore'
 
 const router = useRouter()
+const { t } = useI18n()
+const authStore = useAuthStore()
 const uiStore = useUIStore()
 const eventStore = useEventStore()
+const genreStore = useGenreStore()
 
+const activeTab = ref('events')
 const searchQuery = ref('')
 const statusFilter = ref('all')
+const dateSortOrder = ref(null)
+const statusSortOrder = ref(null)
 const isStatusDropdownOpen = ref(false)
-const statusOptions = [
-  { label: 'TODOS OS STATUS', value: 'all' },
-  { label: 'PENDENTES', value: 'pending' },
-  { label: 'APROVADOS', value: 'approved' },
-  { label: 'REJEITADOS', value: 'rejected' },
-]
+const statusOptions = computed(() => [
+  { label: t('admin.status.all'), value: 'all' },
+  { label: t('admin.status.pending'), value: 'pending' },
+  { label: t('admin.status.approved'), value: 'approved' },
+  { label: t('admin.status.rejected'), value: 'rejected' },
+])
 const selectedIds = ref([])
 const expandedIds = ref([])
 const pendingDeleteId = ref(null)
@@ -39,6 +50,18 @@ const filteredEvents = computed(() => {
   if (statusFilter.value !== 'all') {
     list = list.filter((e) => e.status === statusFilter.value)
   }
+  if (dateSortOrder.value) {
+    list = [...list].sort(
+      (a, b) => new Date(a.start_date) - new Date(b.start_date)
+    )
+    if (dateSortOrder.value === 'desc') list.reverse()
+  }
+  if (statusSortOrder.value) {
+    list = [...list].sort((a, b) =>
+      (a.status || '').localeCompare(b.status || '')
+    )
+    if (statusSortOrder.value === 'desc') list.reverse()
+  }
   return list
 })
 
@@ -50,8 +73,8 @@ const isAllSelected = computed(
 
 const currentStatusLabel = computed(
   () =>
-    statusOptions.find((opt) => opt.value === statusFilter.value)?.label ||
-    'TODOS OS STATUS'
+    statusOptions.value.find((opt) => opt.value === statusFilter.value)
+      ?.label || t('admin.status.all')
 )
 
 function toggleSelectAll() {
@@ -65,10 +88,24 @@ function selectStatus(value) {
   isStatusDropdownOpen.value = false
 }
 
+function toggleDateSort() {
+  dateSortOrder.value = dateSortOrder.value === 'asc' ? 'desc' : 'asc'
+  statusSortOrder.value = null
+}
+
+function toggleStatusSort() {
+  statusSortOrder.value = statusSortOrder.value === 'asc' ? 'desc' : 'asc'
+  dateSortOrder.value = null
+}
+
 function toggleSelect(id) {
   selectedIds.value = selectedIds.value.includes(id)
     ? selectedIds.value.filter((x) => x !== id)
     : [...selectedIds.value, id]
+}
+
+function isRowExpanded(id) {
+  return expandedIds.value.includes(id)
 }
 
 function toggleExpanded(id) {
@@ -86,8 +123,9 @@ function requestDelete(id) {
   }
 }
 
-function handleBulkAction() {
-  uiStore.showToast('Ação em massa em breve', 'success')
+function handleEdit(event) {
+  uiStore.startEditing(event)
+  uiStore.openCreateEventModal()
 }
 
 function handleClose() {
@@ -128,12 +166,19 @@ function getShortLocation(address) {
 
 function getStatusLabel(status) {
   return (
-    { pending: 'Pendente', approved: 'Aprovado', rejected: 'Rejeitado' }[
-      status
-    ] ||
+    {
+      pending: t('admin.status.pending'),
+      approved: t('admin.status.approved'),
+      rejected: t('admin.status.rejected'),
+    }[status] ||
     status ||
     '—'
   )
+}
+
+function eventGenres(event) {
+  const list = Array.isArray(event?.genres) ? event.genres : []
+  return list.map((genre) => genreStore.getGenreDisplay(genre.id || genre))
 }
 
 function parsePills(data) {
@@ -162,6 +207,15 @@ function parsePills(data) {
 }
 
 onMounted(async () => {
+  // defesa em profundidade: o guard do router pode ter rodado há muito tempo
+  if (!authStore.user || !(await authStore.checkIsAdmin())) {
+    uiStore.closeAdminPanel()
+    router.replace('/')
+    return
+  }
+
+  if (genreStore.genres.length === 0) genreStore.loadGenres()
+
   console.log('[AdminGateway] mounted — starting fetchAllEvents')
   await eventStore.fetchAllEvents()
   console.log('[AdminGateway] fetch complete', {
@@ -190,16 +244,40 @@ onKeyStroke('Escape', () => {
             <button
               type="button"
               class="cms-icon-btn"
-              aria-label="Voltar"
+              :aria-label="t('admin.actions.back')"
               @click="handleClose"
             >
               <PhArrowLeft :size="20" weight="bold" />
             </button>
-            <h1 class="cms-title">Painel de Controle</h1>
+            <h1 class="cms-title">{{ t('admin.dashboard.title') }}</h1>
           </div>
-          <span class="cms-count">{{ filteredEvents.length }} evento(s)</span>
+          <span class="cms-count">
+            {{ t('admin.dashboard.eventCount', { count: filteredEvents.length }) }}
+          </span>
         </header>
 
+        <nav class="cms-tabs">
+          <button
+            type="button"
+            class="cms-tab"
+            :class="{ 'is-active': activeTab === 'events' }"
+            :aria-pressed="activeTab === 'events'"
+            @click="activeTab = 'events'"
+          >
+            {{ t('admin.tabs.events') }}
+          </button>
+          <button
+            type="button"
+            class="cms-tab"
+            :class="{ 'is-active': activeTab === 'genres' }"
+            :aria-pressed="activeTab === 'genres'"
+            @click="activeTab = 'genres'"
+          >
+            {{ t('admin.tabs.genres') }}
+          </button>
+        </nav>
+
+        <template v-if="activeTab === 'events'">
         <!-- TOOLBAR -->
         <div class="cms-toolbar">
           <div class="cms-search-wrap">
@@ -214,7 +292,9 @@ onKeyStroke('Escape', () => {
               class="cms-search-input"
               placeholder=" "
             />
-            <label class="cms-search-label">Buscar por nome</label>
+            <label class="cms-search-label">
+              {{ t('admin.list.searchPlaceholder') }}
+            </label>
           </div>
 
           <div
@@ -259,6 +339,48 @@ onKeyStroke('Escape', () => {
             </Transition>
           </div>
 
+          <div class="cms-sort-group">
+          <button
+            type="button"
+            class="cms-btn cms-btn--sort"
+            :class="{ 'is-active': dateSortOrder }"
+            :aria-pressed="Boolean(dateSortOrder)"
+            @click="toggleDateSort"
+          >
+            <PhArrowUp
+              v-if="dateSortOrder === 'asc'"
+              :size="14"
+              weight="bold"
+            />
+            <PhArrowDown
+              v-else-if="dateSortOrder === 'desc'"
+              :size="14"
+              weight="bold"
+            />
+            {{ t('admin.list.sortByDate') }}
+          </button>
+
+          <button
+            type="button"
+            class="cms-btn cms-btn--sort"
+            :class="{ 'is-active': statusSortOrder }"
+            :aria-pressed="Boolean(statusSortOrder)"
+            @click="toggleStatusSort"
+          >
+            <PhArrowUp
+              v-if="statusSortOrder === 'asc'"
+              :size="14"
+              weight="bold"
+            />
+            <PhArrowDown
+              v-else-if="statusSortOrder === 'desc'"
+              :size="14"
+              weight="bold"
+            />
+            {{ t('admin.list.sortByStatus') }}
+          </button>
+          </div>
+
           <div class="cms-bulk">
             <label class="cms-select-all">
               <input
@@ -267,16 +389,8 @@ onKeyStroke('Escape', () => {
                 :checked="isAllSelected"
                 @change="toggleSelectAll()"
               />
-              <span>Selecionar Todos</span>
+              <span>{{ t('admin.list.selectAll') }}</span>
             </label>
-            <button
-              type="button"
-              class="cms-btn cms-btn--bulk"
-              :disabled="selectedIds.length === 0"
-              @click="handleBulkAction()"
-            >
-              Ações em Massa
-            </button>
           </div>
         </div>
 
@@ -284,16 +398,17 @@ onKeyStroke('Escape', () => {
         <div class="cms-list">
           <div class="cms-list-header">
             <span></span>
-            <span>Nome</span>
-            <span>Data</span>
-            <span>Local</span>
-            <span>Status</span>
+            <span>{{ t('admin.list.name') }}</span>
+            <span>{{ t('admin.list.date') }}</span>
+            <span>{{ t('admin.list.location') }}</span>
+            <span>{{ t('admin.list.status') }}</span>
           </div>
 
           <div
             v-for="event in filteredEvents"
             :key="event.id"
             class="cms-row"
+            :class="{ 'row-expanded': isRowExpanded(event.id) }"
           >
             <!-- SUMMARY -->
             <div class="cms-row-summary" @click="toggleExpanded(event.id)">
@@ -320,13 +435,6 @@ onKeyStroke('Escape', () => {
                   {{ getStatusLabel(event.status) }}
                 </span>
                 <PhCaretDown
-                  v-if="!expandedIds.includes(event.id)"
-                  :size="16"
-                  weight="bold"
-                  class="cms-caret"
-                />
-                <PhCaretUp
-                  v-else
                   :size="16"
                   weight="bold"
                   class="cms-caret"
@@ -336,117 +444,132 @@ onKeyStroke('Escape', () => {
 
             <!-- EXPANDED -->
             <div
-              v-if="expandedIds.includes(event.id)"
-              class="cms-row-expanded"
-              @click.stop
+              class="cms-row-expander"
+              :class="{ 'is-expanded': isRowExpanded(event.id) }"
             >
-              <div class="cms-detail-grid">
-                <div>
-                  <strong>Título</strong>
-                  <p>{{ event.title }}</p>
-                </div>
-                <div>
-                  <strong>Data</strong>
-                  <p>{{ formatDateTime(event.start_date) }}</p>
-                </div>
-                <div>
-                  <strong>Local</strong>
-                  <p>{{ event.location }}</p>
-                </div>
-                <div v-if="event.link">
-                  <strong>Link</strong>
-                  <p>
-                    <a
-                      :href="event.link"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {{ event.link }}
-                    </a>
-                  </p>
-                </div>
-                <div v-if="parsePills(event.genres).length">
-                  <strong>Gêneros</strong>
-                  <div class="cms-tags">
-                    <span
-                      v-for="(pill, i) in parsePills(event.genres)"
-                      :key="`g-${i}`"
-                      class="cms-tag"
-                      :style="{
-                        backgroundColor: pill?.COLOR || pill?.color || '#e5e7eb',
-                      }"
-                    >
-                      {{ pill?.LABEL || pill?.label || pill }}
-                    </span>
+              <div
+                class="cms-row-expanded-inner"
+                :inert="!isRowExpanded(event.id)"
+              >
+                <div class="cms-row-expanded-content">
+                  <div class="cms-detail-grid">
+                    <div>
+                      <strong>{{ t('admin.details.title') }}</strong>
+                      <p>{{ event.title }}</p>
+                    </div>
+                    <div>
+                      <strong>{{ t('admin.details.date') }}</strong>
+                      <p>{{ formatDateTime(event.start_date) }}</p>
+                    </div>
+                    <div>
+                      <strong>{{ t('admin.details.location') }}</strong>
+                      <p>{{ event.location }}</p>
+                    </div>
+                    <div v-if="event.link">
+                      <strong>{{ t('admin.details.link') }}</strong>
+                      <p>
+                        <a
+                          :href="event.link"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {{ event.link }}
+                        </a>
+                      </p>
+                    </div>
+                    <div v-if="eventGenres(event).length">
+                      <strong>{{ t('admin.details.genres') }}</strong>
+                      <div class="cms-tags">
+                        <span
+                          v-for="(genre, i) in eventGenres(event)"
+                          :key="`g-${i}`"
+                          class="cms-tag"
+                          :style="{ backgroundColor: genre.color }"
+                        >
+                          {{ genre.name }}
+                        </span>
+                      </div>
+                    </div>
+                    <div v-if="parsePills(event.lineup).length">
+                      <strong>{{ t('admin.details.lineup') }}</strong>
+                      <div class="cms-tags">
+                        <span
+                          v-for="(pill, i) in parsePills(event.lineup)"
+                          :key="`l-${i}`"
+                          class="cms-tag"
+                          :style="{
+                            backgroundColor: pill?.COLOR || pill?.color || '#e5e7eb',
+                          }"
+                        >
+                          {{ pill?.LABEL || pill?.label || pill }}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div v-if="parsePills(event.lineup).length">
-                  <strong>Lineup</strong>
-                  <div class="cms-tags">
-                    <span
-                      v-for="(pill, i) in parsePills(event.lineup)"
-                      :key="`l-${i}`"
-                      class="cms-tag"
-                      :style="{
-                        backgroundColor: pill?.COLOR || pill?.color || '#e5e7eb',
-                      }"
-                    >
-                      {{ pill?.LABEL || pill?.label || pill }}
-                    </span>
-                  </div>
-                </div>
-              </div>
 
-              <div class="cms-actions">
-                <button type="button" class="cms-btn cms-btn--edit">
-                  Editar Evento
-                </button>
-                <button
-                  type="button"
-                  class="cms-btn cms-btn--approve"
-                  :disabled="event.status === 'approved'"
-                  @click="eventStore.setEventStatus(event.id, 'approved')"
-                >
-                  Aprovar
-                </button>
-                <button
-                  type="button"
-                  class="cms-btn cms-btn--reject"
-                  :disabled="event.status === 'rejected'"
-                  @click="eventStore.setEventStatus(event.id, 'rejected')"
-                >
-                  Rejeitar
-                </button>
-                <button
-                  type="button"
-                  class="cms-btn cms-btn--delete"
-                  @click="requestDelete(event.id)"
-                >
-                  {{
-                    pendingDeleteId === event.id
-                      ? 'Confirmar Exclusão?'
-                      : 'Excluir'
-                  }}
-                </button>
+                  <div class="cms-actions">
+                    <button
+                      type="button"
+                      class="cms-btn cms-btn--edit"
+                      @click="handleEdit(event)"
+                    >
+                      {{ t('admin.actions.editEvent') }}
+                    </button>
+                    <button
+                      type="button"
+                      class="cms-btn cms-btn--approve"
+                      :disabled="event.status === 'approved'"
+                      @click="eventStore.setEventStatus(event.id, 'approved')"
+                    >
+                      {{ t('admin.actions.approve') }}
+                    </button>
+                    <button
+                      type="button"
+                      class="cms-btn cms-btn--reject"
+                      :disabled="event.status === 'rejected'"
+                      @click="eventStore.setEventStatus(event.id, 'rejected')"
+                    >
+                      {{ t('admin.actions.reject') }}
+                    </button>
+                    <button
+                      type="button"
+                      class="cms-btn cms-btn--delete"
+                      @click="requestDelete(event.id)"
+                    >
+                      {{
+                        pendingDeleteId === event.id
+                          ? t('admin.actions.confirmDelete')
+                          : t('admin.actions.delete')
+                      }}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <p v-if="eventStore.isLoading" class="cms-state">Carregando...</p>
+          <p v-if="eventStore.isLoading" class="cms-state">
+            {{ t('admin.states.loading') }}
+          </p>
           <div v-else-if="eventStore.error" class="cms-state cms-state--error">
-            <span>Erro ao carregar eventos: {{ eventStore.error }}</span>
+            <span>
+              {{ t('admin.states.error', { error: eventStore.error }) }}
+            </span>
             <button
               type="button"
               class="cms-btn cms-btn--bulk"
               @click="eventStore.fetchAllEvents()"
             >
-              Tentar Novamente
+              {{ t('admin.states.retry') }}
             </button>
           </div>
           <p v-else-if="filteredEvents.length === 0" class="cms-state">
-            Nenhum evento encontrado.
+            {{ t('admin.states.noEvents') }}
           </p>
         </div>
+        </template>
+
+        <AdminGenresManager v-else />
       </div>
     </div>
   </div>
@@ -530,6 +653,36 @@ onKeyStroke('Escape', () => {
   color: var(--text-color, #000);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* ============================================================
+   TABS
+   ============================================================ */
+.cms-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cms-tab {
+  padding: 8px 18px;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--text-color, #000);
+  background: var(--surface-color, #fff);
+  border: 2px solid var(--border-color, #000);
+  border-radius: var(--radius-md);
+  box-shadow: 2px 2px 0 0 var(--border-color, #000);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.cms-tab.is-active {
+  color: var(--accent-contrast, #000);
+  background: var(--accent-color, #a3e635);
+  transform: translate(2px, 2px);
+  box-shadow: none;
 }
 
 /* ============================================================
@@ -763,11 +916,18 @@ onKeyStroke('Escape', () => {
   border: 2px solid var(--border-color, #000);
   border-radius: var(--radius-md);
   background: var(--surface-color, #fff);
-  transition: all 0.2s ease;
+  transition: box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.2s ease;
   overflow: hidden;
 }
 .cms-row:hover {
   box-shadow: var(--shadow-1, 4px 4px 0 0 #000);
+}
+/* depois do :hover de propósito: mesma especificidade, o expandido ganha */
+.cms-row.row-expanded {
+  box-shadow: var(--shadow-2, 8px 8px 0 0 #000);
+  transform: translateY(-2px);
 }
 .cms-row-summary {
   display: grid;
@@ -802,6 +962,10 @@ onKeyStroke('Escape', () => {
 }
 .cms-caret {
   color: var(--text-muted, #555);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.cms-row.row-expanded .cms-caret {
+  transform: rotate(180deg);
 }
 .cms-status {
   padding: 3px 8px;
@@ -825,13 +989,41 @@ onKeyStroke('Escape', () => {
 /* ============================================================
    EXPANDED
    ============================================================ */
-.cms-row-expanded {
-  padding: 16px;
-  border-top: 2px dashed var(--border-color, #000);
-  background: var(--bg-color, #fafafa);
+/* shortcut: 0fr → 1fr exige Chrome 107+/Safari 16+/Firefox 66+; trocar por max-height fixo se precisar de navegadores antigos */
+.cms-row-expander {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.25s ease;
+}
+.cms-row-expander.is-expanded {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+/* padding/borda ficam no .cms-row-expanded-content: no próprio clipper eles
+   somariam altura e o estado 0fr não fecharia em 0px */
+.cms-row-expanded-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+.cms-row-expanded-content {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding: 16px;
+  border-top: 2px dashed var(--border-color, #000);
+  background: var(--bg-color, #fafafa);
+}
+.cms-row-expanded-content > * {
+  transform: translateY(-8px);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.cms-row-expanded-content > *:nth-child(2) {
+  transition-delay: 40ms;
+}
+.cms-row-expander.is-expanded .cms-row-expanded-content > * {
+  transform: translateY(0);
 }
 .cms-detail-grid {
   display: grid;
@@ -903,6 +1095,22 @@ onKeyStroke('Escape', () => {
 .cms-btn--bulk {
   background: #e5e7eb;
 }
+.cms-btn--sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-color, #fff);
+  color: var(--text-color, #000);
+}
+.cms-btn--sort.is-active {
+  background: var(--accent-color, #a3e635);
+  color: var(--accent-contrast, #000);
+}
+.cms-sort-group {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
 .cms-btn--edit {
   background: #60a5fa;
 }
@@ -953,13 +1161,32 @@ onKeyStroke('Escape', () => {
   .cms-inner {
     gap: 16px;
   }
-  .cms-row-summary,
   .cms-list-header {
     grid-template-columns: 32px 1fr auto;
   }
+  .cms-row-summary {
+    grid-template-columns: 32px 1fr auto;
+    grid-template-areas:
+      'check name status'
+      'check date status';
+    row-gap: 2px;
+  }
+  .cms-row-summary > .cms-cell--checkbox {
+    grid-area: check;
+  }
+  .cms-row-summary > .cms-cell--name {
+    grid-area: name;
+  }
+  .cms-row-summary > .cms-cell--date {
+    grid-area: date;
+    font-size: 0.7rem;
+    color: var(--text-muted, #555);
+  }
+  .cms-row-summary > .cms-cell--status {
+    grid-area: status;
+  }
   .cms-list-header > :nth-child(3),
   .cms-list-header > :nth-child(4),
-  .cms-cell--date,
   .cms-cell--location {
     display: none;
   }
@@ -974,6 +1201,24 @@ onKeyStroke('Escape', () => {
   .status-dropdown {
     width: 100%;
     min-width: 0;
+  }
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .cms-row,
+  .cms-row-expander,
+  .cms-row-expanded-content > *,
+  .cms-caret {
+    transition: none;
+  }
+  .cms-row.row-expanded {
+    transform: none;
+  }
+  .cms-row-expanded-content > * {
+    transform: none;
   }
 }
 </style>

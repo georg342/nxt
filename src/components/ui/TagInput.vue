@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { PhX } from '@phosphor-icons/vue'
 
 const props = defineProps({
@@ -10,6 +10,10 @@ const props = defineProps({
   label: {
     type: String,
     default: 'Adicionar...',
+  },
+  placeholder: {
+    type: String,
+    default: '',
   },
 })
 
@@ -26,6 +30,26 @@ const PILL_COLORS = [
   '#f87171',
 ]
 
+// Accepts strings or { label, color } pills; empty entries are dropped so a
+// blank chip with an "x" is never rendered.
+const pills = computed(() =>
+  props.modelValue
+    .map((item, index) => {
+      const label =
+        typeof item === 'string' ? item : (item?.label ?? item?.LABEL ?? '')
+      const trimmed = String(label).trim()
+      if (!trimmed) return null
+      const color =
+        typeof item === 'string'
+          ? PILL_COLORS[index % PILL_COLORS.length]
+          : (item?.color ??
+            item?.COLOR ??
+            PILL_COLORS[index % PILL_COLORS.length])
+      return { label: trimmed, color }
+    })
+    .filter(Boolean)
+)
+
 const inputValue = ref('')
 
 function randomColor() {
@@ -37,46 +61,47 @@ function randomColor() {
 function addTag() {
   const value = inputValue.value.trim()
   if (!value) return
-  if (props.modelValue.some((tag) => tag.label === value)) {
+  if (pills.value.some((tag) => tag.label === value)) {
     inputValue.value = ''
     return
   }
-  emit('update:modelValue', [...props.modelValue, { label: value, color: randomColor() }])
+  emit('update:modelValue', [...pills.value, { label: value, color: randomColor() }])
   inputValue.value = ''
 }
 
 function onInput(event) {
   const value = event.target.value
-  if (value.includes(',')) {
-    const parts = value.split(',')
-    const last = parts.pop()
-    parts.forEach((part) => {
-      const trimmed = part.trim()
-      if (!trimmed) return
-      if (props.modelValue.some((tag) => tag.label === trimmed)) return
-      emit('update:modelValue', [
-        ...props.modelValue,
-        { label: trimmed, color: randomColor() },
-      ])
-    })
-    inputValue.value = last
+  if (!value.includes(',')) {
+    inputValue.value = value
     return
   }
-  inputValue.value = value
+  const parts = value.split(',')
+  const last = parts.pop()
+  let next = [...pills.value]
+  parts.forEach((part) => {
+    const trimmed = part.trim()
+    if (!trimmed) return
+    if (next.some((tag) => tag.label === trimmed)) return
+    next = [...next, { label: trimmed, color: randomColor() }]
+  })
+  emit('update:modelValue', next)
+  inputValue.value = last
 }
 
 function removeTag(index) {
-  const next = [...props.modelValue]
-  next.splice(index, 1)
-  emit('update:modelValue', next)
+  // Emitting the normalized list drops any invalid entry left in the state.
+  emit(
+    'update:modelValue',
+    pills.value.filter((_, i) => i !== index)
+  )
 }
 </script>
 
 <template>
   <div class="tag-input">
-    <div v-if="modelValue.length > 0" class="tag-input__pills">
+    <div v-if="pills.length > 0" class="tag-input__pills">
       <span
-        v-for="(tag, index) in modelValue"
+        v-for="(tag, index) in pills"
         :key="`${tag.label}-${index}`"
         class="tag-input__pill"
         :style="{ backgroundColor: tag.color }"
@@ -97,7 +122,7 @@ function removeTag(index) {
         :value="inputValue"
         type="text"
         class="tag-input__field peer"
-        placeholder=" "
+        :placeholder="placeholder || ' '"
         @input="onInput"
         @keydown.enter.prevent="addTag()"
         @blur="addTag()"
@@ -158,7 +183,7 @@ function removeTag(index) {
 
 .tag-input__field {
   width: 100%;
-  padding: 14px 4px 4px;
+  padding: 18px 4px 4px;
   font: inherit;
   font-size: 0.875rem;
   font-weight: 700;
@@ -166,6 +191,15 @@ function removeTag(index) {
   background: transparent;
   border: none;
   outline: none;
+}
+
+/* The hint only shows while focused, when the floating label has moved up. */
+.tag-input__field::placeholder {
+  color: transparent;
+}
+
+.tag-input__field:focus::placeholder {
+  color: var(--text-muted);
 }
 
 .tag-input__label {

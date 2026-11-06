@@ -97,17 +97,17 @@ ol {
 
 /* ---------- Light Theme ---------- */
 [data-theme="light"] {
-  --bg-color: #f5f1e8;
-  --surface-color: #ffffff;
-  --text-color: #111111;
-  --text-muted: #555555;
-  --border-color: #111111;
-  --shadow-color: #111111;
-  --accent-color: #FACC15;
+  --bg-color: #F3F4F6;
+  --surface-color: #FFFFFF;
+  --text-color: #111827;
+  --text-muted: #4B5563;
+  --border-color: #111827;
+  --shadow-color: #111827;
+  --accent-color: #84CC16; /* Verde limão escuro */
   --accent-contrast: #000000;
-  --danger-color: #ff4d4d;
-  --success-color: #2ecc71;
-  --button-text-color: #ff0000;
+  --danger-color: #DC2626;
+  --success-color: #16A34A;
+  --button-text-color: #000000;
   --shadow-1: 4px 4px 0px var(--shadow-color);
   --shadow-2: 8px 8px 0px var(--shadow-color);
   --shadow-hover: 2px 2px 0px var(--shadow-color);
@@ -115,22 +115,21 @@ ol {
 
 /* ---------- Dark Theme ---------- */
 [data-theme="dark"] {
-  --bg-color: #121214;
-  --surface-color: #1e1e22;
-  --text-color: #f4f4f5;
-  --text-muted: #8b8b93;
-  --border-color: #2a2a30;
-  --shadow-color: #09090b;
-  --accent-color: #5c7d9f;
-  --accent-contrast: #ffffff;
-  --danger-color: #dc2626;
-  --success-color: #16a34a;
-
+  --bg-color: #141312; /* Chumbo/Asfalto com tom quente */
+  --surface-color: #211F1D; 
+  --text-color: #EBE6E0;
+  --text-muted: #8F877D;
+  --border-color: #3B3530;
+  --shadow-color: #000000;
+  --accent-color: #FF5E00; /* Laranja Radioativo */
+  --accent-contrast: #FFFFFF;
+  --danger-color: #E11D48;
+  --success-color: #16A34A;
+  --button-text-color: #FFFFFF;
   --shadow-1: 4px 4px 0px var(--shadow-color);
   --shadow-2: 8px 8px 0px var(--shadow-color);
   --shadow-hover: 2px 2px 0px var(--shadow-color);
 }
-
 /* ---------- Base ---------- */
 html {
   color-scheme: light dark;
@@ -175,6 +174,18 @@ body {
 .fade-text-leave-to {
   opacity: 0;
   transform: translateY(-5px);
+}
+
+/* ---------- Fade Slide (date title) ---------- */
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(5px);
 }
 
 /* ---------- iOS 18 Spatial Navigation ---------- */
@@ -262,7 +273,7 @@ button svg,
 /* ---------- Button Variant: actionBtnWhiteText ---------- */
 /* Opt-in variant that forces button text/icons to white.
    Uses compound selectors so specificity (0,1,1 / 0,2,0) reliably beats
-   `button`, `[role="button"]`, `.nb-button` and `.admin-fab` color rules. */
+   `button`, `[role="button"]`, `.nb-button`*/
 button.actionBtnWhiteText,
 [role="button"].actionBtnWhiteText,
 .nb-button.actionBtnWhiteText {
