@@ -64,18 +64,10 @@ const baseEvents = computed(() => {
 
 const filteredEvents = computed(() => {
   const referenceDate = uiStore.selectedDate ?? new Date()
-  const targetYear = referenceDate.getFullYear()
-  const targetMonth = referenceDate.getMonth()
-  const targetDay = referenceDate.getDate()
-
+  const targetKey = toDateKey(referenceDate)
   return baseEvents.value.filter((event) => {
     if (!event.start_date) return false
-    const eventDate = new Date(event.start_date)
-    return (
-      eventDate.getFullYear() === targetYear &&
-      eventDate.getMonth() === targetMonth &&
-      eventDate.getDate() === targetDay
-    )
+    return String(event.start_date).slice(0, 10) === targetKey
   })
 })
 
@@ -88,33 +80,23 @@ function toDateKey(date) {
 // holds every approved event ordered by start_date, so no extra request.
 const upcomingGroups = computed(() => {
   const referenceDate = uiStore.selectedDate ?? new Date()
-  const selectedDay = new Date(
-    referenceDate.getFullYear(),
-    referenceDate.getMonth(),
-    referenceDate.getDate()
-  )
+  const selectedKey = toDateKey(referenceDate)
 
   const groups = new Map()
   for (const event of baseEvents.value) {
     if (!event.start_date) continue
-    const eventDate = new Date(event.start_date)
-    if (Number.isNaN(eventDate.getTime())) continue
-    const eventDay = new Date(
-      eventDate.getFullYear(),
-      eventDate.getMonth(),
-      eventDate.getDate()
-    )
-    if (eventDay <= selectedDay) continue
+    const eventKey = String(event.start_date).slice(0, 10)
+    // Comparação lexicográfica de YYYY-MM-DD equivale à cronológica.
+    if (eventKey <= selectedKey) continue
 
-    const key = toDateKey(eventDay)
-    if (!groups.has(key)) {
-      groups.set(key, {
-        key,
-        label: uiStore.formatDayMonth(key),
+    if (!groups.has(eventKey)) {
+      groups.set(eventKey, {
+        key: eventKey,
+        label: uiStore.formatDayMonth(eventKey),
         events: [],
       })
     }
-    groups.get(key).events.push(event)
+    groups.get(eventKey).events.push(event)
   }
   return [...groups.values()]
 })
