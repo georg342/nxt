@@ -42,8 +42,8 @@ export default {
       commaSeparated: 'Separe por vírgula',
     },
     list: {
-      sortByDate: 'Ordenar por data',
-      sortByStatus: 'Ordenar por status',
+      sortByDate: 'Data',
+      sortByStatus: 'Status',
     },
   },
   createEvent: {

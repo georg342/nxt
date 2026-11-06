@@ -291,6 +291,7 @@ onKeyStroke('Escape', () => {
             </Transition>
           </div>
 
+          <div class="cms-sort-group">
           <button
             type="button"
             class="cms-btn cms-btn--sort"
@@ -330,6 +331,7 @@ onKeyStroke('Escape', () => {
             />
             {{ t('admin.list.sortByStatus') }}
           </button>
+          </div>
 
           <div class="cms-bulk">
             <label class="cms-select-all">
@@ -1020,6 +1022,11 @@ onKeyStroke('Escape', () => {
 .cms-btn--sort.is-active {
   background: var(--accent-color, #a3e635);
   color: var(--accent-contrast, #000);
+}
+.cms-sort-group {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 .cms-btn--edit {
   background: #60a5fa;

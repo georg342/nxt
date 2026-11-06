@@ -42,8 +42,8 @@ export default {
       commaSeparated: 'Separate with commas',
     },
     list: {
-      sortByDate: 'Sort by date',
-      sortByStatus: 'Sort by status',
+      sortByDate: 'Date',
+      sortByStatus: 'Status',
     },
   },
   createEvent: {
