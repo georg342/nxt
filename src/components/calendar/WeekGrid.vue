@@ -182,12 +182,14 @@ function handleDayClick(index) {
 }
 
 .week-grid__day.is-empty {
-  opacity: 0.4;
   /* bloqueia clique e toque por completo */
   pointer-events: none;
-  box-shadow: none;
-  transform: none;
-  filter: grayscale(80%);
+  cursor: default;
+}
+
+/* esmaece só o conteúdo, preservando borda e sombra do card */
+.week-grid__day.is-empty .day-card-inner {
+  opacity: 0.4;
 }
 
 .week-grid__label {
