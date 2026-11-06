@@ -22,6 +22,7 @@ export default {
   },
   dayView: {
     upcomingEvents: 'Próximos eventos',
+    noEvents: 'Nada por aqui'
   },
   event: {
     viewOnInstagram: 'Ver no Instagram',
