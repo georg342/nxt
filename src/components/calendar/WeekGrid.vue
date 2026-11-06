@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, onBeforeUnmount, ref } from 'vue'
+import { computed, onMounted, onBeforeUnmount, watch, ref } from 'vue'
 import BrutalCard from '../ui/BrutalCard.vue'
 import { useUIStore } from '../../stores/uiStore'
 import { useEventStore } from '../../stores/eventStore'
@@ -12,8 +12,9 @@ const animatingBadgeKey = ref(null)
 const typedText = ref('')
 // Timers pendentes; limpar no unmount interrompe a sequência inteira.
 const timers = new Set()
-// Loop só roda enquanto a view estiver montada.
-let isAnimationLoopActive = true
+// Token invalida loops antigos quando a semana muda ou a view desmonta.
+let animationToken = 0
+let weekChangeTimeoutId = null
 
 const uiStore = useUIStore()
 const eventStore = useEventStore()
@@ -93,8 +94,8 @@ function delay(ms) {
   })
 }
 
-async function runBadgeAnimations() {
-  while (isAnimationLoopActive) {
+async function runBadgeAnimations(token) {
+  while (token === animationToken) {
     const badges = weekDays.value.flatMap((day) => day.genreBadges)
 
     if (badges.length === 0) {
@@ -103,18 +104,22 @@ async function runBadgeAnimations() {
     }
 
     for (const badge of badges) {
-      if (!isAnimationLoopActive) return
+      if (token !== animationToken) return
 
       animatingBadgeKey.value = badge.key
       typedText.value = ''
 
       for (const char of badge.name) {
+        if (token !== animationToken) return
         typedText.value += char
         await delay(25)
       }
+
       await delay(800)
+      if (token !== animationToken) return
 
       while (typedText.value.length > 0) {
+        if (token !== animationToken) return
         typedText.value = typedText.value.slice(0, -1)
         await delay(15)
       }
@@ -125,6 +130,24 @@ async function runBadgeAnimations() {
     }
   }
 }
+
+// Swipe/setas trocam a semana: abandona o loop atual e recomeça no novo dado.
+watch(
+  () => uiStore.currentDate.getTime(),
+  () => {
+    animationToken++
+    if (weekChangeTimeoutId) clearTimeout(weekChangeTimeoutId)
+
+    animatingBadgeKey.value = null
+    typedText.value = ''
+
+    const currentToken = animationToken
+    weekChangeTimeoutId = setTimeout(() => {
+      weekChangeTimeoutId = null
+      runBadgeAnimations(currentToken)
+    }, 400)
+  }
+)
 
 onMounted(async () => {
   if (genreStore.genres.length === 0) {
@@ -142,12 +165,16 @@ onMounted(async () => {
     Logger.info('WeekGrid', 'Using cached events', eventStore.events.length)
   }
 
-  await delay(500)
-  await runBadgeAnimations()
+  const initialToken = animationToken
+  await delay(800)
+  if (initialToken === animationToken) {
+    runBadgeAnimations(initialToken)
+  }
 })
 
 onBeforeUnmount(() => {
-  isAnimationLoopActive = false
+  animationToken++
+  if (weekChangeTimeoutId) clearTimeout(weekChangeTimeoutId)
   for (const id of timers) clearTimeout(id)
   timers.clear()
   animatingBadgeKey.value = null
