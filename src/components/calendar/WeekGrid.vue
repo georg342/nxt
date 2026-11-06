@@ -151,7 +151,7 @@ function handleDayClick(index) {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: repeat(4, 1fr);
-  gap: 12px;
+  gap: 8px;
   height: 100%;
   width: 100%;
   position: absolute;
@@ -166,6 +166,7 @@ function handleDayClick(index) {
   align-items: center;
   justify-content: center;
   gap: var(--space-1);
+  padding: 8px;
   min-height: 0;
   overflow: hidden;
   text-align: center;
@@ -208,6 +209,8 @@ function handleDayClick(index) {
   display: grid;
   grid-template-columns: repeat(2, 22px);
   grid-template-rows: repeat(3, 22px);
+  height: max-content;
+  min-height: 74px;
   gap: 4px;
   align-content: center;
   justify-content: start;
