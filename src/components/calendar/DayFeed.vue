@@ -3,9 +3,11 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import EventCard from './EventCard.vue'
 import { useEventStore } from '../../stores/eventStore'
+import { useGenreStore } from '../../stores/genreStore'
 import { useUIStore } from '../../stores/uiStore'
 
 const eventStore = useEventStore()
+const genreStore = useGenreStore()
 const uiStore = useUIStore()
 const { t } = useI18n()
 
@@ -115,6 +117,10 @@ watch(
   () => uiStore.selectedDate,
   () => {
     eventStore.loadEvents()
+    // Safety net: bootstrap may have failed to fetch genres.
+    if (genreStore.genres.length === 0) {
+      genreStore.loadGenres()
+    }
   },
   { immediate: true }
 )

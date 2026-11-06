@@ -7,6 +7,7 @@ import router from './router'
 import i18n from './i18n'
 import { useUIStore } from './stores/uiStore'
 import { useAuthStore } from './stores/authStore'
+import { useGenreStore } from './stores/genreStore'
 import './assets/main.css'
 
 const app = createApp(App)
@@ -29,6 +30,7 @@ useUIStore().initTheme()
  */
 async function bootstrap() {
   const authStore = useAuthStore()
+  const genreStore = useGenreStore()
 
   try {
     await authStore.initAuth()
@@ -36,6 +38,14 @@ async function bootstrap() {
     // Fail-open for boot: the UI still mounts, but `isAdmin` stays false
     // (fail-closed) so the admin route/panel remains inaccessible.
     console.error('[main] authStore.initAuth failed:', err)
+  }
+
+  // Genres must exist before any event renders, otherwise names show as UUIDs.
+  // Fail-open: a genre fetch failure must not block the first render.
+  try {
+    await genreStore.loadGenres()
+  } catch (err) {
+    console.error('[main] genreStore.loadGenres failed:', err)
   }
 
   // Ensure the initial route (and its beforeEach guard) has resolved before
