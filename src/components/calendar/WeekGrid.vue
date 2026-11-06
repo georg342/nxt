@@ -103,10 +103,7 @@ function handleDayClick(index) {
           class="week-grid__day day-card"
           @click="handleDayClick(index)"
         >
-          <div
-            class="day-card-inner"
-            :class="{ 'has-badges': day.genreBadges.length > 0 }"
-          >
+          <div class="day-card-inner">
             <div
               v-if="day.genreBadges.length > 0 || day.hiddenBadgesCount > 0"
               class="day-badges-cluster"
@@ -194,6 +191,7 @@ function handleDayClick(index) {
 
 .day-card-inner {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   width: 100%;
@@ -201,20 +199,16 @@ function handleDayClick(index) {
   gap: 8px;
 }
 
-.day-card-inner.has-badges {
-  justify-content: space-between;
-}
-
 .day-badges-cluster {
-  display: grid;
-  grid-template-columns: repeat(2, 22px);
-  grid-template-rows: repeat(3, 22px);
-  grid-auto-flow: column;
-  height: max-content;
-  min-height: 74px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
   gap: 4px;
-  align-content: center;
-  justify-content: start;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
   flex-shrink: 0;
 }
 
@@ -222,15 +216,16 @@ function handleDayClick(index) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border: 1.5px solid var(--border-color);
   border-radius: 4px;
   box-shadow: 1.5px 1.5px 0px var(--shadow-color, var(--border-color));
-  font-size: 0.72rem;
+  font-size: 0.65rem;
   font-weight: 900;
   color: #000;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .genre-count-badge--more {
@@ -243,7 +238,6 @@ function handleDayClick(index) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  flex: 1;
   text-align: center;
 }
 </style>
