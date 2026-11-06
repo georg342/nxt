@@ -62,7 +62,7 @@ watch(
 
 const submitLabel = computed(() => {
   if (isSubmitting.value) return t('createEvent.submitting')
-  return isEditing.value ? 'Salvar Alterações' : t('createEvent.submit')
+  return isEditing.value ? t('admin.actions.save') : t('createEvent.submit')
 })
 
 const INSTAGRAM_URL = /^(https?:\/\/)?(www\.|m\.)?instagram\.com\/.+/i

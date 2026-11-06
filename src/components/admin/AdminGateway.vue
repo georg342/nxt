@@ -28,12 +28,12 @@ const statusFilter = ref('all')
 const dateSortOrder = ref(null)
 const statusSortOrder = ref(null)
 const isStatusDropdownOpen = ref(false)
-const statusOptions = [
-  { label: 'TODOS OS STATUS', value: 'all' },
-  { label: 'PENDENTES', value: 'pending' },
-  { label: 'APROVADOS', value: 'approved' },
-  { label: 'REJEITADOS', value: 'rejected' },
-]
+const statusOptions = computed(() => [
+  { label: t('admin.status.all'), value: 'all' },
+  { label: t('admin.status.pending'), value: 'pending' },
+  { label: t('admin.status.approved'), value: 'approved' },
+  { label: t('admin.status.rejected'), value: 'rejected' },
+])
 const selectedIds = ref([])
 const expandedIds = ref([])
 const pendingDeleteId = ref(null)
@@ -71,8 +71,8 @@ const isAllSelected = computed(
 
 const currentStatusLabel = computed(
   () =>
-    statusOptions.find((opt) => opt.value === statusFilter.value)?.label ||
-    'TODOS OS STATUS'
+    statusOptions.value.find((opt) => opt.value === statusFilter.value)
+      ?.label || t('admin.status.all')
 )
 
 function toggleSelectAll() {
@@ -164,9 +164,11 @@ function getShortLocation(address) {
 
 function getStatusLabel(status) {
   return (
-    { pending: 'Pendente', approved: 'Aprovado', rejected: 'Rejeitado' }[
-      status
-    ] ||
+    {
+      pending: t('admin.status.pending'),
+      approved: t('admin.status.approved'),
+      rejected: t('admin.status.rejected'),
+    }[status] ||
     status ||
     '—'
   )
@@ -233,14 +235,16 @@ onKeyStroke('Escape', () => {
             <button
               type="button"
               class="cms-icon-btn"
-              aria-label="Voltar"
+              :aria-label="t('admin.actions.back')"
               @click="handleClose"
             >
               <PhArrowLeft :size="20" weight="bold" />
             </button>
-            <h1 class="cms-title">Painel de Controle</h1>
+            <h1 class="cms-title">{{ t('admin.dashboard.title') }}</h1>
           </div>
-          <span class="cms-count">{{ filteredEvents.length }} evento(s)</span>
+          <span class="cms-count">
+            {{ t('admin.dashboard.eventCount', { count: filteredEvents.length }) }}
+          </span>
         </header>
 
         <nav class="cms-tabs">
@@ -251,7 +255,7 @@ onKeyStroke('Escape', () => {
             :aria-pressed="activeTab === 'events'"
             @click="activeTab = 'events'"
           >
-            Eventos
+            {{ t('admin.tabs.events') }}
           </button>
           <button
             type="button"
@@ -260,7 +264,7 @@ onKeyStroke('Escape', () => {
             :aria-pressed="activeTab === 'genres'"
             @click="activeTab = 'genres'"
           >
-            Gêneros
+            {{ t('admin.tabs.genres') }}
           </button>
         </nav>
 
@@ -279,7 +283,9 @@ onKeyStroke('Escape', () => {
               class="cms-search-input"
               placeholder=" "
             />
-            <label class="cms-search-label">Buscar por nome</label>
+            <label class="cms-search-label">
+              {{ t('admin.list.searchPlaceholder') }}
+            </label>
           </div>
 
           <div
@@ -374,7 +380,7 @@ onKeyStroke('Escape', () => {
                 :checked="isAllSelected"
                 @change="toggleSelectAll()"
               />
-              <span>Selecionar Todos</span>
+              <span>{{ t('admin.list.selectAll') }}</span>
             </label>
           </div>
         </div>
@@ -383,10 +389,10 @@ onKeyStroke('Escape', () => {
         <div class="cms-list">
           <div class="cms-list-header">
             <span></span>
-            <span>Nome</span>
-            <span>Data</span>
-            <span>Local</span>
-            <span>Status</span>
+            <span>{{ t('admin.list.name') }}</span>
+            <span>{{ t('admin.list.date') }}</span>
+            <span>{{ t('admin.list.location') }}</span>
+            <span>{{ t('admin.list.status') }}</span>
           </div>
 
           <div
@@ -439,19 +445,19 @@ onKeyStroke('Escape', () => {
                 <div class="cms-row-expanded-content">
                   <div class="cms-detail-grid">
                     <div>
-                      <strong>Título</strong>
+                      <strong>{{ t('admin.details.title') }}</strong>
                       <p>{{ event.title }}</p>
                     </div>
                     <div>
-                      <strong>Data</strong>
+                      <strong>{{ t('admin.details.date') }}</strong>
                       <p>{{ formatDateTime(event.start_date) }}</p>
                     </div>
                     <div>
-                      <strong>Local</strong>
+                      <strong>{{ t('admin.details.location') }}</strong>
                       <p>{{ event.location }}</p>
                     </div>
                     <div v-if="event.link">
-                      <strong>Link</strong>
+                      <strong>{{ t('admin.details.link') }}</strong>
                       <p>
                         <a
                           :href="event.link"
@@ -463,7 +469,7 @@ onKeyStroke('Escape', () => {
                       </p>
                     </div>
                     <div v-if="eventGenres(event).length">
-                      <strong>Gêneros</strong>
+                      <strong>{{ t('admin.details.genres') }}</strong>
                       <div class="cms-tags">
                         <span
                           v-for="(genre, i) in eventGenres(event)"
@@ -476,7 +482,7 @@ onKeyStroke('Escape', () => {
                       </div>
                     </div>
                     <div v-if="parsePills(event.lineup).length">
-                      <strong>Lineup</strong>
+                      <strong>{{ t('admin.details.lineup') }}</strong>
                       <div class="cms-tags">
                         <span
                           v-for="(pill, i) in parsePills(event.lineup)"
@@ -498,7 +504,7 @@ onKeyStroke('Escape', () => {
                       class="cms-btn cms-btn--edit"
                       @click="handleEdit(event)"
                     >
-                      Editar Evento
+                      {{ t('admin.actions.editEvent') }}
                     </button>
                     <button
                       type="button"
@@ -506,7 +512,7 @@ onKeyStroke('Escape', () => {
                       :disabled="event.status === 'approved'"
                       @click="eventStore.setEventStatus(event.id, 'approved')"
                     >
-                      Aprovar
+                      {{ t('admin.actions.approve') }}
                     </button>
                     <button
                       type="button"
@@ -514,7 +520,7 @@ onKeyStroke('Escape', () => {
                       :disabled="event.status === 'rejected'"
                       @click="eventStore.setEventStatus(event.id, 'rejected')"
                     >
-                      Rejeitar
+                      {{ t('admin.actions.reject') }}
                     </button>
                     <button
                       type="button"
@@ -523,8 +529,8 @@ onKeyStroke('Escape', () => {
                     >
                       {{
                         pendingDeleteId === event.id
-                          ? 'Confirmar Exclusão?'
-                          : 'Excluir'
+                          ? t('admin.actions.confirmDelete')
+                          : t('admin.actions.delete')
                       }}
                     </button>
                   </div>
@@ -533,19 +539,23 @@ onKeyStroke('Escape', () => {
             </div>
           </div>
 
-          <p v-if="eventStore.isLoading" class="cms-state">Carregando...</p>
+          <p v-if="eventStore.isLoading" class="cms-state">
+            {{ t('admin.states.loading') }}
+          </p>
           <div v-else-if="eventStore.error" class="cms-state cms-state--error">
-            <span>Erro ao carregar eventos: {{ eventStore.error }}</span>
+            <span>
+              {{ t('admin.states.error', { error: eventStore.error }) }}
+            </span>
             <button
               type="button"
               class="cms-btn cms-btn--bulk"
               @click="eventStore.fetchAllEvents()"
             >
-              Tentar Novamente
+              {{ t('admin.states.retry') }}
             </button>
           </div>
           <p v-else-if="filteredEvents.length === 0" class="cms-state">
-            Nenhum evento encontrado.
+            {{ t('admin.states.noEvents') }}
           </p>
         </div>
         </template>

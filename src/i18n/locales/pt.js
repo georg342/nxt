@@ -37,6 +37,60 @@ export default {
     auth: {
       unauthorized: 'Acesso negado. Apenas administradores.',
     },
+    dashboard: {
+      title: 'Painel de Controle',
+      eventCount: '{count} evento(s)',
+    },
+    tabs: {
+      events: 'Eventos',
+      genres: 'Gêneros',
+    },
+    status: {
+      all: 'TODOS OS STATUS',
+      pending: 'PENDENTES',
+      approved: 'APROVADOS',
+      rejected: 'REJEITADOS',
+    },
+    details: {
+      title: 'Título',
+      date: 'Data',
+      location: 'Local',
+      link: 'Link',
+      genres: 'Gêneros',
+      lineup: 'Lineup',
+    },
+    actions: {
+      back: 'Voltar',
+      edit: 'Editar',
+      editEvent: 'Editar Evento',
+      approve: 'Aprovar',
+      reject: 'Rejeitar',
+      delete: 'Excluir',
+      confirm: 'Confirmar?',
+      confirmDelete: 'Confirmar Exclusão?',
+      cancel: 'Cancelar',
+      save: 'Salvar Alterações',
+    },
+    states: {
+      loading: 'Carregando...',
+      error: 'Erro ao carregar eventos: {error}',
+      retry: 'Tentar Novamente',
+      noEvents: 'Nenhum evento encontrado.',
+    },
+    genres: {
+      createTitle: 'Novo Gênero',
+      editTitle: 'Editar Gênero',
+      createBtn: 'Criar Gênero',
+      empty: 'Nenhum gênero cadastrado.',
+      fields: {
+        name: 'Nome',
+        slug: 'Slug',
+        parent: 'Gênero Pai',
+        noParent: 'Nenhum (Gênero Principal / Pai)',
+        color: 'Cor',
+        inheritedColor: 'Cor (herdada do pai)',
+      },
+    },
     form: {
       lineup: 'Lineup',
       genres: 'Gêneros',
@@ -45,6 +99,12 @@ export default {
     list: {
       sortByDate: 'Data',
       sortByStatus: 'Status',
+      searchPlaceholder: 'Buscar por nome',
+      selectAll: 'Selecionar Todos',
+      name: 'Nome',
+      date: 'Data',
+      location: 'Local',
+      status: 'Status',
     },
   },
   createEvent: {

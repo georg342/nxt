@@ -1,9 +1,11 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useGenreStore } from '../../stores/genreStore'
 
 const DEFAULT_GENRE_COLOR = '#FACC15'
 
+const { t } = useI18n()
 const genreStore = useGenreStore()
 
 function emptyForm() {
@@ -123,17 +125,17 @@ onMounted(() => {
   <section class="genres-manager">
     <form class="genres-form" @submit.prevent="handleSubmit">
       <h2 class="genres-form__title">
-        {{ editingId ? 'Editar Gênero' : 'Novo Gênero' }}
+        {{ editingId ? t('admin.genres.editTitle') : t('admin.genres.createTitle') }}
       </h2>
 
       <div class="genres-form__grid">
         <label class="genres-field">
-          <span>Nome</span>
+          <span>{{ t('admin.genres.fields.name') }}</span>
           <input v-model="form.name" type="text" class="genres-input" required />
         </label>
 
         <label class="genres-field">
-          <span>Slug</span>
+          <span>{{ t('admin.genres.fields.slug') }}</span>
           <input
             :value="form.slug"
             type="text"
@@ -143,9 +145,11 @@ onMounted(() => {
         </label>
 
         <label class="genres-field">
-          <span>Gênero Pai</span>
+          <span>{{ t('admin.genres.fields.parent') }}</span>
           <select v-model="form.parent_id" class="genres-input">
-            <option :value="null">Nenhum (Gênero Principal / Pai)</option>
+            <option :value="null">
+              {{ t('admin.genres.fields.noParent') }}
+            </option>
             <option
               v-for="option in parentOptions"
               :key="option.id"
@@ -157,7 +161,13 @@ onMounted(() => {
         </label>
 
         <div class="genres-field" :class="{ 'genres-field--muted': isChild }">
-          <span>Cor{{ isChild ? ' (herdada do pai)' : '' }}</span>
+          <span>
+            {{
+              isChild
+                ? t('admin.genres.fields.inheritedColor')
+                : t('admin.genres.fields.color')
+            }}
+          </span>
           <div class="genres-color-row">
             <input
               v-model="form.color"
@@ -183,7 +193,7 @@ onMounted(() => {
           class="genre-btn genre-btn--primary"
           :disabled="genreStore.isLoading"
         >
-          {{ editingId ? 'Salvar Alterações' : 'Criar Gênero' }}
+          {{ editingId ? t('admin.actions.save') : t('admin.genres.createBtn') }}
         </button>
         <button
           v-if="editingId"
@@ -191,7 +201,7 @@ onMounted(() => {
           class="genre-btn"
           @click="resetForm"
         >
-          Cancelar
+          {{ t('admin.actions.cancel') }}
         </button>
       </div>
 
@@ -202,10 +212,10 @@ onMounted(() => {
 
     <div class="genres-list">
       <p v-if="genreStore.isLoading && !groupedGenres.length" class="genres-state">
-        Carregando...
+        {{ t('admin.states.loading') }}
       </p>
       <p v-else-if="!groupedGenres.length" class="genres-state">
-        Nenhum gênero cadastrado.
+        {{ t('admin.genres.empty') }}
       </p>
 
       <article
@@ -230,14 +240,18 @@ onMounted(() => {
               class="genre-btn genre-btn--edit"
               @click="startEdit(parent)"
             >
-              Editar
+              {{ t('admin.actions.edit') }}
             </button>
             <button
               type="button"
               class="genre-btn genre-btn--delete"
               @click="requestDelete(parent.id)"
             >
-              {{ pendingDeleteId === parent.id ? 'Confirmar?' : 'Excluir' }}
+              {{
+                pendingDeleteId === parent.id
+                  ? t('admin.actions.confirm')
+                  : t('admin.actions.delete')
+              }}
             </button>
           </div>
         </header>
@@ -264,14 +278,18 @@ onMounted(() => {
                 class="genre-btn genre-btn--edit"
                 @click="startEdit(child)"
               >
-                Editar
+                {{ t('admin.actions.edit') }}
               </button>
               <button
                 type="button"
                 class="genre-btn genre-btn--delete"
                 @click="requestDelete(child.id)"
               >
-                {{ pendingDeleteId === child.id ? 'Confirmar?' : 'Excluir' }}
+                {{
+                  pendingDeleteId === child.id
+                    ? t('admin.actions.confirm')
+                    : t('admin.actions.delete')
+                }}
               </button>
             </div>
           </li>

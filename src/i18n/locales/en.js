@@ -37,6 +37,60 @@ export default {
     auth: {
       unauthorized: 'Access denied. Admins only.',
     },
+    dashboard: {
+      title: 'Control Panel',
+      eventCount: '{count} event(s)',
+    },
+    tabs: {
+      events: 'Events',
+      genres: 'Genres',
+    },
+    status: {
+      all: 'ALL STATUSES',
+      pending: 'PENDING',
+      approved: 'APPROVED',
+      rejected: 'REJECTED',
+    },
+    details: {
+      title: 'Title',
+      date: 'Date',
+      location: 'Location',
+      link: 'Link',
+      genres: 'Genres',
+      lineup: 'Lineup',
+    },
+    actions: {
+      back: 'Back',
+      edit: 'Edit',
+      editEvent: 'Edit Event',
+      approve: 'Approve',
+      reject: 'Reject',
+      delete: 'Delete',
+      confirm: 'Confirm?',
+      confirmDelete: 'Confirm Deletion?',
+      cancel: 'Cancel',
+      save: 'Save Changes',
+    },
+    states: {
+      loading: 'Loading...',
+      error: 'Failed to load events: {error}',
+      retry: 'Try Again',
+      noEvents: 'No events found.',
+    },
+    genres: {
+      createTitle: 'New Genre',
+      editTitle: 'Edit Genre',
+      createBtn: 'Create Genre',
+      empty: 'No genres registered.',
+      fields: {
+        name: 'Name',
+        slug: 'Slug',
+        parent: 'Parent Genre',
+        noParent: 'None (Main / Parent Genre)',
+        color: 'Color',
+        inheritedColor: 'Color (inherited from parent)',
+      },
+    },
     form: {
       lineup: 'Lineup',
       genres: 'Genres',
@@ -45,6 +99,12 @@ export default {
     list: {
       sortByDate: 'Date',
       sortByStatus: 'Status',
+      searchPlaceholder: 'Search by name',
+      selectAll: 'Select All',
+      name: 'Name',
+      date: 'Date',
+      location: 'Location',
+      status: 'Status',
     },
   },
   createEvent: {
