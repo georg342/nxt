@@ -138,41 +138,46 @@ watch(
     @touchstart.passive="handleTouchStart"
     @touchend.passive="handleTouchEnd"
   >
-    <p v-if="eventStore.isLoading" class="day-feed__state">Loading...</p>
-    <template v-else>
-      <p v-if="filteredEvents.length === 0" class="day-feed__state">
-        {{ t('dayView.noEvents') }}
-      </p>
-        <EventCard
-          v-for="event in filteredEvents"
-          :key="event.id"
-          :event="event"
-          :time="formatTime(event.start_date)"
-          :expanded="expandedEventId === event.id"
-          @toggle="toggleEvent(event.id)"
-        />
-        <template v-if="upcomingGroups.length > 0">
-          <h2 class="day-feed__section-title">
-            {{ t('dayView.upcomingEvents') }}
-          </h2>
-          <section
-            v-for="group in upcomingGroups"
-            :key="group.key"
-            class="day-feed__group"
-          >
-            <h3 class="day-feed__group-title">{{ group.label }}</h3>
-            <EventCard
-              v-for="event in group.events"
-              :key="event.id"
-              :event="event"
-              :time="formatTime(event.start_date)"
-              :expanded="expandedEventId === event.id"
-              @toggle="toggleEvent(event.id)"
-            />
-          </section>
+    <Transition :name="slideDirection" mode="out-in">
+      <div
+        :key="uiStore.selectedDate.toDateString()"
+        class="day-feed__content"
+      >
+        <p v-if="eventStore.isLoading" class="day-feed__state">Loading...</p>
+        <template v-else>
+          <p v-if="filteredEvents.length === 0" class="day-feed__state">
+            {{ t('dayView.noEvents') }}
+          </p>
+          <EventCard
+            v-for="event in filteredEvents"
+            :key="event.id"
+            :event="event"
+            :time="formatTime(event.start_date)"
+            :expanded="expandedEventId === event.id"
+            @toggle="toggleEvent(event.id)"
+          />
+          <template v-if="upcomingGroups.length > 0">
+            <h2 class="day-feed__section-title">
+              {{ t('dayView.upcomingEvents') }}
+            </h2>
+            <section
+              v-for="group in upcomingGroups"
+              :key="group.key"
+              class="day-feed__group"
+            >
+              <h3 class="day-feed__group-title">{{ group.label }}</h3>
+              <EventCard
+                v-for="event in group.events"
+                :key="event.id"
+                :event="event"
+                :time="formatTime(event.start_date)"
+                :expanded="expandedEventId === event.id"
+                @toggle="toggleEvent(event.id)"
+              />
+            </section>
+          </template>
         </template>
       </div>
-      <p v-else key="loading" class="day-feed__state">Loading...</p>
     </Transition>
   </div>
 </template>
@@ -279,14 +284,15 @@ watch(
 }
 
 /* Leaving element out of flow, so the shell keeps its scroll height.
-   No `padding: inherit` here: .day-feed padding is horizontal-only and
-   would shift the leaving content sideways. */
+   `padding: inherit` keeps it aligned with the shell's padding box
+   (left: 0 is measured from the padding edge). */
 .slide-next-leave-active,
 .slide-prev-leave-active {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
+  padding: inherit;
 }
 
 /* Animate the cards themselves (cascade effect) */
