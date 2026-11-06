@@ -182,6 +182,17 @@ function getWeekStart(date) {
 }
 
 /**
+ * Formats a Date as a local `YYYY-MM-DD` key, matching `event.start_date`.
+ * @param {Date} date
+ * @returns {string}
+ */
+function toDateKey(date) {
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${date.getFullYear()}-${month}-${day}`
+}
+
+/**
  * Formats a Date as "MMM D" (e.g., "Oct 14").
  * @param {Date} date
  * @param {string} intlLocale
@@ -390,6 +401,7 @@ export const useUIStore = defineStore(
         const day = new Date(weekStart)
         day.setDate(weekStart.getDate() + i)
         return {
+          dateKey: toDateKey(day),
           dateNum: day.getDate(),
           dayName: weekdayFormatter.format(day).replace('.', '').toUpperCase(),
         }
