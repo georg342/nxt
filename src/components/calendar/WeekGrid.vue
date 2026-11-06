@@ -3,36 +3,14 @@ import { computed, onMounted } from 'vue'
 import BrutalCard from '../ui/BrutalCard.vue'
 import { useUIStore } from '../../stores/uiStore'
 import { useEventStore } from '../../stores/eventStore'
-import { getGenreColor } from '../../utils/genreColor'
+import { useGenreStore } from '../../stores/genreStore'
 import { Logger } from '../../utils/logger'
 
-const MAX_GENRE_BADGES = 3
+const MAX_GENRE_BADGES = 8
 
 const uiStore = useUIStore()
 const eventStore = useEventStore()
-
-// The database may return genres as string[], CSV text or a JSON string.
-function parseGenres(value) {
-  if (Array.isArray(value)) {
-    return value
-      .map((genre) => (typeof genre === 'string' ? genre : genre?.label ?? ''))
-      .map((genre) => String(genre).trim())
-      .filter(Boolean)
-  }
-  const text = String(value ?? '').trim()
-  if (!text) return []
-  if (text.startsWith('[')) {
-    try {
-      return parseGenres(JSON.parse(text))
-    } catch {
-      return []
-    }
-  }
-  return text
-    .split(',')
-    .map((genre) => genre.trim())
-    .filter(Boolean)
-}
+const genreStore = useGenreStore()
 
 const eventsByDateKey = computed(() => {
   const map = new Map()
@@ -45,38 +23,45 @@ const eventsByDateKey = computed(() => {
   return map
 })
 
-const weekDays = computed(() => {
-  const days = uiStore.weekDaysData.map((day) => {
+const weekDays = computed(() =>
+  uiStore.weekDaysData.map((day) => {
     const dayEvents = eventsByDateKey.value.get(day.dateKey) ?? []
-    const genres = [...new Set(dayEvents.flatMap((e) => parseGenres(e.genres)))]
-    return {
-      ...day,
-      genres: genres.slice(0, MAX_GENRE_BADGES).map((label) => ({
-        label,
-        color: getGenreColor(label),
-      })),
-    }
-  })
+    const counts = new Map()
 
-  Logger.info(
-    'WeekGrid',
-    'weekDays computed — genre trace',
-    days.map((day) => {
-      const dayEvents = eventsByDateKey.value.get(day.dateKey) ?? []
-      return {
-        dateKey: day.dateKey,
-        dayName: day.dayName,
-        events: dayEvents.length,
-        rawGenres: dayEvents.map((e) => e.genres),
-        badges: day.genres.map((g) => g.label),
+    for (const event of dayEvents) {
+      // One event counts once per parent genre, even with several subgenres.
+      const eventParents = new Set()
+      const eventGenres = Array.isArray(event.genres) ? event.genres : []
+
+      for (const raw of eventGenres) {
+        const genre = genreStore.getGenreDisplay(raw?.id || raw)
+        const parentKey = genre.parentId || genre.id
+        if (!parentKey || eventParents.has(parentKey)) continue
+        eventParents.add(parentKey)
+
+        const current = counts.get(parentKey)
+        counts.set(parentKey, {
+          id: parentKey,
+          name: genre.parentName || genre.name,
+          color: genre.color,
+          count: (current?.count ?? 0) + 1,
+        })
       }
-    })
-  )
+    }
 
-  return days
-})
+    const genreBadges = [...counts.values()]
+      .sort((a, b) => b.count - a.count)
+      .slice(0, MAX_GENRE_BADGES)
+
+    return { ...day, genreBadges }
+  })
+)
 
 onMounted(async () => {
+  if (genreStore.genres.length === 0) {
+    await genreStore.loadGenres()
+  }
+
   if (eventStore.events.length === 0) {
     await eventStore.loadEvents()
     if (eventStore.error) {
@@ -113,17 +98,22 @@ function handleDayClick(index) {
           class="week-grid__day day-card"
           @click="handleDayClick(index)"
         >
-          <span class="week-grid__label">{{ day.dayName }}</span>
-          <span class="week-grid__date">{{ day.dateNum }}</span>
-          <div v-if="day.genres.length" class="week-grid__genres">
-            <span
-              v-for="genre in day.genres"
-              :key="genre.label"
-              class="week-grid__genre"
-              :style="{ backgroundColor: genre.color }"
-            >
-              {{ genre.label }}
-            </span>
+          <div class="day-card-inner">
+            <div class="day-badges-cluster">
+              <span
+                v-for="badge in day.genreBadges"
+                :key="badge.id"
+                class="genre-count-badge"
+                :style="{ backgroundColor: badge.color }"
+                :title="`${badge.name}: ${badge.count}`"
+              >
+                {{ badge.count }}
+              </span>
+            </div>
+            <div class="day-date-info">
+              <span class="week-grid__label">{{ day.dayName }}</span>
+              <span class="week-grid__date">{{ day.dateNum }}</span>
+            </div>
           </div>
         </BrutalCard>
       </div>
@@ -183,25 +173,46 @@ function handleDayClick(index) {
   line-height: 1;
 }
 
-.week-grid__genres {
+.day-card-inner {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 4px;
-  max-width: 100%;
-  overflow: hidden;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
+  gap: 8px;
 }
 
-.week-grid__genre {
-  max-width: 100%;
-  padding: 2px 6px;
-  overflow: hidden;
-  font-size: 0.625rem;
+.day-badges-cluster {
+  display: grid;
+  grid-template-rows: repeat(4, auto);
+  grid-auto-flow: column;
+  gap: 4px;
+  align-content: center;
+  justify-content: start;
+  min-width: 48px;
+}
+
+.genre-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--border-color);
+  border-radius: 4px;
+  box-shadow: 1.5px 1.5px 0px var(--shadow-color, var(--border-color));
+  font-size: 0.72rem;
   font-weight: 900;
-  color: #000000;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  border: 2px solid var(--border-color);
-  border-radius: var(--radius-md);
+  color: #000;
+  line-height: 1;
+}
+
+.day-date-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  text-align: center;
 }
 </style>

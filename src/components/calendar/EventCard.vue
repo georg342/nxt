@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { PhCalendarBlank, PhClock, PhInstagramLogo, PhMapPin } from '@phosphor-icons/vue'
 import BrutalCard from '../ui/BrutalCard.vue'
 import { useUIStore } from '../../stores/uiStore'
+import { useGenreStore } from '../../stores/genreStore'
 
 const props = defineProps({
   event: {
@@ -20,6 +21,7 @@ const props = defineProps({
 })
 
 const uiStore = useUIStore()
+const genreStore = useGenreStore()
 
 const isExpanded = ref(false)
 
@@ -60,7 +62,20 @@ function getShortAddress(address) {
   return address.length > 30 ? `${address.slice(0, 30)}…` : address
 }
 
-const formattedDate = computed(() => uiStore.formatEventDate(props.event.date))
+const formattedDate = computed(() =>
+  uiStore.formatEventDate(props.event.start_date?.slice(0, 10))
+)
+
+// Resolves relational genre rows (or legacy strings) into display pills.
+const genrePills = computed(() =>
+  parsePills(props.event.genres).map((pill) =>
+    genreStore.getGenreDisplay(
+      typeof pill === 'string'
+        ? pill
+        : pill?.id ?? pill?.name ?? pill?.LABEL ?? pill?.label
+    )
+  )
+)
 
 function formatTime(dateString) {
   if (!dateString) return ''
@@ -108,16 +123,16 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
         class="event-card__body"
       >
         <div
-          v-if="parsePills(event.genres).length"
+          v-if="genrePills.length"
           class="event-card__genres"
         >
           <span
-            v-for="(pill, index) in parsePills(event.genres)"
+            v-for="(genre, index) in genrePills"
             :key="`genre-${index}`"
             class="pill"
-            :style="{ backgroundColor: pill?.COLOR || pill?.color || '#e5e7eb' }"
+            :style="{ backgroundColor: genre.color }"
           >
-            {{ pill?.LABEL || pill?.label || pill }}
+            {{ genre.name }}
           </span>
         </div>
         <div
