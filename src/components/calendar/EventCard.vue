@@ -280,14 +280,12 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
   flex-shrink: 0;
   padding: 8px;
   border: var(--border-width) solid var(--border-color);
-  box-shadow: 2px 2px 0 var(--border-color);
-  background: var(--accent-color);
-  color: #000;
+  background: transparent;
+  color: var(--text-color);
 }
 
 .event-card__instagram:active {
-  transform: translate(2px, 2px);
-  box-shadow: none;
+  opacity: 0.6;
 }
 
 .accordion-enter-active,
