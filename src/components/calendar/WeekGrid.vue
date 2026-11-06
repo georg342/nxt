@@ -169,7 +169,7 @@ function handleDayClick(index) {
   align-items: center;
   justify-content: center;
   gap: var(--space-1);
-  padding: 6px 12px 12px 12px;
+  padding: 2px 12px 12px 12px;
   min-height: 0;
   overflow: hidden;
   text-align: center;
@@ -210,10 +210,11 @@ function handleDayClick(index) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   width: 100%;
   height: 100%;
   gap: 4px;
+  padding-top: 4px;
 }
 
 .day-badges-cluster {
@@ -253,6 +254,7 @@ function handleDayClick(index) {
 
 .day-date-info {
   display: flex;
+  flex: 1;
   flex-direction: row;
   align-items: center;
   justify-content: center;
