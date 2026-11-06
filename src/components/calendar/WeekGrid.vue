@@ -169,7 +169,7 @@ function handleDayClick(index) {
   align-items: center;
   justify-content: center;
   gap: var(--space-1);
-  padding: 8px;
+  padding: 6px 12px 12px 12px;
   min-height: 0;
   overflow: hidden;
   text-align: center;
@@ -194,7 +194,7 @@ function handleDayClick(index) {
 
 .week-grid__label {
   font-weight: 900;
-  font-size: 0.65rem;
+  font-size: 0.8125rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -213,7 +213,7 @@ function handleDayClick(index) {
   justify-content: center;
   width: 100%;
   height: 100%;
-  gap: 8px;
+  gap: 4px;
 }
 
 .day-badges-cluster {
