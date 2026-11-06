@@ -8,10 +8,12 @@ import TagInput from '../ui/TagInput.vue'
 import LocationAutocomplete from '../ui/LocationAutocomplete.vue'
 import { useUIStore } from '../../stores/uiStore'
 import { useEventStore } from '../../stores/eventStore'
+import { useGenreStore } from '../../stores/genreStore'
 
 const { t } = useI18n()
 const uiStore = useUIStore()
 const eventStore = useEventStore()
+const genreStore = useGenreStore()
 
 const isSubmitting = ref(false)
 const submitError = ref(null)
@@ -22,10 +24,41 @@ const form = ref({
   location: '',
   link: '',
   lineup: [],
-  genres: [],
+  genreIds: [],
 })
 
 const isEditing = computed(() => Boolean(uiStore.editingEvent))
+
+const genreGroups = computed(() =>
+  genreStore.parentGenres.map((parent) => ({
+    id: parent.id,
+    name: parent.name,
+    color: genreStore.getGenreDisplay(parent.id).color,
+    children: genreStore.genres
+      .filter((genre) => genre.parent_id === parent.id)
+      .map((child) => ({
+        id: child.id,
+        name: child.name,
+        // Child chip wears the parent color, per the store priority rule.
+        color: genreStore.getGenreDisplay(child.id).color,
+      })),
+  }))
+)
+
+function toggleGenre(genreId) {
+  const selected = form.value.genreIds
+  const index = selected.indexOf(genreId)
+  if (index === -1) selected.push(genreId)
+  else selected.splice(index, 1)
+}
+
+watch(
+  () => uiStore.isCreateEventModalOpen,
+  (isOpen) => {
+    if (isOpen && genreStore.genres.length === 0) genreStore.loadGenres()
+  },
+  { immediate: true }
+)
 
 const submitLabel = computed(() => {
   if (isSubmitting.value) return t('createEvent.submitting')
@@ -71,7 +104,7 @@ function resetForm() {
     location: '',
     link: '',
     lineup: [],
-    genres: [],
+    genreIds: [],
   }
   submitError.value = null
 }
@@ -89,7 +122,7 @@ watch(
       location: event.location ?? '',
       link: event.link ?? '',
       lineup: toTags(event.lineup),
-      genres: toTags(event.genres),
+      genreIds: (event.genres ?? []).map((genre) => genre.id).filter(Boolean),
     }
     submitError.value = null
   },
@@ -108,7 +141,7 @@ async function handleSubmit() {
       location: form.value.location.trim(),
       link: form.value.link.trim(),
       lineup: form.value.lineup,
-      genres: form.value.genres,
+      genreIds: form.value.genreIds,
     }
 
     if (isEditing.value) {
@@ -216,11 +249,43 @@ function handleClose() {
           </div>
 
           <div class="create-event__field">
-            <TagInput
-              v-model="form.genres"
-              :label="t('admin.form.genres')"
-              :placeholder="t('admin.form.commaSeparated')"
-            />
+            <span>{{ t('admin.form.genres') }}</span>
+            <div class="genre-selector">
+              <div
+                v-for="group in genreGroups"
+                :key="group.id"
+                class="genre-selector__group"
+              >
+                <button
+                  type="button"
+                  class="genre-chip"
+                  :class="{ 'genre-chip--selected': form.genreIds.includes(group.id) }"
+                  :style="
+                    form.genreIds.includes(group.id)
+                      ? { backgroundColor: group.color }
+                      : null
+                  "
+                  @click="toggleGenre(group.id)"
+                >
+                  {{ group.name }}
+                </button>
+                <button
+                  v-for="child in group.children"
+                  :key="child.id"
+                  type="button"
+                  class="genre-chip genre-chip--child"
+                  :class="{ 'genre-chip--selected': form.genreIds.includes(child.id) }"
+                  :style="
+                    form.genreIds.includes(child.id)
+                      ? { backgroundColor: child.color }
+                      : null
+                  "
+                  @click="toggleGenre(child.id)"
+                >
+                  {{ child.name }}
+                </button>
+              </div>
+            </div>
           </div>
 
           <p v-if="submitError" class="create-event__error">{{ submitError }}</p>
@@ -390,6 +455,49 @@ function handleClose() {
   transform: translateY(0) scale(0.7);
   transform-origin: left center;
   color: var(--text-color);
+}
+
+.genre-selector {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  background: var(--bg-color);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.genre-selector__group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.genre-chip {
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-color);
+  background: var(--surface-color);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-1);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.genre-chip--child {
+  font-size: 0.65rem;
+  box-shadow: none;
+}
+
+.genre-chip--selected {
+  color: #000000;
+  transform: translate(2px, 2px);
+  box-shadow: none;
 }
 
 .create-event__error {
