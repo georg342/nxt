@@ -129,7 +129,7 @@ watch(
     <p v-if="eventStore.isLoading" class="day-feed__state">Loading...</p>
     <template v-else>
       <p v-if="filteredEvents.length === 0" class="day-feed__state">
-        No events for this day.
+        {{ t('dayView.noEvents') }}
       </p>
       <EventCard
         v-for="event in filteredEvents"
