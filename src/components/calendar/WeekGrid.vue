@@ -7,12 +7,13 @@ import { useGenreStore } from '../../stores/genreStore'
 import { Logger } from '../../utils/logger'
 
 const MAX_BADGE_SLOTS = 6
-const MAX_ANIMATED_BADGES = 4
 
 const animatingBadgeKey = ref(null)
 const typedText = ref('')
 // Timers pendentes; limpar no unmount interrompe a sequência inteira.
 const timers = new Set()
+// Loop só roda enquanto a view estiver montada.
+let isAnimationLoopActive = true
 
 const uiStore = useUIStore()
 const eventStore = useEventStore()
@@ -93,26 +94,35 @@ function delay(ms) {
 }
 
 async function runBadgeAnimations() {
-  const badges = weekDays.value
-    .flatMap((day) => day.genreBadges)
-    .slice(0, MAX_ANIMATED_BADGES)
+  while (isAnimationLoopActive) {
+    const badges = weekDays.value.flatMap((day) => day.genreBadges)
 
-  for (const badge of badges) {
-    animatingBadgeKey.value = badge.key
-
-    for (const char of badge.name) {
-      typedText.value += char
-      await delay(50)
+    if (badges.length === 0) {
+      await delay(500)
+      continue
     }
-    await delay(1200)
 
-    while (typedText.value.length > 0) {
-      typedText.value = typedText.value.slice(0, -1)
-      await delay(30)
+    for (const badge of badges) {
+      if (!isAnimationLoopActive) return
+
+      animatingBadgeKey.value = badge.key
+      typedText.value = ''
+
+      for (const char of badge.name) {
+        typedText.value += char
+        await delay(25)
+      }
+      await delay(800)
+
+      while (typedText.value.length > 0) {
+        typedText.value = typedText.value.slice(0, -1)
+        await delay(15)
+      }
+
+      animatingBadgeKey.value = null
+      typedText.value = ''
+      await delay(100)
     }
-    await delay(200)
-
-    animatingBadgeKey.value = null
   }
 }
 
@@ -132,11 +142,12 @@ onMounted(async () => {
     Logger.info('WeekGrid', 'Using cached events', eventStore.events.length)
   }
 
-  await delay(800)
+  await delay(500)
   await runBadgeAnimations()
 })
 
 onBeforeUnmount(() => {
+  isAnimationLoopActive = false
   for (const id of timers) clearTimeout(id)
   timers.clear()
   animatingBadgeKey.value = null
