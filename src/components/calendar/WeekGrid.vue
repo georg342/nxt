@@ -6,7 +6,7 @@ import { useEventStore } from '../../stores/eventStore'
 import { useGenreStore } from '../../stores/genreStore'
 import { Logger } from '../../utils/logger'
 
-const MAX_GENRE_BADGES = 8
+const MAX_BADGE_SLOTS = 6
 
 const uiStore = useUIStore()
 const eventStore = useEventStore()
@@ -49,11 +49,16 @@ const weekDays = computed(() =>
       }
     }
 
-    const genreBadges = [...counts.values()]
-      .sort((a, b) => b.count - a.count)
-      .slice(0, MAX_GENRE_BADGES)
+    const badges = [...counts.values()].sort((a, b) => b.count - a.count)
+    const hasOverflow = badges.length > MAX_BADGE_SLOTS
+    const visibleBadges = hasOverflow
+      ? badges.slice(0, MAX_BADGE_SLOTS - 1)
+      : badges
+    const hiddenBadgesCount = hasOverflow
+      ? badges.length - (MAX_BADGE_SLOTS - 1)
+      : 0
 
-    return { ...day, genreBadges }
+    return { ...day, genreBadges: visibleBadges, hiddenBadgesCount }
   })
 )
 
@@ -102,7 +107,10 @@ function handleDayClick(index) {
             class="day-card-inner"
             :class="{ 'has-badges': day.genreBadges.length > 0 }"
           >
-            <div v-if="day.genreBadges.length > 0" class="day-badges-cluster">
+            <div
+              v-if="day.genreBadges.length > 0 || day.hiddenBadgesCount > 0"
+              class="day-badges-cluster"
+            >
               <span
                 v-for="badge in day.genreBadges"
                 :key="badge.id"
@@ -111,6 +119,13 @@ function handleDayClick(index) {
                 :title="`${badge.name}: ${badge.count}`"
               >
                 {{ badge.count }}
+              </span>
+              <span
+                v-if="day.hiddenBadgesCount > 0"
+                class="genre-count-badge genre-count-badge--more"
+                :title="`+${day.hiddenBadgesCount} genres`"
+              >
+                +{{ day.hiddenBadgesCount }}
               </span>
             </div>
             <div class="day-date-info">
@@ -191,12 +206,12 @@ function handleDayClick(index) {
 
 .day-badges-cluster {
   display: grid;
-  grid-template-rows: repeat(4, auto);
-  grid-auto-flow: column;
+  grid-template-columns: repeat(2, 22px);
+  grid-template-rows: repeat(3, 22px);
   gap: 4px;
   align-content: center;
   justify-content: start;
-  min-width: 48px;
+  flex-shrink: 0;
 }
 
 .genre-count-badge {
@@ -212,6 +227,11 @@ function handleDayClick(index) {
   font-weight: 900;
   color: #000;
   line-height: 1;
+}
+
+.genre-count-badge--more {
+  background-color: var(--surface-color, #e5e7eb);
+  color: var(--text-color, #000);
 }
 
 .day-date-info {
