@@ -62,9 +62,19 @@ export class SupabaseEventRepository extends EventService {
         .from('event_genres')
         .insert(rows)
 
-      // shortcut: evento já existe se o pivot falhar, sem rollback transacional
       if (pivotError) {
         console.error('[SupabaseEventRepository] createEvent genre pivot error:', pivotError)
+        // rollback manual: Supabase JS não expõe transação entre os dois inserts
+        console.warn('[SupabaseEventRepository] createEvent pivot error. Rolling back event:', data.id)
+        const { error: rollbackError } = await supabase
+          .from('events')
+          .delete()
+          .eq('id', data.id)
+
+        if (rollbackError) {
+          console.error('[SupabaseEventRepository] createEvent rollback error:', rollbackError)
+        }
+
         throw pivotError
       }
     }
