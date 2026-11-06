@@ -43,6 +43,7 @@ export default {
     },
     list: {
       sortByDate: 'Ordenar por data',
+      sortByStatus: 'Ordenar por status',
     },
   },
   createEvent: {

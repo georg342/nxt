@@ -22,6 +22,7 @@ const eventStore = useEventStore()
 const searchQuery = ref('')
 const statusFilter = ref('all')
 const dateSortOrder = ref(null)
+const statusSortOrder = ref(null)
 const isStatusDropdownOpen = ref(false)
 const statusOptions = [
   { label: 'TODOS OS STATUS', value: 'all' },
@@ -48,6 +49,12 @@ const filteredEvents = computed(() => {
       (a, b) => new Date(a.start_date) - new Date(b.start_date)
     )
     if (dateSortOrder.value === 'desc') list.reverse()
+  }
+  if (statusSortOrder.value) {
+    list = [...list].sort((a, b) =>
+      (a.status || '').localeCompare(b.status || '')
+    )
+    if (statusSortOrder.value === 'desc') list.reverse()
   }
   return list
 })
@@ -77,6 +84,12 @@ function selectStatus(value) {
 
 function toggleDateSort() {
   dateSortOrder.value = dateSortOrder.value === 'asc' ? 'desc' : 'asc'
+  statusSortOrder.value = null
+}
+
+function toggleStatusSort() {
+  statusSortOrder.value = statusSortOrder.value === 'asc' ? 'desc' : 'asc'
+  dateSortOrder.value = null
 }
 
 function toggleSelect(id) {
@@ -296,6 +309,26 @@ onKeyStroke('Escape', () => {
               weight="bold"
             />
             {{ t('admin.list.sortByDate') }}
+          </button>
+
+          <button
+            type="button"
+            class="cms-btn cms-btn--sort"
+            :class="{ 'is-active': statusSortOrder }"
+            :aria-pressed="Boolean(statusSortOrder)"
+            @click="toggleStatusSort"
+          >
+            <PhArrowUp
+              v-if="statusSortOrder === 'asc'"
+              :size="14"
+              weight="bold"
+            />
+            <PhArrowDown
+              v-else-if="statusSortOrder === 'desc'"
+              :size="14"
+              weight="bold"
+            />
+            {{ t('admin.list.sortByStatus') }}
           </button>
 
           <div class="cms-bulk">
