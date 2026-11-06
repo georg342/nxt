@@ -104,7 +104,6 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
         <div
           v-if="displayTime"
           class="event-time"
-          style="display: flex; align-items: center; gap: 4px; margin-top: 4px; font-weight: 600;"
         >
           <PhClock :size="18" weight="duotone" />
           <span>{{ displayTime }}</span>
@@ -184,12 +183,23 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
 
 .event-card__meta {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
 }
 
 .event-card__meta-item {
   display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  max-width: 100%;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.event-time {
+  display: flex;
   align-items: center;
   gap: var(--space-1);
   font-size: 0.875rem;
