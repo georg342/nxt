@@ -11,14 +11,18 @@ import {
   PhMagnifyingGlass,
 } from '@phosphor-icons/vue'
 import AppHeader from '../layout/AppHeader.vue'
+import AdminGenresManager from './AdminGenresManager.vue'
 import { useUIStore } from '../../stores/uiStore'
 import { useEventStore } from '../../stores/eventStore'
+import { useGenreStore } from '../../stores/genreStore'
 
 const router = useRouter()
 const { t } = useI18n()
 const uiStore = useUIStore()
 const eventStore = useEventStore()
+const genreStore = useGenreStore()
 
+const activeTab = ref('events')
 const searchQuery = ref('')
 const statusFilter = ref('all')
 const dateSortOrder = ref(null)
@@ -168,6 +172,11 @@ function getStatusLabel(status) {
   )
 }
 
+function eventGenres(event) {
+  const list = Array.isArray(event?.genres) ? event.genres : []
+  return list.map((genre) => genreStore.getGenreDisplay(genre.id || genre))
+}
+
 function parsePills(data) {
   if (!data) return []
   if (Array.isArray(data)) {
@@ -194,6 +203,8 @@ function parsePills(data) {
 }
 
 onMounted(async () => {
+  if (genreStore.genres.length === 0) genreStore.loadGenres()
+
   console.log('[AdminGateway] mounted — starting fetchAllEvents')
   await eventStore.fetchAllEvents()
   console.log('[AdminGateway] fetch complete', {
@@ -232,6 +243,28 @@ onKeyStroke('Escape', () => {
           <span class="cms-count">{{ filteredEvents.length }} evento(s)</span>
         </header>
 
+        <nav class="cms-tabs">
+          <button
+            type="button"
+            class="cms-tab"
+            :class="{ 'is-active': activeTab === 'events' }"
+            :aria-pressed="activeTab === 'events'"
+            @click="activeTab = 'events'"
+          >
+            Eventos
+          </button>
+          <button
+            type="button"
+            class="cms-tab"
+            :class="{ 'is-active': activeTab === 'genres' }"
+            :aria-pressed="activeTab === 'genres'"
+            @click="activeTab = 'genres'"
+          >
+            Gêneros
+          </button>
+        </nav>
+
+        <template v-if="activeTab === 'events'">
         <!-- TOOLBAR -->
         <div class="cms-toolbar">
           <div class="cms-search-wrap">
@@ -429,18 +462,16 @@ onKeyStroke('Escape', () => {
                         </a>
                       </p>
                     </div>
-                    <div v-if="parsePills(event.genres).length">
+                    <div v-if="eventGenres(event).length">
                       <strong>Gêneros</strong>
                       <div class="cms-tags">
                         <span
-                          v-for="(pill, i) in parsePills(event.genres)"
+                          v-for="(genre, i) in eventGenres(event)"
                           :key="`g-${i}`"
                           class="cms-tag"
-                          :style="{
-                            backgroundColor: pill?.COLOR || pill?.color || '#e5e7eb',
-                          }"
+                          :style="{ backgroundColor: genre.color }"
                         >
-                          {{ pill?.LABEL || pill?.label || pill }}
+                          {{ genre.name }}
                         </span>
                       </div>
                     </div>
@@ -517,6 +548,9 @@ onKeyStroke('Escape', () => {
             Nenhum evento encontrado.
           </p>
         </div>
+        </template>
+
+        <AdminGenresManager v-else />
       </div>
     </div>
   </div>
@@ -600,6 +634,36 @@ onKeyStroke('Escape', () => {
   color: var(--text-color, #000);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* ============================================================
+   TABS
+   ============================================================ */
+.cms-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cms-tab {
+  padding: 8px 18px;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--text-color, #000);
+  background: var(--surface-color, #fff);
+  border: 2px solid var(--border-color, #000);
+  border-radius: var(--radius-md);
+  box-shadow: 2px 2px 0 0 var(--border-color, #000);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.cms-tab.is-active {
+  color: var(--accent-contrast, #000);
+  background: var(--accent-color, #a3e635);
+  transform: translate(2px, 2px);
+  box-shadow: none;
 }
 
 /* ============================================================
