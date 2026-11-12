@@ -19,14 +19,18 @@ function normalizeList(value) {
 }
 
 export const useEventStore = defineStore('events', () => {
+  // Public list: only ever filled by loadEvents() (status = approved).
   const events = ref([])
+  // Admin list: only ever filled by fetchAllEvents() (no status filter).
   const allEvents = ref([])
-  const pendingEvents = ref([])
-  const selectedPendingEventIds = ref([])
   const isLoading = ref(false)
   const error = ref(null)
 
   const uiStore = useUIStore()
+
+  const pendingEvents = computed(() =>
+    allEvents.value.filter((event) => event.status === 'pending')
+  )
 
   const hasActiveFilters = computed(() => uiStore.hasMinSearchLength)
 
@@ -119,7 +123,6 @@ export const useEventStore = defineStore('events', () => {
       if (target) Object.assign(target, payload)
 
       await loadEvents()
-      await fetchAllEvents()
 
       Logger.info('EventStore', 'Event updated', eventId)
       uiStore.showToast('Evento atualizado', 'success')
@@ -131,75 +134,6 @@ export const useEventStore = defineStore('events', () => {
       return false
     } finally {
       isLoading.value = false
-    }
-  }
-
-  async function fetchPendingEvents() {
-    isLoading.value = true
-    error.value = null
-
-    try {
-      const repository = new SupabaseEventRepository()
-      const data = await repository.getPendingEvents()
-      pendingEvents.value = data
-      Logger.info('EventStore', 'Pending events loaded', data.length)
-    } catch (err) {
-      Logger.error('EventStore', 'Failed to load pending events', err)
-      error.value = err?.message ?? 'Failed to load pending events'
-      pendingEvents.value = []
-    } finally {
-      isLoading.value = false
-    }
-  }
-
-  async function approveEvent(eventId) {
-    const uiStore = useUIStore()
-
-    try {
-      const repository = new SupabaseEventRepository()
-      await repository.updateEventStatus(eventId, 'approved')
-      pendingEvents.value = pendingEvents.value.filter((event) => event.id !== eventId)
-      Logger.info('EventStore', 'Event approved', eventId)
-      uiStore.showToast('Evento aprovado', 'success')
-    } catch (err) {
-      Logger.error('EventStore', 'Failed to approve event', err)
-      uiStore.showToast('Falha ao aprovar evento', 'error')
-    }
-  }
-
-  async function rejectEvent(eventId) {
-    const uiStore = useUIStore()
-
-    try {
-      const repository = new SupabaseEventRepository()
-      await repository.updateEventStatus(eventId, 'rejected')
-      pendingEvents.value = pendingEvents.value.filter((event) => event.id !== eventId)
-      Logger.info('EventStore', 'Event rejected', eventId)
-      uiStore.showToast('Evento rejeitado', 'error')
-    } catch (err) {
-      Logger.error('EventStore', 'Failed to reject event', err)
-      uiStore.showToast('Falha ao rejeitar evento', 'error')
-    }
-  }
-
-  async function bulkUpdatePendingEvents(status) {
-    const uiStore = useUIStore()
-    const ids = [...selectedPendingEventIds.value]
-
-    if (ids.length === 0) return
-
-    try {
-      const repository = new SupabaseEventRepository()
-      await repository.bulkUpdateEventsStatus(ids, status)
-      pendingEvents.value = pendingEvents.value.filter(
-        (event) => !ids.includes(event.id)
-      )
-      selectedPendingEventIds.value = []
-      Logger.info('EventStore', 'Bulk update completed', { ids, status })
-      uiStore.showToast('Eventos atualizados', 'success')
-    } catch (err) {
-      Logger.error('EventStore', 'Failed to bulk update events', err)
-      uiStore.showToast('Falha ao atualizar eventos', 'error')
     }
   }
 
@@ -239,6 +173,7 @@ export const useEventStore = defineStore('events', () => {
 
   async function setEventStatus(eventId, newStatus) {
     const uiStore = useUIStore()
+    error.value = null
 
     try {
       const repository = new SupabaseEventRepository()
@@ -247,12 +182,18 @@ export const useEventStore = defineStore('events', () => {
       const target = allEvents.value.find((evt) => evt.id === eventId)
       if (target) target.status = newStatus
 
-      pendingEvents.value = pendingEvents.value.filter(
-        (evt) => evt.id !== eventId
-      )
-      selectedPendingEventIds.value = selectedPendingEventIds.value.filter(
-        (id) => id !== eventId
-      )
+      // Keep the public list in sync so an approval shows up without a refetch.
+      const inPublicList = events.value.some((evt) => evt.id === eventId)
+      if (newStatus === 'approved' && !inPublicList) {
+        if (target) {
+          events.value.push({ ...target })
+          events.value = [...events.value].sort((a, b) =>
+            (a.start_date ?? '').localeCompare(b.start_date ?? '')
+          )
+        }
+      } else if (newStatus !== 'approved' && inPublicList) {
+        events.value = events.value.filter((evt) => evt.id !== eventId)
+      }
 
       Logger.info('EventStore', 'Event status changed', { eventId, newStatus })
       uiStore.showToast(
@@ -273,12 +214,7 @@ export const useEventStore = defineStore('events', () => {
       await repository.deleteEvent(eventId)
 
       allEvents.value = allEvents.value.filter((evt) => evt.id !== eventId)
-      pendingEvents.value = pendingEvents.value.filter(
-        (evt) => evt.id !== eventId
-      )
-      selectedPendingEventIds.value = selectedPendingEventIds.value.filter(
-        (id) => id !== eventId
-      )
+      events.value = events.value.filter((evt) => evt.id !== eventId)
 
       Logger.info('EventStore', 'Event deleted', eventId)
       uiStore.showToast('Evento excluído', 'success')
@@ -291,8 +227,8 @@ export const useEventStore = defineStore('events', () => {
   return {
     events,
     allEvents,
+    // computed over allEvents; admin-only by construction
     pendingEvents,
-    selectedPendingEventIds,
     isLoading,
     error,
     hasActiveFilters,
@@ -303,9 +239,5 @@ export const useEventStore = defineStore('events', () => {
     fetchAllEvents,
     setEventStatus,
     deleteEvent,
-    fetchPendingEvents,
-    approveEvent,
-    rejectEvent,
-    bulkUpdatePendingEvents,
   }
 })
