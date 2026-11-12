@@ -16,6 +16,8 @@ import { useAuthStore } from '../../stores/authStore'
 import { useUIStore } from '../../stores/uiStore'
 import { useEventStore } from '../../stores/eventStore'
 import { useGenreStore } from '../../stores/genreStore'
+import { parsePills } from '../../utils/pills'
+import { getCityState } from '../../utils/address'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -153,17 +155,6 @@ function formatDateTime(value) {
   }).format(new Date(value))
 }
 
-function getShortLocation(address) {
-  if (!address) return ''
-  const parts = address.split(',').map((p) => p.trim()).filter(Boolean)
-  if (parts.length >= 3) {
-    const city = parts[2]
-    const state = parts[3] || ''
-    return state ? `${city} - ${state}` : city
-  }
-  return address.length > 30 ? `${address.slice(0, 30)}…` : address
-}
-
 function getStatusLabel(status) {
   return (
     {
@@ -179,31 +170,6 @@ function getStatusLabel(status) {
 function eventGenres(event) {
   const list = Array.isArray(event?.genres) ? event.genres : []
   return list.map((genre) => genreStore.getGenreDisplay(genre.id || genre))
-}
-
-function parsePills(data) {
-  if (!data) return []
-  if (Array.isArray(data)) {
-    return data.map((item) => {
-      if (typeof item === 'string') {
-        try {
-          return JSON.parse(item)
-        } catch {
-          return { LABEL: item, COLOR: '#e5e7eb' }
-        }
-      }
-      return item
-    })
-  }
-  if (typeof data === 'string') {
-    try {
-      const parsed = JSON.parse(data)
-      return Array.isArray(parsed) ? parsed : [parsed]
-    } catch {
-      return []
-    }
-  }
-  return []
 }
 
 onMounted(async () => {
@@ -425,7 +391,7 @@ onKeyStroke('Escape', () => {
                 {{ formatDate(event.start_date) }}
               </div>
               <div class="cms-cell cms-cell--location">
-                {{ getShortLocation(event.location) }}
+                {{ getCityState(event.location) }}
               </div>
               <div class="cms-cell cms-cell--status">
                 <span

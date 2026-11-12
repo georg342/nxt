@@ -5,6 +5,7 @@ import EventCard from './EventCard.vue'
 import { useEventStore } from '../../stores/eventStore'
 import { useGenreStore } from '../../stores/genreStore'
 import { useUIStore } from '../../stores/uiStore'
+import { formatTime, toDateKey } from '../../utils/date'
 
 const eventStore = useEventStore()
 const genreStore = useGenreStore()
@@ -48,12 +49,6 @@ function toggleEvent(id) {
   expandedEventId.value = expandedEventId.value === id ? null : id
 }
 
-function formatTime(dateString) {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-}
-
 // Busca filtra a view atual no lugar; sem busca, usa a lista completa.
 const baseEvents = computed(() => {
   if (uiStore.isSearchOpen && uiStore.hasMinSearchLength) {
@@ -70,11 +65,6 @@ const filteredEvents = computed(() => {
     return String(event.start_date).slice(0, 10) === targetKey
   })
 })
-
-function toDateKey(date) {
-  const pad = (value) => String(value).padStart(2, '0')
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
-}
 
 // Days after the selected one, grouped by date. eventStore.events already
 // holds every approved event ordered by start_date, so no extra request.

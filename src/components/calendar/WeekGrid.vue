@@ -5,6 +5,7 @@ import { useUIStore } from '../../stores/uiStore'
 import { useEventStore } from '../../stores/eventStore'
 import { useGenreStore } from '../../stores/genreStore'
 import { Logger } from '../../utils/logger'
+import { getWeekStart } from '../../utils/date'
 
 const MAX_BADGE_SLOTS = 6
 
@@ -182,9 +183,7 @@ onBeforeUnmount(() => {
 })
 
 function handleDayClick(index) {
-  const weekStart = new Date(uiStore.currentDate)
-  weekStart.setDate(weekStart.getDate() - weekStart.getDay())
-  weekStart.setHours(0, 0, 0, 0)
+  const weekStart = getWeekStart(uiStore.currentDate)
 
   const target = new Date(weekStart)
   target.setDate(weekStart.getDate() + index)
