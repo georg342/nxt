@@ -123,7 +123,7 @@ function handleScroll(event) {
     @touchend.passive="handleTouchEnd"
     @scroll.passive="handleScroll"
   >
-    <p v-if="eventStore.isLoading" class="day-feed__state">Loading...</p>
+    <p v-if="eventStore.isLoading" class="day-feed__state">{{ t('shared.loading') }}</p>
     <template v-else>
       <p v-if="filteredEvents.length === 0" class="day-feed__state">
         {{ t('dayView.noEvents') }}
@@ -156,7 +156,7 @@ function handleScroll(event) {
           />
         </section>
       </template>
-      <p v-if="eventStore.isLoadingMore" class="day-feed__state">Loading...</p>
+      <p v-if="eventStore.isLoadingMore" class="day-feed__state">{{ t('shared.loading') }}</p>
     </template>
   </div>
 </template>

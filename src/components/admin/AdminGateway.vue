@@ -20,7 +20,7 @@ import { parsePills } from '../../utils/pills'
 import { getCityState } from '../../utils/address'
 
 const router = useRouter()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const authStore = useAuthStore()
 const uiStore = useUIStore()
 const eventStore = useEventStore()
@@ -137,7 +137,7 @@ function handleClose() {
 
 function formatDate(value) {
   if (!value) return ''
-  return new Intl.DateTimeFormat('pt-BR', {
+  return new Intl.DateTimeFormat(locale.value, {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -146,7 +146,7 @@ function formatDate(value) {
 
 function formatDateTime(value) {
   if (!value) return ''
-  return new Intl.DateTimeFormat('pt-BR', {
+  return new Intl.DateTimeFormat(locale.value, {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -283,7 +283,7 @@ onKeyStroke('Escape', () => {
                 :class="{ 'is-open': isStatusDropdownOpen }"
               />
             </button>
-            <label class="status-dropdown__label">Status</label>
+            <label class="status-dropdown__label">{{ t('shared.status') }}</label>
             <Transition name="dropdown">
               <ul
                 v-if="isStatusDropdownOpen"

@@ -27,6 +27,21 @@ export default {
   event: {
     viewOnInstagram: 'View on Instagram',
   },
+  shared: {
+    dateTimePicker: {
+      label: 'Date & Time',
+      timeLabel: 'Time:',
+      ok: 'OK',
+    },
+    location: {
+      label: 'Location',
+      searching: 'Searching...',
+      waiting: 'Type at least 3 characters',
+      noResults: 'No results found.',
+    },
+    loading: 'Loading...',
+    status: 'Status',
+  },
   auth: {
     title: 'Welcome',
     description: 'Sign in to suggest events.',

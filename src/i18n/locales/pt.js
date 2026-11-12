@@ -27,6 +27,21 @@ export default {
   event: {
     viewOnInstagram: 'Ver no Instagram',
   },
+  shared: {
+    dateTimePicker: {
+      label: 'Data e Hora',
+      timeLabel: 'Hora:',
+      ok: 'OK',
+    },
+    location: {
+      label: 'Localização',
+      searching: 'Buscando...',
+      waiting: 'Aguardando',
+      noResults: 'Nenhum resultado encontrado.',
+    },
+    loading: 'Carregando...',
+    status: 'Status',
+  },
   auth: {
     title: 'Bem-vindo',
     description: 'Verifique sua identidade para sugerir festas',

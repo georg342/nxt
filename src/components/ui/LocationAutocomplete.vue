@@ -1,5 +1,6 @@
 <script setup>
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
   modelValue: {
@@ -8,11 +9,13 @@ const props = defineProps({
   },
   label: {
     type: String,
-    default: 'Localização',
+    default: '',
   },
 })
 
 const emit = defineEmits(['update:modelValue'])
+
+const { t } = useI18n()
 
 const searchQuery = ref(props.modelValue)
 const results = ref([])
@@ -98,7 +101,7 @@ function onBlur() {
         @focus="onFocus"
         @blur="onBlur"
       />
-      <label class="location-autocomplete__label">{{ label }}</label>
+      <label class="location-autocomplete__label">{{ label || t('shared.location.label') }}</label>
     </div>
     <Transition name="dropdown">
       <ul v-if="isOpen" class="location-autocomplete__dropdown">
@@ -106,19 +109,19 @@ function onBlur() {
           v-if="isSearching"
           class="location-autocomplete__item location-autocomplete__item--state"
         >
-          Buscando...
+          {{ t('shared.location.searching') }}
         </li>
         <li
           v-else-if="searchQuery.trim().length < 3"
           class="location-autocomplete__item location-autocomplete__item--state"
         >
-          Aguardando
+          {{ t('shared.location.waiting') }}
         </li>
         <li
           v-else-if="results.length === 0"
           class="location-autocomplete__item location-autocomplete__item--state"
         >
-          Nenhum resultado encontrado.
+          {{ t('shared.location.noResults') }}
         </li>
         <li
           v-for="(result, index) in results"
