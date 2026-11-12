@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import BrutalButton from '../ui/BrutalButton.vue'
 import { useUIStore } from '../../stores/uiStore'
+import { useCalendarStore } from '../../stores/calendarStore'
 import { useAuthStore } from '../../stores/authStore'
 import {
   PhEye,
@@ -13,13 +14,14 @@ import {
 } from '@phosphor-icons/vue'
 
 const uiStore = useUIStore()
+const calendarStore = useCalendarStore()
 const authStore = useAuthStore()
 
-const activeView = computed(() => uiStore.activeView)
+const activeView = computed(() => calendarStore.activeView)
 const isViewMenuOpen = ref(false)
 
 function switchView(viewName) {
-  uiStore.setActiveView(viewName)
+  calendarStore.setActiveView(viewName)
   isViewMenuOpen.value = false
 }
 
@@ -41,7 +43,7 @@ function handleCreate() {
     <BrutalButton
       class="nav-btn"
       aria-label="Período anterior"
-      @click="uiStore.navigatePrev()"
+      @click="calendarStore.navigatePrev()"
     >
       <PhArrowLeft :size="24" weight="bold" />
     </BrutalButton>
@@ -85,8 +87,8 @@ function handleCreate() {
     <template v-else>
       <BrutalButton
         class="nav-btn"
-        :class="{ 'nav-btn--active': uiStore.isTodaySelected }"
-        @click="uiStore.goToToday()"
+        :class="{ 'nav-btn--active': calendarStore.isTodaySelected }"
+        @click="calendarStore.goToToday()"
       >
         {{ $t('nav.today') }}
       </BrutalButton>
@@ -98,7 +100,7 @@ function handleCreate() {
     <BrutalButton
       class="nav-btn"
       aria-label="Próximo período"
-      @click="uiStore.navigateNext()"
+      @click="calendarStore.navigateNext()"
     >
       <PhArrowRight :size="24" weight="bold" />
     </BrutalButton>

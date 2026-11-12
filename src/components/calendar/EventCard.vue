@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { PhCalendarBlank, PhClock, PhInstagramLogo, PhMapPin } from '@phosphor-icons/vue'
 import BrutalCard from '../ui/BrutalCard.vue'
-import { useUIStore } from '../../stores/uiStore'
+import { useCalendarStore } from '../../stores/calendarStore'
 import { useGenreStore } from '../../stores/genreStore'
 import { formatTime } from '../../utils/date'
 import { parsePills } from '../../utils/pills'
@@ -25,11 +25,11 @@ const props = defineProps({
 
 const emit = defineEmits(['toggle'])
 
-const uiStore = useUIStore()
+const calendarStore = useCalendarStore()
 const genreStore = useGenreStore()
 
 const formattedDate = computed(() =>
-  uiStore.formatEventDate(props.event.start_date?.slice(0, 10))
+  calendarStore.formatEventDate(props.event.start_date?.slice(0, 10))
 )
 
 // Resolves relational genre rows into display pills.

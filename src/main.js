@@ -5,7 +5,7 @@ import { MotionPlugin } from '@vueuse/motion'
 import App from './App.vue'
 import router from './router'
 import i18n from './i18n'
-import { useUIStore } from './stores/uiStore'
+import { useThemeStore } from './stores/themeStore'
 import { useAuthStore } from './stores/authStore'
 import { useGenreStore } from './stores/genreStore'
 import './assets/main.css'
@@ -21,7 +21,7 @@ app.use(i18n)
 app.use(MotionPlugin)
 
 // Apply persisted theme to <html> before mounting to avoid theme flash.
-useUIStore().initTheme()
+useThemeStore().initTheme()
 
 /**
  * Resolves the Supabase session (and validates admin status) BEFORE mounting,

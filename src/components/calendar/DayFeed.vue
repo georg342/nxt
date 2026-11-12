@@ -5,11 +5,13 @@ import EventCard from './EventCard.vue'
 import { useEventStore } from '../../stores/eventStore'
 import { useGenreStore } from '../../stores/genreStore'
 import { useUIStore } from '../../stores/uiStore'
+import { useCalendarStore } from '../../stores/calendarStore'
 import { formatTime, toDateKey } from '../../utils/date'
 
 const eventStore = useEventStore()
 const genreStore = useGenreStore()
 const uiStore = useUIStore()
+const calendarStore = useCalendarStore()
 const { t } = useI18n()
 
 const expandedEventId = ref(null)
@@ -38,9 +40,9 @@ function handleSwipe() {
 
   if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
     if (deltaX > 50) {
-      uiStore.navigatePrev()
+      calendarStore.navigatePrev()
     } else if (deltaX < -50) {
-      uiStore.navigateNext()
+      calendarStore.navigateNext()
     }
   }
 }
@@ -58,7 +60,7 @@ const baseEvents = computed(() => {
 })
 
 const filteredEvents = computed(() => {
-  const referenceDate = uiStore.selectedDate ?? new Date()
+  const referenceDate = calendarStore.selectedDate ?? new Date()
   const targetKey = toDateKey(referenceDate)
   return baseEvents.value.filter((event) => {
     if (!event.start_date) return false
@@ -69,7 +71,7 @@ const filteredEvents = computed(() => {
 // Days after the selected one, grouped by date. eventStore.events already
 // holds every approved event ordered by start_date, so no extra request.
 const upcomingGroups = computed(() => {
-  const referenceDate = uiStore.selectedDate ?? new Date()
+  const referenceDate = calendarStore.selectedDate ?? new Date()
   const selectedKey = toDateKey(referenceDate)
 
   const groups = new Map()
@@ -82,7 +84,7 @@ const upcomingGroups = computed(() => {
     if (!groups.has(eventKey)) {
       groups.set(eventKey, {
         key: eventKey,
-        label: uiStore.formatDayMonth(eventKey),
+        label: calendarStore.formatDayMonth(eventKey),
         events: [],
       })
     }
@@ -94,7 +96,7 @@ const upcomingGroups = computed(() => {
 // Fetch once per session: only refill when the local list is empty (bootstrap
 // failed or a reload left it blank). Day navigation is a pure local filter.
 watch(
-  () => uiStore.selectedDate,
+  () => calendarStore.selectedDate,
   () => {
     if (eventStore.events.length === 0) {
       eventStore.loadEvents()

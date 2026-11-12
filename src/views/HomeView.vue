@@ -6,17 +6,17 @@ import YearGrid from '../components/calendar/YearGrid.vue'
 import MonthGrid from '../components/calendar/MonthGrid.vue'
 import WeekGrid from '../components/calendar/WeekGrid.vue'
 import DayFeed from '../components/calendar/DayFeed.vue'
-import { useUIStore } from '../stores/uiStore'
+import { useCalendarStore } from '../stores/calendarStore'
 
-const uiStore = useUIStore()
+const calendarStore = useCalendarStore()
 
-const activeView = computed(() => uiStore.activeView)
+const activeView = computed(() => calendarStore.activeView)
 </script>
 
 <template>
   <AppLayout>
     <div class="home-view__viewport">
-      <Transition :name="uiStore.transitionDirection" mode="out-in">
+      <Transition :name="calendarStore.transitionDirection" mode="out-in">
         <YearGrid v-if="activeView === 'year'" key="year" />
         <MonthGrid v-else-if="activeView === 'month'" key="month" />
         <WeekGrid v-else-if="activeView === 'week'" key="week" />

@@ -1,13 +1,13 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { useUIStore } from '../../stores/uiStore'
+import { useCalendarStore } from '../../stores/calendarStore'
 
-const uiStore = useUIStore()
+const calendarStore = useCalendarStore()
 
 const transitionDirection = ref('next')
 
 const monthKey = computed(() => {
-  const base = uiStore.currentDate ?? new Date()
+  const base = calendarStore.currentDate ?? new Date()
   return `${base.getFullYear()}-${base.getMonth()}`
 })
 
@@ -15,7 +15,7 @@ const monthKey = computed(() => {
 // from the month delta instead of a local handler.
 watch(
   () => {
-    const base = uiStore.currentDate ?? new Date()
+    const base = calendarStore.currentDate ?? new Date()
     return base.getFullYear() * 12 + base.getMonth()
   },
   (next, prev) => {
@@ -26,7 +26,7 @@ watch(
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 
 const days = computed(() => {
-  const base = uiStore.currentDate ?? new Date()
+  const base = calendarStore.currentDate ?? new Date()
   const year = base.getFullYear()
   const month = base.getMonth()
   const firstDay = new Date(year, month, 1).getDay()
@@ -63,11 +63,11 @@ function ariaLabelFor(date) {
     String(date.getMonth() + 1).padStart(2, '0'),
     String(date.getDate()).padStart(2, '0'),
   ].join('-')
-  return uiStore.formatEventDate(iso)
+  return calendarStore.formatEventDate(iso)
 }
 
 function handleDayClick(cell) {
-  uiStore.selectDate(cell.date)
+  calendarStore.selectDate(cell.date)
 }
 </script>
 
