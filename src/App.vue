@@ -6,12 +6,10 @@ import CreateEventModal from './components/events/CreateEventModal.vue'
 import ToastNotification from './components/ui/ToastNotification.vue'
 import AdminGateway from './components/admin/AdminGateway.vue'
 import AppGate from './components/layout/AppGate.vue'
-import { useAuthStore } from './stores/authStore'
 import { useUIStore } from './stores/uiStore'
 
 const GATE_STORAGE_KEY = 'wnxt_gate_unlocked'
 
-const authStore = useAuthStore()
 const uiStore = useUIStore()
 
 const isUnlocked = ref(false)
@@ -30,7 +28,6 @@ function handleUnlock() {
 
 onMounted(() => {
   isUnlocked.value = readGateState()
-  authStore.initAuth()
 })
 </script>
 
