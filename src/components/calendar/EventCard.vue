@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { PhCalendarBlank, PhClock, PhInstagramLogo, PhMapPin } from '@phosphor-icons/vue'
 import BrutalCard from '../ui/BrutalCard.vue'
 import { useUIStore } from '../../stores/uiStore'
@@ -20,10 +20,10 @@ const props = defineProps({
   },
 })
 
+const emit = defineEmits(['toggle'])
+
 const uiStore = useUIStore()
 const genreStore = useGenreStore()
-
-const isExpanded = ref(false)
 
 const parsePills = (data) => {
   if (!data) return []
@@ -89,7 +89,7 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
 <template>
   <BrutalCard
     class="event-card"
-    @click="isExpanded = !isExpanded"
+    @click="emit('toggle')"
   >
     <div class="event-card__header">
       <h2 class="event-card__title">{{ event.title }}</h2>
@@ -110,15 +110,15 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
         </div>
         <span class="event-card__meta-item">
           <PhMapPin :size="18" weight="duotone" />
-          <span v-show="!isExpanded" class="address-short">{{ getShortAddress(event.location) }}</span>
-          <span v-show="isExpanded" class="address-full">{{ event.location }}</span>
+          <span v-show="!expanded" class="address-short">{{ getShortAddress(event.location) }}</span>
+          <span v-show="expanded" class="address-full">{{ event.location }}</span>
         </span>
       </div>
     </div>
 
     <Transition name="accordion">
       <div
-        v-if="isExpanded"
+        v-if="expanded"
         class="event-card__body"
       >
         <div
