@@ -101,12 +101,14 @@ const upcomingGroups = computed(() => {
   return [...groups.values()]
 })
 
-// Refetch on every entry into the day view and whenever the selected day
-// changes (arrow navigation keeps the component mounted).
+// Fetch once per session: only refill when the local list is empty (bootstrap
+// failed or a reload left it blank). Day navigation is a pure local filter.
 watch(
   () => uiStore.selectedDate,
   () => {
-    eventStore.loadEvents()
+    if (eventStore.events.length === 0) {
+      eventStore.loadEvents()
+    }
     // Safety net: bootstrap may have failed to fetch genres.
     if (genreStore.genres.length === 0) {
       genreStore.loadGenres()
@@ -114,6 +116,14 @@ watch(
   },
   { immediate: true }
 )
+
+// Server-side pagination: append the next page near the bottom.
+function handleScroll(event) {
+  const el = event.currentTarget
+  if (el.scrollTop + el.clientHeight >= el.scrollHeight - 200) {
+    eventStore.loadMoreEvents()
+  }
+}
 </script>
 
 <template>
@@ -121,6 +131,7 @@ watch(
     class="day-feed"
     @touchstart.passive="handleTouchStart"
     @touchend.passive="handleTouchEnd"
+    @scroll.passive="handleScroll"
   >
     <p v-if="eventStore.isLoading" class="day-feed__state">Loading...</p>
     <template v-else>
@@ -155,6 +166,7 @@ watch(
           />
         </section>
       </template>
+      <p v-if="eventStore.isLoadingMore" class="day-feed__state">Loading...</p>
     </template>
   </div>
 </template>

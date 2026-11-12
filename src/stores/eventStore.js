@@ -24,7 +24,11 @@ export const useEventStore = defineStore('events', () => {
   // Admin list: only ever filled by fetchAllEvents() (no status filter).
   const allEvents = ref([])
   const isLoading = ref(false)
+  const isLoadingMore = ref(false)
+  const hasMoreEvents = ref(true)
   const error = ref(null)
+
+  const EVENTS_PAGE_SIZE = 100
 
   const uiStore = useUIStore()
 
@@ -137,20 +141,44 @@ export const useEventStore = defineStore('events', () => {
     }
   }
 
-  async function loadEvents() {
-    isLoading.value = true
-    error.value = null
+  async function loadEvents({ reset = true } = {}) {
+    if (reset) {
+      isLoading.value = true
+      error.value = null
+    } else {
+      isLoadingMore.value = true
+    }
 
     try {
       const repository = new SupabaseEventRepository()
-      const data = await repository.fetchEvents()
-      events.value = data
+      // shortcut: offset comes from the local list, so a locally inserted row
+      // can skip one server row; upgrade to keyset pagination if that matters.
+      const offset = reset ? 0 : events.value.length
+      const { rows, hasMore } = await repository.fetchEvents({
+        limit: EVENTS_PAGE_SIZE,
+        offset,
+      })
+
+      if (reset) {
+        events.value = rows
+      } else {
+        // Dedupe by id in case a new row was inserted concurrently.
+        const existing = new Set(events.value.map((e) => e.id))
+        events.value = [...events.value, ...rows.filter((e) => !existing.has(e.id))]
+      }
+      hasMoreEvents.value = hasMore
     } catch (err) {
       error.value = err?.message ?? 'Failed to load events'
-      events.value = []
+      if (reset) events.value = []
     } finally {
       isLoading.value = false
+      isLoadingMore.value = false
     }
+  }
+
+  async function loadMoreEvents() {
+    if (!hasMoreEvents.value || isLoadingMore.value || isLoading.value) return
+    await loadEvents({ reset: false })
   }
 
   async function fetchAllEvents() {
@@ -230,12 +258,15 @@ export const useEventStore = defineStore('events', () => {
     // computed over allEvents; admin-only by construction
     pendingEvents,
     isLoading,
+    isLoadingMore,
+    hasMoreEvents,
     error,
     hasActiveFilters,
     filteredEvents,
     addEvent,
     updateEvent,
     loadEvents,
+    loadMoreEvents,
     fetchAllEvents,
     setEventStatus,
     deleteEvent,
