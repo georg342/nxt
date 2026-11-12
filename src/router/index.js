@@ -12,8 +12,8 @@ const routes = [
   },
   {
     path: '/admin',
-    name: 'admin-gateway',
-    component: () => import('../views/AdminGatewayView.vue'),
+    // No view: the guard below opens the panel and redirects to `/`.
+    component: { render: () => null },
   },
 ]
 
@@ -23,11 +23,12 @@ const router = createRouter({
 })
 
 // UX-only gate; the real authorization is Postgres RLS on admin_users.
+// `/admin` carries no view: it only opens the panel overlay, then lands on `/`.
 router.beforeEach(async (to) => {
-  if (!to.path.startsWith('/admin')) return true
+  if (to.path !== '/admin') return true
 
   const authStore = useAuthStore()
-  if (!authStore.isAdmin) return { path: '/' }
+  if (!authStore.user) return { path: '/' }
 
   const isAdmin = await authStore.checkIsAdmin()
   if (!isAdmin) {
@@ -38,7 +39,8 @@ router.beforeEach(async (to) => {
     return { path: '/' }
   }
 
-  return true
+  useUIStore().openAdminPanel()
+  return { path: '/' }
 })
 
 export default router
