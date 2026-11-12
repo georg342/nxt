@@ -17,7 +17,7 @@
 - AUTH: Google OAuth.
 - SECURITY: client-side `anon` key; access governed strictly by Postgres RLS.
 - RLS on `public.events`:
-  - `anon`: `SELECT` where `status = 'published'`.
+  - `anon`: `SELECT` where `status = 'approved'`.
   - `authenticated`: `INSERT` where `status = 'pending'`.
   - admin: full CRUD via `admin_users` lookup.
 
