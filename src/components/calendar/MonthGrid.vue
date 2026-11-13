@@ -1,8 +1,13 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useCalendarStore } from '../../stores/calendarStore'
+import { useEventStore } from '../../stores/eventStore'
+import { toDateKey } from '../../utils/date'
 
+const { t, locale } = useI18n()
 const calendarStore = useCalendarStore()
+const eventStore = useEventStore()
 
 const transitionDirection = ref('next')
 
@@ -23,7 +28,31 @@ watch(
   }
 )
 
-const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+// Localized weekday initials, Sunday first (2023-01-01 was a Sunday).
+const WEEKDAYS = computed(() => {
+  const fmt = new Intl.DateTimeFormat(locale.value, { weekday: 'short' })
+  return Array.from({ length: 7 }, (_, index) =>
+    fmt.format(new Date(2023, 0, 1 + index)).replace(/\.$/, '')
+  )
+})
+// Counts approved events per day of the displayed month.
+const eventCountsByDay = computed(() => {
+  const base = calendarStore.currentDate ?? new Date()
+  const monthPrefix = `${base.getFullYear()}-${String(base.getMonth() + 1).padStart(2, '0')}-`
+  const counts = new Map()
+
+  for (const event of eventStore.events) {
+    const key = String(event.start_date ?? '').slice(0, 10)
+    if (!key.startsWith(monthPrefix)) continue
+    counts.set(key, (counts.get(key) ?? 0) + 1)
+  }
+
+  return counts
+})
+
+onMounted(() => {
+  if (eventStore.events.length === 0) eventStore.loadEvents()
+})
 
 const days = computed(() => {
   const base = calendarStore.currentDate ?? new Date()
@@ -54,16 +83,23 @@ const days = computed(() => {
     })
     nextDay += 1
   }
-  return cells
+  return cells.map((cell) => ({
+    ...cell,
+    // Drives the badge and the raised style for days with approved events.
+    eventCount: eventCountsByDay.value.get(toDateKey(cell.date)) ?? 0,
+  }))
 })
 
-function ariaLabelFor(date) {
+function ariaLabelFor(cell) {
+  const date = cell.date
   const iso = [
     date.getFullYear(),
     String(date.getMonth() + 1).padStart(2, '0'),
     String(date.getDate()).padStart(2, '0'),
   ].join('-')
-  return calendarStore.formatEventDate(iso)
+  const label = calendarStore.formatEventDate(iso)
+  if (!cell.eventCount) return label
+  return `${label}, ${t('calendar.eventCount', cell.eventCount, { count: cell.eventCount })}`
 }
 
 function handleDayClick(cell) {
@@ -96,11 +132,21 @@ function handleDayClick(cell) {
             <button
               type="button"
               class="month-grid__day"
-              :class="{ 'is-outside-month': cell.isOutsideMonth }"
-              :aria-label="ariaLabelFor(cell.date)"
+              :class="{
+                'is-outside-month': cell.isOutsideMonth,
+                'has-events': cell.eventCount > 0,
+              }"
+              :aria-label="ariaLabelFor(cell)"
               @click="handleDayClick(cell)"
             >
-              {{ cell.value }}
+              <span class="month-grid__day-number">{{ cell.value }}</span>
+              <span
+                v-if="cell.eventCount > 0"
+                class="month-grid__badge"
+                aria-hidden="true"
+              >
+                {{ cell.eventCount }}
+              </span>
             </button>
           </template>
         </div>
@@ -153,10 +199,12 @@ function handleDayClick(cell) {
 }
 
 .month-grid__day {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   aspect-ratio: 1 / 1;
+  padding: 0;
   background-color: var(--surface-color);
   color: var(--text-color);
   border: 2px solid var(--border-color);
@@ -164,6 +212,31 @@ function handleDayClick(cell) {
   font-weight: 900;
   font-size: 0.875rem;
   min-height: 0;
+}
+
+/* Raised cell: this day has approved events. Matches the folder-card lift. */
+.month-grid__day.has-events {
+  box-shadow: 2px 2px 0 0 var(--shadow-color);
+}
+
+.month-grid__badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  background-color: var(--accent-color);
+  color: var(--accent-contrast);
+  border: 2px solid var(--border-color);
+  border-radius: 999px;
+  font-size: 0.625rem;
+  font-weight: 900;
+  line-height: 1;
+  box-sizing: border-box;
 }
 
 .month-grid__day {

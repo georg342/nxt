@@ -1,13 +1,19 @@
 <script setup>
 import { computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import MonthFolderCard from './MonthFolderCard.vue'
 import { useCalendarStore } from '../../stores/calendarStore'
 import { useEventStore } from '../../stores/eventStore'
 
-const MONTHS = [
-  'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
-  'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC',
-]
+const { locale } = useI18n()
+
+// Localized month abbreviations; MonthFolderCard uppercases them.
+const MONTHS = computed(() => {
+  const fmt = new Intl.DateTimeFormat(locale.value, { month: 'short' })
+  return Array.from({ length: 12 }, (_, index) =>
+    fmt.format(new Date(2023, index, 1)).replace(/\.$/, '')
+  )
+})
 
 const calendarStore = useCalendarStore()
 const eventStore = useEventStore()
@@ -24,7 +30,7 @@ const months = computed(() => {
     if (monthIndex >= 0 && monthIndex < 12) counts[monthIndex] += 1
   }
 
-  return MONTHS.map((month, index) => ({
+  return MONTHS.value.map((month, index) => ({
     month,
     index,
     eventCount: counts[index],

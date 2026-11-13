@@ -51,6 +51,9 @@ export default {
   event: {
     viewOnInstagram: 'View on Instagram',
   },
+  calendar: {
+    eventCount: 'no events | {count} event | {count} events',
+  },
   shared: {
     dateTimePicker: {
       label: 'Date & Time',
