@@ -230,11 +230,11 @@ onBeforeUnmount(() => {
 
     <div v-if="isOpen" ref="calendarPopup" class="dtp__popover">
       <div class="dtp__header">
-        <button type="button" class="dtp__nav" aria-label="Previous month" @click="prevMonth()">
+        <button type="button" class="dtp__nav" :aria-label="t('shared.dateTimePicker.previousMonth')" @click="prevMonth()">
           <PhCaretLeft :size="16" weight="bold" />
         </button>
         <span class="dtp__month">{{ monthLabel }}</span>
-        <button type="button" class="dtp__nav" aria-label="Next month" @click="nextMonth()">
+        <button type="button" class="dtp__nav" :aria-label="t('shared.dateTimePicker.nextMonth')" @click="nextMonth()">
           <PhCaretRight :size="16" weight="bold" />
         </button>
       </div>

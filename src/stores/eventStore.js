@@ -4,6 +4,7 @@ import { SupabaseEventRepository } from '../repositories/SupabaseEventRepository
 import { useAuthStore } from './authStore'
 import { useUIStore } from './uiStore'
 import { Logger } from '../utils/logger.js'
+import i18n from '../i18n'
 
 // Accepts comma-separated text, plain strings or { label, color } pills and
 // always returns a clean array of strings for the database.
@@ -129,12 +130,12 @@ export const useEventStore = defineStore('events', () => {
       await loadEvents()
 
       Logger.info('EventStore', 'Event updated', eventId)
-      uiStore.showToast('Evento atualizado', 'success')
+      uiStore.showToast(i18n.global.t('toast.eventUpdated'), 'success')
       return true
     } catch (err) {
       Logger.error('EventStore', 'Failed to update event', err)
       error.value = err?.message ?? 'Failed to update event'
-      uiStore.showToast('Falha ao atualizar evento', 'error')
+      uiStore.showToast(i18n.global.t('toast.eventUpdateFailed'), 'error')
       return false
     } finally {
       isLoading.value = false
@@ -225,12 +226,14 @@ export const useEventStore = defineStore('events', () => {
 
       Logger.info('EventStore', 'Event status changed', { eventId, newStatus })
       uiStore.showToast(
-        newStatus === 'approved' ? 'Evento aprovado' : 'Evento rejeitado',
+        newStatus === 'approved'
+          ? i18n.global.t('toast.eventApproved')
+          : i18n.global.t('toast.eventRejected'),
         newStatus === 'approved' ? 'success' : 'error'
       )
     } catch (err) {
       Logger.error('EventStore', 'Failed to change event status', err)
-      uiStore.showToast('Falha ao alterar status', 'error')
+      uiStore.showToast(i18n.global.t('toast.eventStatusFailed'), 'error')
     }
   }
 
@@ -245,10 +248,10 @@ export const useEventStore = defineStore('events', () => {
       events.value = events.value.filter((evt) => evt.id !== eventId)
 
       Logger.info('EventStore', 'Event deleted', eventId)
-      uiStore.showToast('Evento excluído', 'success')
+      uiStore.showToast(i18n.global.t('toast.eventDeleted'), 'success')
     } catch (err) {
       Logger.error('EventStore', 'Failed to delete event', err)
-      uiStore.showToast('Falha ao excluir evento', 'error')
+      uiStore.showToast(i18n.global.t('toast.eventDeleteFailed'), 'error')
     }
   }
 

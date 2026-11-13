@@ -19,7 +19,7 @@ const authStore = useAuthStore()
         <button
           type="button"
           class="auth-modal__close"
-          aria-label="Close"
+          :aria-label="$t('auth.close')"
           @click="authStore.closeAuthModal()"
         >
           <PhX :size="20" weight="bold" />

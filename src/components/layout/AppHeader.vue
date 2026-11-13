@@ -83,7 +83,7 @@ onMounted(() => {
       <div ref="colorPickerRef" class="accent-picker">
         <BrutalButton
           class="app-header__control-btn accent-picker__trigger"
-          aria-label="Escolher cor principal"
+          :aria-label="$t('theme.accentChoose')"
           aria-haspopup="true"
           :aria-expanded="isColorPickerOpen"
           @click="toggleColorPicker()"
@@ -96,7 +96,7 @@ onMounted(() => {
             v-if="isColorPickerOpen"
             class="accent-picker__card"
             role="radiogroup"
-            aria-label="Cores principais"
+            :aria-label="$t('theme.accentList')"
           >
             <button
               v-for="preset in themeStore.accentPresets"
@@ -122,7 +122,7 @@ onMounted(() => {
 
       <BrutalButton
         class="app-header__control-btn"
-        :aria-label="themeStore.theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'"
+        :aria-label="themeStore.theme === 'light' ? $t('theme.toDark') : $t('theme.toLight')"
         @click="themeStore.toggleTheme()"
       >
         <PhSun
@@ -138,7 +138,7 @@ onMounted(() => {
       </BrutalButton>
       <BrutalButton
         class="app-header__control-btn lang-toggle-btn"
-        :aria-label="themeStore.locale === 'pt' ? 'Switch to English' : 'Mudar para Português'"
+        :aria-label="themeStore.locale === 'pt' ? $t('locale.switchToEn') : $t('locale.switchToPt')"
         @click="themeStore.toggleLocale()"
         @mousedown="startAdminTimer"
         @touchstart.passive="startAdminTimer"

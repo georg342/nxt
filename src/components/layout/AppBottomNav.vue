@@ -42,7 +42,7 @@ function handleCreate() {
   >
     <BrutalButton
       class="nav-btn"
-      aria-label="Período anterior"
+      :aria-label="$t('nav.previousPeriod')"
       @click="calendarStore.navigatePrev()"
     >
       <PhArrowLeft :size="24" weight="bold" />
@@ -61,7 +61,7 @@ function handleCreate() {
       <BrutalButton
         class="nav-btn"
         :class="{ 'nav-btn--active': activeView === 'year' }"
-        aria-label="Year View"
+        :aria-label="$t('nav.yearView')"
         @click="switchView('year')"
       >
         <PhCalendar :size="24" weight="duotone" />
@@ -69,7 +69,7 @@ function handleCreate() {
       <BrutalButton
         class="nav-btn"
         :class="{ 'nav-btn--active': activeView === 'month' }"
-        aria-label="Month View"
+        :aria-label="$t('nav.monthView')"
         @click="switchView('month')"
       >
         <PhCalendarDots :size="24" weight="duotone" />
@@ -77,7 +77,7 @@ function handleCreate() {
       <BrutalButton
         class="nav-btn"
         :class="{ 'nav-btn--active': activeView === 'week' }"
-        aria-label="Week View"
+        :aria-label="$t('nav.weekView')"
         @click="switchView('week')"
       >
         <PhCalendarDot :size="24" weight="duotone" />
@@ -99,7 +99,7 @@ function handleCreate() {
 
     <BrutalButton
       class="nav-btn"
-      aria-label="Próximo período"
+      :aria-label="$t('nav.nextPeriod')"
       @click="calendarStore.navigateNext()"
     >
       <PhArrowRight :size="24" weight="bold" />
