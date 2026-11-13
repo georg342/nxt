@@ -21,7 +21,11 @@ app.use(i18n)
 app.use(MotionPlugin)
 
 // Apply persisted theme to <html> before mounting to avoid theme flash.
-useThemeStore().initTheme()
+const themeStore = useThemeStore()
+themeStore.initTheme()
+// The persisted locale must reach vue-i18n before the first render,
+// otherwise UI strings stay pt while Intl dates follow the stored locale.
+i18n.global.locale.value = themeStore.locale
 
 /**
  * Resolves the Supabase session (and validates admin status) BEFORE mounting,
