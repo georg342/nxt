@@ -1,5 +1,5 @@
 <script setup>
-import { useUIStore } from '../../stores/uiStore'
+import { useCalendarStore } from '../../stores/calendarStore'
 
 const props = defineProps({
   month: {
@@ -17,10 +17,10 @@ const props = defineProps({
   },
 })
 
-const uiStore = useUIStore()
+const calendarStore = useCalendarStore()
 
 function handleClick() {
-  uiStore.goToMonth(props.index)
+  calendarStore.goToMonth(props.index)
 }
 </script>
 

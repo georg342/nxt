@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useGenreStore } from '../../stores/genreStore'
+import { slugify } from '../../utils/string'
 
 const DEFAULT_GENRE_COLOR = '#FACC15'
 
@@ -42,15 +43,6 @@ const groupedGenres = computed(() =>
       })),
   }))
 )
-
-function slugify(value) {
-  return String(value ?? '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-}
 
 watch(
   () => form.value.name,

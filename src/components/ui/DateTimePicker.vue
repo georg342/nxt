@@ -1,5 +1,6 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { PhCaretLeft, PhCaretRight } from '@phosphor-icons/vue'
 
 const props = defineProps({
@@ -9,13 +10,23 @@ const props = defineProps({
   },
   label: {
     type: String,
-    default: 'Data e Hora',
+    default: '',
   },
 })
 
 const emit = defineEmits(['update:modelValue'])
 
-const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+const { t, locale } = useI18n()
+
+const weekdays = computed(() => {
+  const fmt = new Intl.DateTimeFormat(locale.value, { weekday: 'short' })
+  const base = new Date(2024, 0, 7) // known Sunday
+  return Array.from({ length: 7 }, (_, i) => {
+    const day = new Date(base)
+    day.setDate(base.getDate() + i)
+    return fmt.format(day).replace('.', '')
+  })
+})
 
 function parseInitial(value) {
   if (!value) return null
@@ -43,7 +54,7 @@ const draftHour = ref(selectedHour.value)
 const draftMinute = ref(selectedMinute.value)
 
 const monthLabel = computed(() =>
-  new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(currentDate.value)
+  new Intl.DateTimeFormat(locale.value, { month: 'long', year: 'numeric' }).format(currentDate.value)
 )
 
 const calendarDays = computed(() => {
@@ -214,22 +225,22 @@ onBeforeUnmount(() => {
         @click="openPicker()"
         @blur="onDisplayBlur()"
       />
-      <label class="dtp__label">{{ label }}</label>
+      <label class="dtp__label">{{ label || t('shared.dateTimePicker.label') }}</label>
     </div>
 
     <div v-if="isOpen" ref="calendarPopup" class="dtp__popover">
       <div class="dtp__header">
-        <button type="button" class="dtp__nav" aria-label="Previous month" @click="prevMonth()">
+        <button type="button" class="dtp__nav" :aria-label="t('shared.dateTimePicker.previousMonth')" @click="prevMonth()">
           <PhCaretLeft :size="16" weight="bold" />
         </button>
         <span class="dtp__month">{{ monthLabel }}</span>
-        <button type="button" class="dtp__nav" aria-label="Next month" @click="nextMonth()">
+        <button type="button" class="dtp__nav" :aria-label="t('shared.dateTimePicker.nextMonth')" @click="nextMonth()">
           <PhCaretRight :size="16" weight="bold" />
         </button>
       </div>
 
       <div class="dtp__weekdays">
-        <span v-for="day in WEEKDAYS" :key="day" class="dtp__weekday">{{ day }}</span>
+        <span v-for="(day, index) in weekdays" :key="index" class="dtp__weekday">{{ day }}</span>
       </div>
 
       <div class="dtp__grid">
@@ -250,7 +261,7 @@ onBeforeUnmount(() => {
       </div>
 
       <div class="dtp__time">
-        <span class="dtp__time-label">Hora:</span>
+        <span class="dtp__time-label">{{ t('shared.dateTimePicker.timeLabel') }}</span>
         <input
           class="dtp__time-input"
           type="number"
@@ -269,7 +280,7 @@ onBeforeUnmount(() => {
           @input="onMinuteInput"
         />
         <button type="button" class="dtp__confirm" @click="confirmSelection()">
-          OK
+          {{ t('shared.dateTimePicker.ok') }}
         </button>
       </div>
     </div>

@@ -19,24 +19,25 @@ export class SupabaseEventRepository extends EventService {
   }
 
   /**
-   * Fetches approved events ordered by start_date ascending.
-   * @param {string} [startDate]
-   * @param {string} [endDate]
-   * @returns {Promise<Array>}
+   * Fetches one page of approved events ordered by start_date ascending.
+   * @param {{ limit?: number, offset?: number }} [page]
+   * @returns {Promise<{ rows: Array, hasMore: boolean }>}
    */
-  async fetchEvents(startDate, endDate) {
+  async fetchEvents({ limit = 100, offset = 0 } = {}) {
     const { data, error } = await supabase
       .from('events')
       .select('*, event_genres(genre:genres(*))')
       .eq('status', 'approved')
       .order('start_date', { ascending: true })
+      .range(offset, offset + limit - 1)
 
     if (error) {
       console.error('[SupabaseEventRepository] fetchEvents error:', error)
-      return []
+      return { rows: [], hasMore: false }
     }
 
-    return (data ?? []).map(mapEventRow)
+    const rows = (data ?? []).map(mapEventRow)
+    return { rows, hasMore: rows.length === limit }
   }
 
   /**

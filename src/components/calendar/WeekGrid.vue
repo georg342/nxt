@@ -2,9 +2,11 @@
 import { computed, onMounted, onBeforeUnmount, watch, ref } from 'vue'
 import BrutalCard from '../ui/BrutalCard.vue'
 import { useUIStore } from '../../stores/uiStore'
+import { useCalendarStore } from '../../stores/calendarStore'
 import { useEventStore } from '../../stores/eventStore'
 import { useGenreStore } from '../../stores/genreStore'
 import { Logger } from '../../utils/logger'
+import { getWeekStart } from '../../utils/date'
 
 const MAX_BADGE_SLOTS = 6
 
@@ -17,6 +19,7 @@ let animationToken = 0
 let weekChangeTimeoutId = null
 
 const uiStore = useUIStore()
+const calendarStore = useCalendarStore()
 const eventStore = useEventStore()
 const genreStore = useGenreStore()
 
@@ -40,7 +43,7 @@ const eventsByDateKey = computed(() => {
 })
 
 const weekDays = computed(() =>
-  uiStore.weekDaysData.map((day) => {
+  calendarStore.weekDaysData.map((day) => {
     const dayEvents = eventsByDateKey.value.get(day.dateKey) ?? []
     const counts = new Map()
 
@@ -133,7 +136,7 @@ async function runBadgeAnimations(token) {
 
 // Swipe/setas trocam a semana: abandona o loop atual e recomeça no novo dado.
 watch(
-  () => uiStore.currentDate.getTime(),
+  () => calendarStore.currentDate.getTime(),
   () => {
     animationToken++
     if (weekChangeTimeoutId) clearTimeout(weekChangeTimeoutId)
@@ -182,13 +185,11 @@ onBeforeUnmount(() => {
 })
 
 function handleDayClick(index) {
-  const weekStart = new Date(uiStore.currentDate)
-  weekStart.setDate(weekStart.getDate() - weekStart.getDay())
-  weekStart.setHours(0, 0, 0, 0)
+  const weekStart = getWeekStart(calendarStore.currentDate)
 
   const target = new Date(weekStart)
   target.setDate(weekStart.getDate() + index)
-  uiStore.selectDate(target)
+  calendarStore.selectDate(target)
 }
 </script>
 
@@ -196,7 +197,7 @@ function handleDayClick(index) {
   <div class="week-grid">
     <Transition name="swipe-week" mode="out-in">
       <div
-        :key="uiStore.currentDate.getTime()"
+        :key="calendarStore.currentDate.getTime()"
         class="week-grid__days"
       >
         <BrutalCard

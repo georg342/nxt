@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import BrutalButton from '../ui/BrutalButton.vue'
 import { useUIStore } from '../../stores/uiStore'
+import { useCalendarStore } from '../../stores/calendarStore'
 import { useAuthStore } from '../../stores/authStore'
 import {
   PhEye,
@@ -13,13 +14,14 @@ import {
 } from '@phosphor-icons/vue'
 
 const uiStore = useUIStore()
+const calendarStore = useCalendarStore()
 const authStore = useAuthStore()
 
-const activeView = computed(() => uiStore.activeView)
+const activeView = computed(() => calendarStore.activeView)
 const isViewMenuOpen = ref(false)
 
 function switchView(viewName) {
-  uiStore.setActiveView(viewName)
+  calendarStore.setActiveView(viewName)
   isViewMenuOpen.value = false
 }
 
@@ -40,8 +42,8 @@ function handleCreate() {
   >
     <BrutalButton
       class="nav-btn"
-      aria-label="Período anterior"
-      @click="uiStore.navigatePrev()"
+      :aria-label="$t('nav.previousPeriod')"
+      @click="calendarStore.navigatePrev()"
     >
       <PhArrowLeft :size="24" weight="bold" />
     </BrutalButton>
@@ -59,7 +61,7 @@ function handleCreate() {
       <BrutalButton
         class="nav-btn"
         :class="{ 'nav-btn--active': activeView === 'year' }"
-        aria-label="Year View"
+        :aria-label="$t('nav.yearView')"
         @click="switchView('year')"
       >
         <PhCalendar :size="24" weight="duotone" />
@@ -67,7 +69,7 @@ function handleCreate() {
       <BrutalButton
         class="nav-btn"
         :class="{ 'nav-btn--active': activeView === 'month' }"
-        aria-label="Month View"
+        :aria-label="$t('nav.monthView')"
         @click="switchView('month')"
       >
         <PhCalendarDots :size="24" weight="duotone" />
@@ -75,7 +77,7 @@ function handleCreate() {
       <BrutalButton
         class="nav-btn"
         :class="{ 'nav-btn--active': activeView === 'week' }"
-        aria-label="Week View"
+        :aria-label="$t('nav.weekView')"
         @click="switchView('week')"
       >
         <PhCalendarDot :size="24" weight="duotone" />
@@ -85,8 +87,8 @@ function handleCreate() {
     <template v-else>
       <BrutalButton
         class="nav-btn"
-        :class="{ 'nav-btn--active': uiStore.isTodaySelected }"
-        @click="uiStore.goToToday()"
+        :class="{ 'nav-btn--active': calendarStore.isTodaySelected }"
+        @click="calendarStore.goToToday()"
       >
         {{ $t('nav.today') }}
       </BrutalButton>
@@ -97,8 +99,8 @@ function handleCreate() {
 
     <BrutalButton
       class="nav-btn"
-      aria-label="Próximo período"
-      @click="uiStore.navigateNext()"
+      :aria-label="$t('nav.nextPeriod')"
+      @click="calendarStore.navigateNext()"
     >
       <PhArrowRight :size="24" weight="bold" />
     </BrutalButton>

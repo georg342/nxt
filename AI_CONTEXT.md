@@ -17,16 +17,19 @@
 - AUTH: Google OAuth.
 - SECURITY: client-side `anon` key; access governed strictly by Postgres RLS.
 - RLS on `public.events`:
-  - `anon`: `SELECT` where `status = 'published'`.
+  - `anon`: `SELECT` where `status = 'approved'`.
   - `authenticated`: `INSERT` where `status = 'pending'`.
   - admin: full CRUD via `admin_users` lookup.
 
 ## STATE
-- BOOTSTRAP: `main.js` awaits `supabase.auth.getSession()` before `app.mount('#app')` to prevent FOUC.
+- BOOTSTRAP: `main.js` awaits `authStore.initAuth()`, `genreStore.loadGenres()` and `router.isReady()` before `app.mount('#app')` to prevent FOUC.
 - Stores:
-  - `useAuthStore`: session, `isAdmin`, `isSuperAdmin`.
-  - `useEventStore`: events, cache, filters.
-  - `useUIStore`: toasts, modals, theme, mobile window manager.
+  - `useAuthStore`: session, `isAdmin`, `isSuperAdmin`, auth modal.
+  - `useEventStore`: approved events page, admin list, filters, CRUD.
+  - `useCalendarStore`: active view (year/month/week/day), reference dates, localized date formatting.
+  - `useThemeStore`: theme, locale, accent preset. Persisted as `wnxt-ui`.
+  - `useGenreStore`: genre list (loaded before first render).
+  - `useUIStore`: search, toasts, create/edit modal, admin panel visibility.
 
 ## DESIGN SYSTEM (NEO-BRUTALISM, MOBILE-FIRST)
 - Native-app feel: `-webkit-tap-highlight-color: transparent`, `user-select: none`. Never use native `alert`/`confirm` or native datetime pickers.

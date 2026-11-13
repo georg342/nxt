@@ -1,9 +1,46 @@
 <script setup>
+import { nextTick, ref, watch } from 'vue'
+import { onKeyStroke } from '@vueuse/core'
 import { PhX, PhGoogleLogo } from '@phosphor-icons/vue'
 import BrutalButton from '../ui/BrutalButton.vue'
 import { useAuthStore } from '../../stores/authStore'
 
 const authStore = useAuthStore()
+
+const cardRef = ref(null)
+
+onKeyStroke('Escape', () => {
+  if (authStore.isAuthModalOpen) authStore.closeAuthModal()
+})
+
+watch(
+  () => authStore.isAuthModalOpen,
+  async (isOpen) => {
+    if (!isOpen) return
+    await nextTick()
+    cardRef.value?.focus()
+  }
+)
+
+// Keeps Tab inside the dialog; the card itself is the first/last stop.
+function trapTab(event) {
+  const focusables = cardRef.value?.querySelectorAll(
+    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+  )
+  if (!focusables?.length) return
+
+  const first = focusables[0]
+  const last = focusables[focusables.length - 1]
+  const atStart = document.activeElement === first || document.activeElement === cardRef.value
+
+  if (event.shiftKey && atStart) {
+    event.preventDefault()
+    last.focus()
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault()
+    first.focus()
+  }
+}
 </script>
 
 <template>
@@ -15,11 +52,16 @@ const authStore = useAuthStore()
       aria-modal="true"
       @click.self="authStore.closeAuthModal()"
     >
-      <div class="auth-modal__card">
+      <div
+        ref="cardRef"
+        class="auth-modal__card"
+        tabindex="-1"
+        @keydown.tab="trapTab"
+      >
         <button
           type="button"
           class="auth-modal__close"
-          aria-label="Close"
+          :aria-label="$t('auth.close')"
           @click="authStore.closeAuthModal()"
         >
           <PhX :size="20" weight="bold" />

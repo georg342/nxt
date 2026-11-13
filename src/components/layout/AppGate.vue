@@ -48,7 +48,7 @@ onMounted(() => {
         spellcheck="false"
         class="app-gate__input"
         :class="{ 'app-gate__input--error': hasError }"
-        aria-label="Access code"
+        :aria-label="$t('gate.accessCode')"
         @input="handleInput"
       />
     </form>

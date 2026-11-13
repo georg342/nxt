@@ -2,8 +2,10 @@
 import { nextTick, ref, watch } from 'vue'
 import { PhCaretLeft, PhX } from '@phosphor-icons/vue'
 import { useUIStore } from '../../stores/uiStore'
+import { useCalendarStore } from '../../stores/calendarStore'
 
 const uiStore = useUIStore()
+const calendarStore = useCalendarStore()
 const inputRef = ref(null)
 
 watch(
@@ -24,11 +26,11 @@ function handleClose() {
 <template>
   <div class="app-subheader">
     <button
-      v-if="!uiStore.isSearchOpen && uiStore.activeView !== 'year'"
+      v-if="!uiStore.isSearchOpen && calendarStore.activeView !== 'year'"
       type="button"
       class="app-subheader__action app-subheader__action--left"
       :aria-label="$t('nav.previous')"
-      @click="uiStore.goToPrevious()"
+      @click="calendarStore.goToPrevious()"
     >
       <PhCaretLeft :size="20" weight="bold" />
     </button>
@@ -48,15 +50,15 @@ function handleClose() {
       />
       <span
         v-else
-        :key="uiStore.contextLabel"
+        :key="calendarStore.contextLabel"
         class="app-subheader__label"
       >
-        {{ uiStore.contextLabel }}
+        {{ calendarStore.contextLabel }}
       </span>
     </Transition>
 
     <span
-      v-if="!uiStore.isSearchOpen && uiStore.activeView !== 'year'"
+      v-if="!uiStore.isSearchOpen && calendarStore.activeView !== 'year'"
       class="app-subheader__spacer"
       aria-hidden="true"
     />

@@ -6,12 +6,37 @@ export default {
     today: 'Hoje',
     add: '+',
     previous: 'Anterior',
+    nextPeriod: 'Próximo período',
+    previousPeriod: 'Período anterior',
+    yearView: 'Visão anual',
+    monthView: 'Visão mensal',
+    weekView: 'Visão semanal',
     viewOptions: 'Opções de visualização',
   },
   next: 'PROX',
   locale: {
     toPt: 'PT',
     toEn: 'EN',
+    switchToPt: 'Mudar para português',
+    switchToEn: 'Mudar para inglês',
+  },
+  theme: {
+    accentChoose: 'Escolher cor principal',
+    accentList: 'Cores principais',
+    toDark: 'Mudar para tema escuro',
+    toLight: 'Mudar para tema claro',
+  },
+  gate: {
+    accessCode: 'Código de acesso',
+  },
+  toast: {
+    eventUpdated: 'Evento atualizado',
+    eventUpdateFailed: 'Falha ao atualizar evento',
+    eventApproved: 'Evento aprovado',
+    eventRejected: 'Evento rejeitado',
+    eventStatusFailed: 'Falha ao alterar status',
+    eventDeleted: 'Evento excluído',
+    eventDeleteFailed: 'Falha ao excluir evento',
   },
   search: {
     open: 'Abrir busca',
@@ -26,6 +51,23 @@ export default {
   },
   event: {
     viewOnInstagram: 'Ver no Instagram',
+  },
+  shared: {
+    dateTimePicker: {
+      label: 'Data e Hora',
+      timeLabel: 'Hora:',
+      previousMonth: 'Mês anterior',
+      nextMonth: 'Próximo mês',
+      ok: 'OK',
+    },
+    location: {
+      label: 'Localização',
+      searching: 'Buscando...',
+      waiting: 'Aguardando',
+      noResults: 'Nenhum resultado encontrado.',
+    },
+    loading: 'Carregando...',
+    status: 'Status',
   },
   auth: {
     title: 'Bem-vindo',

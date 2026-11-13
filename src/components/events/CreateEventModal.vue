@@ -1,6 +1,7 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { onKeyStroke } from '@vueuse/core'
 import { PhX } from '@phosphor-icons/vue'
 import BrutalButton from '../ui/BrutalButton.vue'
 import DateTimePicker from '../ui/DateTimePicker.vue'
@@ -17,6 +18,7 @@ const genreStore = useGenreStore()
 
 const isSubmitting = ref(false)
 const submitError = ref(null)
+const cardRef = ref(null)
 
 const form = ref({
   title: '',
@@ -174,6 +176,43 @@ function handleClose() {
   resetForm()
   uiStore.closeCreateEventModal()
 }
+
+onKeyStroke('Escape', () => {
+  if (uiStore.isCreateEventModalOpen) handleClose()
+})
+
+watch(
+  () => uiStore.isCreateEventModalOpen,
+  async (isOpen) => {
+    if (!isOpen) return
+    await nextTick()
+    // Land on the first editable field, falling back to the card itself.
+    const target =
+      cardRef.value?.querySelector('input:not([readonly]), textarea') ??
+      cardRef.value
+    target?.focus()
+  }
+)
+
+// Keeps Tab inside the dialog; the card itself is the first/last stop.
+function trapTab(event) {
+  const focusables = cardRef.value?.querySelectorAll(
+    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+  )
+  if (!focusables?.length) return
+
+  const first = focusables[0]
+  const last = focusables[focusables.length - 1]
+  const atStart = document.activeElement === first || document.activeElement === cardRef.value
+
+  if (event.shiftKey && atStart) {
+    event.preventDefault()
+    last.focus()
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault()
+    first.focus()
+  }
+}
 </script>
 
 <template>
@@ -185,7 +224,13 @@ function handleClose() {
       aria-modal="true"
       @click.self="handleClose()"
     >
-      <form class="create-event__card" @submit.prevent="handleSubmit()">
+      <form
+        ref="cardRef"
+        class="create-event__card"
+        tabindex="-1"
+        @keydown.tab="trapTab"
+        @submit.prevent="handleSubmit()"
+      >
         <button
           type="button"
           class="create-event__close"

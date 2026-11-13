@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted } from 'vue'
 import MonthFolderCard from './MonthFolderCard.vue'
-import { useUIStore } from '../../stores/uiStore'
+import { useCalendarStore } from '../../stores/calendarStore'
 import { useEventStore } from '../../stores/eventStore'
 
 const MONTHS = [
@@ -9,12 +9,12 @@ const MONTHS = [
   'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC',
 ]
 
-const uiStore = useUIStore()
+const calendarStore = useCalendarStore()
 const eventStore = useEventStore()
 
 const months = computed(() => {
   // String slice avoids the UTC shift of parsing TIMESTAMPTZ into a Date.
-  const year = String(uiStore.currentDate.getFullYear())
+  const year = String(calendarStore.currentDate.getFullYear())
   const counts = new Array(12).fill(0)
 
   for (const event of eventStore.events) {

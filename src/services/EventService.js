@@ -6,11 +6,10 @@ export class EventService {
   constructor() {}
 
   /**
-   * @param {string} [startDate]
-   * @param {string} [endDate]
-   * @returns {Promise<Array>}
+   * @param {{ limit?: number, offset?: number }} [page]
+   * @returns {Promise<{ rows: Array, hasMore: boolean }>}
    */
-  async fetchEvents(startDate, endDate) {
+  async fetchEvents({ limit = 100, offset = 0 } = {}) {
     throw new Error('EventService.fetchEvents must be implemented by a subclass')
   }
 }

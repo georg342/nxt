@@ -6,12 +6,37 @@ export default {
     today: 'Today',
     add: '+',
     previous: 'Previous',
+    nextPeriod: 'Next period',
+    previousPeriod: 'Previous period',
+    yearView: 'Year view',
+    monthView: 'Month view',
+    weekView: 'Week view',
     viewOptions: 'View options',
   },
   next: 'NEXT',
   locale: {
     toPt: 'PT',
     toEn: 'EN',
+    switchToPt: 'Switch to Portuguese',
+    switchToEn: 'Switch to English',
+  },
+  theme: {
+    accentChoose: 'Choose accent color',
+    accentList: 'Accent colors',
+    toDark: 'Switch to dark theme',
+    toLight: 'Switch to light theme',
+  },
+  gate: {
+    accessCode: 'Access code',
+  },
+  toast: {
+    eventUpdated: 'Event updated',
+    eventUpdateFailed: 'Failed to update event',
+    eventApproved: 'Event approved',
+    eventRejected: 'Event rejected',
+    eventStatusFailed: 'Failed to change status',
+    eventDeleted: 'Event deleted',
+    eventDeleteFailed: 'Failed to delete event',
   },
   search: {
     open: 'Open search',
@@ -26,6 +51,23 @@ export default {
   },
   event: {
     viewOnInstagram: 'View on Instagram',
+  },
+  shared: {
+    dateTimePicker: {
+      label: 'Date & Time',
+      timeLabel: 'Time:',
+      previousMonth: 'Previous month',
+      nextMonth: 'Next month',
+      ok: 'OK',
+    },
+    location: {
+      label: 'Location',
+      searching: 'Searching...',
+      waiting: 'Type at least 3 characters',
+      noResults: 'No results found.',
+    },
+    loading: 'Loading...',
+    status: 'Status',
   },
   auth: {
     title: 'Welcome',

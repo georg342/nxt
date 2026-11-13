@@ -9,10 +9,23 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+/* Anti-selection is scoped to interactive controls so event details stay
+   selectable (WCAG 1.4.4). */
+button,
+[role="button"],
+.no-select {
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
+}
+
+input,
+textarea {
+  -webkit-user-select: auto;
+  user-select: auto;
 }
 
 html,
@@ -41,12 +54,6 @@ textarea,
 select {
   font: inherit;
   color: inherit;
-}
-
-input,
-textarea {
-  -webkit-user-select: auto;
-  user-select: auto;
 }
 
 button {

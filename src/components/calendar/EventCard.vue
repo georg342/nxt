@@ -1,9 +1,12 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { PhCalendarBlank, PhClock, PhInstagramLogo, PhMapPin } from '@phosphor-icons/vue'
 import BrutalCard from '../ui/BrutalCard.vue'
-import { useUIStore } from '../../stores/uiStore'
+import { useCalendarStore } from '../../stores/calendarStore'
 import { useGenreStore } from '../../stores/genreStore'
+import { formatTime } from '../../utils/date'
+import { parsePills } from '../../utils/pills'
+import { getShortAddress } from '../../utils/address'
 
 const props = defineProps({
   event: {
@@ -20,68 +23,21 @@ const props = defineProps({
   },
 })
 
-const uiStore = useUIStore()
+const emit = defineEmits(['toggle'])
+
+const calendarStore = useCalendarStore()
 const genreStore = useGenreStore()
 
-const isExpanded = ref(false)
-
-const parsePills = (data) => {
-  if (!data) return []
-  if (Array.isArray(data)) {
-    return data.map((item) => {
-      if (typeof item === 'string') {
-        try {
-          return JSON.parse(item)
-        } catch (e) {
-          return { LABEL: item, COLOR: '#e5e7eb' }
-        }
-      }
-      return item
-    })
-  }
-  if (typeof data === 'string') {
-    try {
-      const parsed = JSON.parse(data)
-      return Array.isArray(parsed) ? parsed : [parsed]
-    } catch (e) {
-      return []
-    }
-  }
-  return []
-}
-
-function getShortAddress(address) {
-  if (!address) return ''
-  const parts = address.split(',').map((p) => p.trim()).filter(Boolean)
-  if (parts.length >= 3) {
-    const neighborhood = parts[1]
-    const city = parts[2]
-    const state = parts[3] || ''
-    return state ? `${neighborhood}, ${city} - ${state}` : `${neighborhood}, ${city}`
-  }
-  return address.length > 30 ? `${address.slice(0, 30)}…` : address
-}
-
 const formattedDate = computed(() =>
-  uiStore.formatEventDate(props.event.start_date?.slice(0, 10))
+  calendarStore.formatEventDate(props.event.start_date?.slice(0, 10))
 )
 
-// Resolves relational genre rows (or legacy strings) into display pills.
+// Resolves relational genre rows into display pills.
 const genrePills = computed(() =>
-  parsePills(props.event.genres).map((pill) =>
-    genreStore.getGenreDisplay(
-      typeof pill === 'string'
-        ? pill
-        : pill?.id ?? pill?.name ?? pill?.LABEL ?? pill?.label
-    )
+  (props.event.genres ?? []).map((genre) =>
+    genreStore.getGenreDisplay(genre.id ?? genre)
   )
 )
-
-function formatTime(dateString) {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-}
 
 const displayTime = computed(() => props.time || formatTime(props.event.start_date))
 </script>
@@ -89,7 +45,7 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
 <template>
   <BrutalCard
     class="event-card"
-    @click="isExpanded = !isExpanded"
+    @click="emit('toggle')"
   >
     <div class="event-card__header">
       <h2 class="event-card__title">{{ event.title }}</h2>
@@ -110,15 +66,15 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
         </div>
         <span class="event-card__meta-item">
           <PhMapPin :size="18" weight="duotone" />
-          <span v-show="!isExpanded" class="address-short">{{ getShortAddress(event.location) }}</span>
-          <span v-show="isExpanded" class="address-full">{{ event.location }}</span>
+          <span v-show="!expanded" class="address-short">{{ getShortAddress(event.location) }}</span>
+          <span v-show="expanded" class="address-full">{{ event.location }}</span>
         </span>
       </div>
     </div>
 
     <Transition name="accordion">
       <div
-        v-if="isExpanded"
+        v-if="expanded"
         class="event-card__body"
       >
         <div

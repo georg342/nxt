@@ -10,10 +10,12 @@ import {
 } from '@phosphor-icons/vue'
 import BrutalButton from '../ui/BrutalButton.vue'
 import { useUIStore } from '../../stores/uiStore'
+import { useThemeStore } from '../../stores/themeStore'
 import { useAuthStore } from '../../stores/authStore'
 import i18n from '../../i18n'
 
 const uiStore = useUIStore()
+const themeStore = useThemeStore()
 const authStore = useAuthStore()
 
 const isColorPickerOpen = ref(false)
@@ -45,7 +47,7 @@ function toggleColorPicker() {
 }
 
 function selectAccent(presetId) {
-  uiStore.setAccentColor(presetId)
+  themeStore.setAccentColor(presetId)
   isColorPickerOpen.value = false
 }
 
@@ -58,7 +60,7 @@ onKeyStroke('Escape', () => {
 })
 
 onMounted(() => {
-  uiStore.initAccentColor()
+  themeStore.initAccentColor()
 })
 </script>
 
@@ -81,7 +83,7 @@ onMounted(() => {
       <div ref="colorPickerRef" class="accent-picker">
         <BrutalButton
           class="app-header__control-btn accent-picker__trigger"
-          aria-label="Escolher cor principal"
+          :aria-label="$t('theme.accentChoose')"
           aria-haspopup="true"
           :aria-expanded="isColorPickerOpen"
           @click="toggleColorPicker()"
@@ -94,21 +96,21 @@ onMounted(() => {
             v-if="isColorPickerOpen"
             class="accent-picker__card"
             role="radiogroup"
-            aria-label="Cores principais"
+            :aria-label="$t('theme.accentList')"
           >
             <button
-              v-for="preset in uiStore.accentPresets"
+              v-for="preset in themeStore.accentPresets"
               :key="preset.id"
               type="button"
               class="accent-picker__swatch"
               role="radio"
-              :aria-checked="uiStore.accentPreset === preset.id"
+              :aria-checked="themeStore.accentPreset === preset.id"
               :aria-label="preset.label"
               :style="{ backgroundColor: preset.color }"
               @click="selectAccent(preset.id)"
             >
               <PhCheck
-                v-if="uiStore.accentPreset === preset.id"
+                v-if="themeStore.accentPreset === preset.id"
                 :size="14"
                 weight="bold"
                 :style="{ color: preset.contrast }"
@@ -120,11 +122,11 @@ onMounted(() => {
 
       <BrutalButton
         class="app-header__control-btn"
-        :aria-label="uiStore.theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'"
-        @click="uiStore.toggleTheme()"
+        :aria-label="themeStore.theme === 'light' ? $t('theme.toDark') : $t('theme.toLight')"
+        @click="themeStore.toggleTheme()"
       >
         <PhSun
-          v-if="uiStore.theme === 'dark'"
+          v-if="themeStore.theme === 'dark'"
           :size="18"
           weight="duotone"
         />
@@ -136,8 +138,8 @@ onMounted(() => {
       </BrutalButton>
       <BrutalButton
         class="app-header__control-btn lang-toggle-btn"
-        :aria-label="uiStore.locale === 'pt' ? 'Switch to English' : 'Mudar para Português'"
-        @click="uiStore.toggleLocale()"
+        :aria-label="themeStore.locale === 'pt' ? $t('locale.switchToEn') : $t('locale.switchToPt')"
+        @click="themeStore.toggleLocale()"
         @mousedown="startAdminTimer"
         @touchstart.passive="startAdminTimer"
         @mouseup="cancelAdminTimer"
@@ -147,7 +149,7 @@ onMounted(() => {
       >
         <PhGlobe :size="18" weight="duotone" />
         <span class="app-header__locale-label">
-          {{ uiStore.locale === 'pt' ? $t('locale.toEn') : $t('locale.toPt') }}
+          {{ themeStore.locale === 'pt' ? $t('locale.toEn') : $t('locale.toPt') }}
         </span>
       </BrutalButton>
     </div>

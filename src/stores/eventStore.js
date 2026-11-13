@@ -4,6 +4,7 @@ import { SupabaseEventRepository } from '../repositories/SupabaseEventRepository
 import { useAuthStore } from './authStore'
 import { useUIStore } from './uiStore'
 import { Logger } from '../utils/logger.js'
+import i18n from '../i18n'
 
 // Accepts comma-separated text, plain strings or { label, color } pills and
 // always returns a clean array of strings for the database.
@@ -19,14 +20,22 @@ function normalizeList(value) {
 }
 
 export const useEventStore = defineStore('events', () => {
+  // Public list: only ever filled by loadEvents() (status = approved).
   const events = ref([])
+  // Admin list: only ever filled by fetchAllEvents() (no status filter).
   const allEvents = ref([])
-  const pendingEvents = ref([])
-  const selectedPendingEventIds = ref([])
   const isLoading = ref(false)
+  const isLoadingMore = ref(false)
+  const hasMoreEvents = ref(true)
   const error = ref(null)
 
+  const EVENTS_PAGE_SIZE = 100
+
   const uiStore = useUIStore()
+
+  const pendingEvents = computed(() =>
+    allEvents.value.filter((event) => event.status === 'pending')
+  )
 
   const hasActiveFilters = computed(() => uiStore.hasMinSearchLength)
 
@@ -119,104 +128,58 @@ export const useEventStore = defineStore('events', () => {
       if (target) Object.assign(target, payload)
 
       await loadEvents()
-      await fetchAllEvents()
 
       Logger.info('EventStore', 'Event updated', eventId)
-      uiStore.showToast('Evento atualizado', 'success')
+      uiStore.showToast(i18n.global.t('toast.eventUpdated'), 'success')
       return true
     } catch (err) {
       Logger.error('EventStore', 'Failed to update event', err)
       error.value = err?.message ?? 'Failed to update event'
-      uiStore.showToast('Falha ao atualizar evento', 'error')
+      uiStore.showToast(i18n.global.t('toast.eventUpdateFailed'), 'error')
       return false
     } finally {
       isLoading.value = false
     }
   }
 
-  async function fetchPendingEvents() {
-    isLoading.value = true
-    error.value = null
-
-    try {
-      const repository = new SupabaseEventRepository()
-      const data = await repository.getPendingEvents()
-      pendingEvents.value = data
-      Logger.info('EventStore', 'Pending events loaded', data.length)
-    } catch (err) {
-      Logger.error('EventStore', 'Failed to load pending events', err)
-      error.value = err?.message ?? 'Failed to load pending events'
-      pendingEvents.value = []
-    } finally {
-      isLoading.value = false
+  async function loadEvents({ reset = true } = {}) {
+    if (reset) {
+      isLoading.value = true
+      error.value = null
+    } else {
+      isLoadingMore.value = true
     }
-  }
-
-  async function approveEvent(eventId) {
-    const uiStore = useUIStore()
 
     try {
       const repository = new SupabaseEventRepository()
-      await repository.updateEventStatus(eventId, 'approved')
-      pendingEvents.value = pendingEvents.value.filter((event) => event.id !== eventId)
-      Logger.info('EventStore', 'Event approved', eventId)
-      uiStore.showToast('Evento aprovado', 'success')
-    } catch (err) {
-      Logger.error('EventStore', 'Failed to approve event', err)
-      uiStore.showToast('Falha ao aprovar evento', 'error')
-    }
-  }
+      // shortcut: offset comes from the local list, so a locally inserted row
+      // can skip one server row; upgrade to keyset pagination if that matters.
+      const offset = reset ? 0 : events.value.length
+      const { rows, hasMore } = await repository.fetchEvents({
+        limit: EVENTS_PAGE_SIZE,
+        offset,
+      })
 
-  async function rejectEvent(eventId) {
-    const uiStore = useUIStore()
-
-    try {
-      const repository = new SupabaseEventRepository()
-      await repository.updateEventStatus(eventId, 'rejected')
-      pendingEvents.value = pendingEvents.value.filter((event) => event.id !== eventId)
-      Logger.info('EventStore', 'Event rejected', eventId)
-      uiStore.showToast('Evento rejeitado', 'error')
-    } catch (err) {
-      Logger.error('EventStore', 'Failed to reject event', err)
-      uiStore.showToast('Falha ao rejeitar evento', 'error')
-    }
-  }
-
-  async function bulkUpdatePendingEvents(status) {
-    const uiStore = useUIStore()
-    const ids = [...selectedPendingEventIds.value]
-
-    if (ids.length === 0) return
-
-    try {
-      const repository = new SupabaseEventRepository()
-      await repository.bulkUpdateEventsStatus(ids, status)
-      pendingEvents.value = pendingEvents.value.filter(
-        (event) => !ids.includes(event.id)
-      )
-      selectedPendingEventIds.value = []
-      Logger.info('EventStore', 'Bulk update completed', { ids, status })
-      uiStore.showToast('Eventos atualizados', 'success')
-    } catch (err) {
-      Logger.error('EventStore', 'Failed to bulk update events', err)
-      uiStore.showToast('Falha ao atualizar eventos', 'error')
-    }
-  }
-
-  async function loadEvents() {
-    isLoading.value = true
-    error.value = null
-
-    try {
-      const repository = new SupabaseEventRepository()
-      const data = await repository.fetchEvents()
-      events.value = data
+      if (reset) {
+        events.value = rows
+      } else {
+        // Dedupe by id in case a new row was inserted concurrently.
+        const existing = new Set(events.value.map((e) => e.id))
+        events.value = [...events.value, ...rows.filter((e) => !existing.has(e.id))]
+      }
+      hasMoreEvents.value = hasMore
     } catch (err) {
       error.value = err?.message ?? 'Failed to load events'
-      events.value = []
+      if (reset) events.value = []
     } finally {
       isLoading.value = false
+      isLoadingMore.value = false
     }
+  }
+
+  async function loadMoreEvents() {
+    if (!hasMoreEvents.value || isLoadingMore.value || isLoading.value) return
+    await loadEvents({ reset: false })
   }
 
   async function fetchAllEvents() {
@@ -239,6 +202,7 @@ export const useEventStore = defineStore('events', () => {
 
   async function setEventStatus(eventId, newStatus) {
     const uiStore = useUIStore()
+    error.value = null
 
     try {
       const repository = new SupabaseEventRepository()
@@ -247,21 +211,29 @@ export const useEventStore = defineStore('events', () => {
       const target = allEvents.value.find((evt) => evt.id === eventId)
       if (target) target.status = newStatus
 
-      pendingEvents.value = pendingEvents.value.filter(
-        (evt) => evt.id !== eventId
-      )
-      selectedPendingEventIds.value = selectedPendingEventIds.value.filter(
-        (id) => id !== eventId
-      )
+      // Keep the public list in sync so an approval shows up without a refetch.
+      const inPublicList = events.value.some((evt) => evt.id === eventId)
+      if (newStatus === 'approved' && !inPublicList) {
+        if (target) {
+          events.value.push({ ...target })
+          events.value = [...events.value].sort((a, b) =>
+            (a.start_date ?? '').localeCompare(b.start_date ?? '')
+          )
+        }
+      } else if (newStatus !== 'approved' && inPublicList) {
+        events.value = events.value.filter((evt) => evt.id !== eventId)
+      }
 
       Logger.info('EventStore', 'Event status changed', { eventId, newStatus })
       uiStore.showToast(
-        newStatus === 'approved' ? 'Evento aprovado' : 'Evento rejeitado',
+        newStatus === 'approved'
+          ? i18n.global.t('toast.eventApproved')
+          : i18n.global.t('toast.eventRejected'),
         newStatus === 'approved' ? 'success' : 'error'
       )
     } catch (err) {
       Logger.error('EventStore', 'Failed to change event status', err)
-      uiStore.showToast('Falha ao alterar status', 'error')
+      uiStore.showToast(i18n.global.t('toast.eventStatusFailed'), 'error')
     }
   }
 
@@ -273,39 +245,33 @@ export const useEventStore = defineStore('events', () => {
       await repository.deleteEvent(eventId)
 
       allEvents.value = allEvents.value.filter((evt) => evt.id !== eventId)
-      pendingEvents.value = pendingEvents.value.filter(
-        (evt) => evt.id !== eventId
-      )
-      selectedPendingEventIds.value = selectedPendingEventIds.value.filter(
-        (id) => id !== eventId
-      )
+      events.value = events.value.filter((evt) => evt.id !== eventId)
 
       Logger.info('EventStore', 'Event deleted', eventId)
-      uiStore.showToast('Evento excluído', 'success')
+      uiStore.showToast(i18n.global.t('toast.eventDeleted'), 'success')
     } catch (err) {
       Logger.error('EventStore', 'Failed to delete event', err)
-      uiStore.showToast('Falha ao excluir evento', 'error')
+      uiStore.showToast(i18n.global.t('toast.eventDeleteFailed'), 'error')
     }
   }
 
   return {
     events,
     allEvents,
+    // computed over allEvents; admin-only by construction
     pendingEvents,
-    selectedPendingEventIds,
     isLoading,
+    isLoadingMore,
+    hasMoreEvents,
     error,
     hasActiveFilters,
     filteredEvents,
     addEvent,
     updateEvent,
     loadEvents,
+    loadMoreEvents,
     fetchAllEvents,
     setEventStatus,
     deleteEvent,
-    fetchPendingEvents,
-    approveEvent,
-    rejectEvent,
-    bulkUpdatePendingEvents,
   }
 })

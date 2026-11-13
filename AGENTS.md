@@ -29,4 +29,39 @@ Take the first option that fully works:
 
 Never cut: validation at trust boundaries, error handling that prevents data loss, security, accessibility, the calibration real hardware needs, anything the user asked for.
 
-(Yes, this file also applies to agents working on the ponytail repo itself. Especially to them.)
+# WNXT - working rules
+
+## Project
+
+- WNXT ("What's Next"): electronic music event calendar. Vue 3 `<script setup>` SPA, Vite, Pinia (+ persistedstate), Vue Router, vue-i18n, Supabase, @phosphor-icons/vue.
+- Commands: `npm run dev`; `npm run build` (build + copies `dist/index.html` to `dist/404.html` for GitHub Pages); `npm run preview`.
+- No linter, formatter or test runner. Do not add one unasked.
+- Code, identifiers and comments in English. UI text only through vue-i18n keys, default locale `pt`.
+- Commits: `type: description`, imperative, pt-BR, subject <= 50 chars.
+- Work lands on `dev`. `.github/workflows/deploy.yml` deploys only on push to `main`.
+
+## Layers
+
+`views/` + `components/` -> `stores/` (Pinia) -> `services/` (abstract interfaces) -> `repositories/` (only layer importing Supabase) -> `lib/supabase.js`.
+
+## Non-negotiables
+
+- No Tailwind, no new dependency or external API without asking. Styling is scoped CSS using the tokens in `src/assets/main.css`.
+- Every UI string is an i18n key added to BOTH `src/i18n/locales/pt.js` and `src/i18n/locales/en.js`.
+- UI and stores never import `supabase`. Data access goes through a repository.
+- `authStore.isAdmin` is UX only. Real authorization is Postgres RLS.
+- No native `alert`/`confirm`, no native datetime input. Use `uiStore.showToast`, `DateTimePicker`, `BrutalButton`, `BrutalCard`.
+- Logs always carry a context prefix: `console.error('[EventStore] ...')` or `Logger.error('EventStore', ...)`.
+
+## Design system
+
+Neo-brutalism, mobile-first: 2px+ solid black borders, hard offset shadows (`var(--shadow-1)`), vivid accents, modals capped at `95dvh` with a sticky action row, floating labels, `,`-to-pill inputs, custom toasts with no close button.
+
+## Read more
+
+- `.clinerules/` - behaviour rules: refactor safety, rtk, commits, motion, security, caveman.
+- `AI_CONTEXT.md` - detailed spec (RLS matrix, UX patterns, admin flows). Read it before touching design, UX or admin.
+
+## Verify
+
+`npm run build` must pass. For UI work run `npm run dev` and check a ~390px viewport. Report what you did not test.

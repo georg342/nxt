@@ -5,10 +5,13 @@ import EventCard from './EventCard.vue'
 import { useEventStore } from '../../stores/eventStore'
 import { useGenreStore } from '../../stores/genreStore'
 import { useUIStore } from '../../stores/uiStore'
+import { useCalendarStore } from '../../stores/calendarStore'
+import { formatTime, toDateKey } from '../../utils/date'
 
 const eventStore = useEventStore()
 const genreStore = useGenreStore()
 const uiStore = useUIStore()
+const calendarStore = useCalendarStore()
 const { t } = useI18n()
 
 const expandedEventId = ref(null)
@@ -37,21 +40,15 @@ function handleSwipe() {
 
   if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
     if (deltaX > 50) {
-      uiStore.navigatePrev()
+      calendarStore.navigatePrev()
     } else if (deltaX < -50) {
-      uiStore.navigateNext()
+      calendarStore.navigateNext()
     }
   }
 }
 
 function toggleEvent(id) {
   expandedEventId.value = expandedEventId.value === id ? null : id
-}
-
-function formatTime(dateString) {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
 // Busca filtra a view atual no lugar; sem busca, usa a lista completa.
@@ -63,7 +60,7 @@ const baseEvents = computed(() => {
 })
 
 const filteredEvents = computed(() => {
-  const referenceDate = uiStore.selectedDate ?? new Date()
+  const referenceDate = calendarStore.selectedDate ?? new Date()
   const targetKey = toDateKey(referenceDate)
   return baseEvents.value.filter((event) => {
     if (!event.start_date) return false
@@ -71,15 +68,10 @@ const filteredEvents = computed(() => {
   })
 })
 
-function toDateKey(date) {
-  const pad = (value) => String(value).padStart(2, '0')
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
-}
-
 // Days after the selected one, grouped by date. eventStore.events already
 // holds every approved event ordered by start_date, so no extra request.
 const upcomingGroups = computed(() => {
-  const referenceDate = uiStore.selectedDate ?? new Date()
+  const referenceDate = calendarStore.selectedDate ?? new Date()
   const selectedKey = toDateKey(referenceDate)
 
   const groups = new Map()
@@ -92,7 +84,7 @@ const upcomingGroups = computed(() => {
     if (!groups.has(eventKey)) {
       groups.set(eventKey, {
         key: eventKey,
-        label: uiStore.formatDayMonth(eventKey),
+        label: calendarStore.formatDayMonth(eventKey),
         events: [],
       })
     }
@@ -101,12 +93,14 @@ const upcomingGroups = computed(() => {
   return [...groups.values()]
 })
 
-// Refetch on every entry into the day view and whenever the selected day
-// changes (arrow navigation keeps the component mounted).
+// Fetch once per session: only refill when the local list is empty (bootstrap
+// failed or a reload left it blank). Day navigation is a pure local filter.
 watch(
-  () => uiStore.selectedDate,
+  () => calendarStore.selectedDate,
   () => {
-    eventStore.loadEvents()
+    if (eventStore.events.length === 0) {
+      eventStore.loadEvents()
+    }
     // Safety net: bootstrap may have failed to fetch genres.
     if (genreStore.genres.length === 0) {
       genreStore.loadGenres()
@@ -114,6 +108,14 @@ watch(
   },
   { immediate: true }
 )
+
+// Server-side pagination: append the next page near the bottom.
+function handleScroll(event) {
+  const el = event.currentTarget
+  if (el.scrollTop + el.clientHeight >= el.scrollHeight - 200) {
+    eventStore.loadMoreEvents()
+  }
+}
 </script>
 
 <template>
@@ -121,8 +123,9 @@ watch(
     class="day-feed"
     @touchstart.passive="handleTouchStart"
     @touchend.passive="handleTouchEnd"
+    @scroll.passive="handleScroll"
   >
-    <p v-if="eventStore.isLoading" class="day-feed__state">Loading...</p>
+    <p v-if="eventStore.isLoading" class="day-feed__state">{{ t('shared.loading') }}</p>
     <template v-else>
       <p v-if="filteredEvents.length === 0" class="day-feed__state">
         {{ t('dayView.noEvents') }}
@@ -155,6 +158,7 @@ watch(
           />
         </section>
       </template>
+      <p v-if="eventStore.isLoadingMore" class="day-feed__state">{{ t('shared.loading') }}</p>
     </template>
   </div>
 </template>
