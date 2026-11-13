@@ -43,7 +43,6 @@ export default {
     close: 'Fechar busca',
     placeholder: 'Buscar eventos...',
     hint: 'Digite ao menos 3 caracteres para buscar.',
-    empty: 'Nenhum evento encontrado.',
   },
   dayView: {
     upcomingEvents: 'Próximos eventos',
