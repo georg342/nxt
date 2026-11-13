@@ -1,11 +1,14 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { defineAsyncComponent, onMounted, ref } from 'vue'
 import { PhShieldCheck } from '@phosphor-icons/vue'
 import AuthModal from './components/auth/AuthModal.vue'
 import CreateEventModal from './components/events/CreateEventModal.vue'
 import ToastNotification from './components/ui/ToastNotification.vue'
-import AdminGateway from './components/admin/AdminGateway.vue'
 import AppGate from './components/layout/AppGate.vue'
+// Admin-only panel: loaded on first open, keeps it out of the initial bundle.
+const AdminGateway = defineAsyncComponent(
+  () => import('./components/admin/AdminGateway.vue')
+)
 import { useUIStore } from './stores/uiStore'
 
 const GATE_STORAGE_KEY = 'wnxt_gate_unlocked'
