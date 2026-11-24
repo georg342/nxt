@@ -126,6 +126,8 @@ export default {
       editTitle: 'Editar Gênero',
       createBtn: 'Criar Gênero',
       empty: 'Nenhum gênero cadastrado.',
+      quickAddPlaceholder: 'Novo gênero ou subgênero',
+      quickAddBtn: 'Criar',
       fields: {
         name: 'Nome',
         slug: 'Slug',

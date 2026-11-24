@@ -126,6 +126,8 @@ export default {
       editTitle: 'Edit Genre',
       createBtn: 'Create Genre',
       empty: 'No genres registered.',
+      quickAddPlaceholder: 'New genre or subgenre',
+      quickAddBtn: 'Create',
       fields: {
         name: 'Name',
         slug: 'Slug',

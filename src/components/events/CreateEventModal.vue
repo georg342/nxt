@@ -10,11 +10,14 @@ import LocationAutocomplete from '../ui/LocationAutocomplete.vue'
 import { useUIStore } from '../../stores/uiStore'
 import { useEventStore } from '../../stores/eventStore'
 import { useGenreStore } from '../../stores/genreStore'
+import { useAuthStore } from '../../stores/authStore'
+import { slugify } from '../../utils/string'
 
 const { t } = useI18n()
 const uiStore = useUIStore()
 const eventStore = useEventStore()
 const genreStore = useGenreStore()
+const authStore = useAuthStore()
 
 const isSubmitting = ref(false)
 const submitError = ref(null)
@@ -52,6 +55,54 @@ function toggleGenre(genreId) {
   const index = selected.indexOf(genreId)
   if (index === -1) selected.push(genreId)
   else selected.splice(index, 1)
+}
+
+// Quick-create from the genre selector: an existing name is just selected, a
+// missing one becomes a subgenre of the chosen parent (or a new parent color).
+const newGenreName = ref('')
+const newGenreParentId = ref(null)
+const isCreatingGenre = ref(false)
+
+function findGenreByName(name) {
+  const key = slugify(name)
+  return genreStore.genres.find(
+    (genre) => genre.slug === key || slugify(genre.name) === key
+  )
+}
+
+async function handleCreateGenre() {
+  const name = newGenreName.value.trim()
+  if (!name || isCreatingGenre.value) return
+
+  const existing = findGenreByName(name)
+  if (existing) {
+    if (!form.value.genreIds.includes(existing.id)) form.value.genreIds.push(existing.id)
+    newGenreName.value = ''
+    return
+  }
+
+  isCreatingGenre.value = true
+  try {
+    const parentId = newGenreParentId.value || null
+    await genreStore.addGenre({
+      name,
+      slug: slugify(name),
+      parent_id: parentId,
+      color: parentId
+        ? genreStore.getGenreDisplay(parentId).color
+        : genreStore.suggestGenreColor(),
+    })
+    const created = findGenreByName(name)
+    if (created && !form.value.genreIds.includes(created.id)) {
+      form.value.genreIds.push(created.id)
+    }
+    newGenreName.value = ''
+    newGenreParentId.value = null
+  } catch {
+    // genreStore.error feeds the inline message below
+  } finally {
+    isCreatingGenre.value = false
+  }
 }
 
 watch(
@@ -331,6 +382,39 @@ function trapTab(event) {
                 </button>
               </div>
             </div>
+
+            <div v-if="authStore.isAdmin" class="genre-create">
+              <input
+                v-model="newGenreName"
+                type="text"
+                :aria-label="t('admin.genres.quickAddPlaceholder')"
+                :placeholder="t('admin.genres.quickAddPlaceholder')"
+                @keydown.enter.prevent="handleCreateGenre()"
+              />
+              <select
+                v-model="newGenreParentId"
+                :aria-label="t('admin.genres.fields.parent')"
+              >
+                <option :value="null">{{ t('admin.genres.fields.noParent') }}</option>
+                <option
+                  v-for="parent in genreStore.parentGenres"
+                  :key="parent.id"
+                  :value="parent.id"
+                >
+                  {{ parent.name }}
+                </option>
+              </select>
+              <button
+                type="button"
+                :disabled="!newGenreName.trim() || isCreatingGenre"
+                @click="handleCreateGenre()"
+              >
+                {{ t('admin.genres.quickAddBtn') }}
+              </button>
+            </div>
+            <p v-if="genreStore.error" class="create-event__error">
+              {{ genreStore.error }}
+            </p>
           </div>
 
           <p v-if="submitError" class="create-event__error">{{ submitError }}</p>
@@ -543,6 +627,60 @@ function trapTab(event) {
   color: #000000;
   transform: translate(2px, 2px);
   box-shadow: none;
+}
+
+.genre-create {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.genre-create input,
+.genre-create select {
+  flex: 1 1 120px;
+  min-width: 0;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--text-color);
+  background: var(--bg-color);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  outline: none;
+}
+
+.genre-create input:focus,
+.genre-create select:focus {
+  box-shadow: var(--shadow-1);
+}
+
+.genre-create button {
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #000000;
+  background: var(--accent-color);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-1);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.genre-create button:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+.genre-create button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .create-event__error {
