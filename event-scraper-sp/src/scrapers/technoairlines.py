@@ -16,6 +16,7 @@ from selectolax.lexbor import LexborHTMLParser
 
 from models.event import ScrapedEvent
 from scrapers.base import SAO_PAULO, BaseScraper
+from scrapers.ra import RaLineupEnricher
 
 MONTHS = {
     "january": 1,
@@ -76,6 +77,7 @@ class TechnoAirlinesScraper(BaseScraper):
         super().__init__(fetcher, logger)
         self.enrich = enrich
         self.max_enrich = max_enrich
+        self.ra_lineup = RaLineupEnricher(fetcher, logger)
 
     # -- listing --------------------------------------------------------
     def parse(self, html: str, now: datetime | None = None) -> list[ScrapedEvent]:
@@ -246,29 +248,31 @@ class TechnoAirlinesScraper(BaseScraper):
             return
 
         detail = self.parse_detail(html)
-        if not detail:
+        if detail:
+            updates = {
+                field: detail[field]
+                for field in (
+                    "ticket_url",
+                    "lineup",
+                    "description",
+                    "organizer",
+                    "city",
+                    "address",
+                    "image_url",
+                )
+                if detail.get(field)
+            }
+            if detail.get("end_date"):
+                updates["end_datetime"] = detail["end_date"]
+            if updates:
+                enriched = event.model_copy(update=updates)
+                for key, value in enriched.__dict__.items():
+                    setattr(event, key, value)
+        else:
             self._log("debug", "detail_without_jsonld", url=event.source_url)
-            return
 
-        updates = {
-            field: detail[field]
-            for field in (
-                "ticket_url",
-                "lineup",
-                "description",
-                "organizer",
-                "city",
-                "address",
-                "image_url",
-            )
-            if detail.get(field)
-        }
-        if detail.get("end_date"):
-            updates["end_datetime"] = detail["end_date"]
-        if updates:
-            enriched = event.model_copy(update=updates)
-            for key, value in enriched.__dict__.items():
-                setattr(event, key, value)
+        # RA tickets carry the authoritative lineup; fill it when still empty.
+        self.ra_lineup.enrich(event)
 
     @staticmethod
     def parse_detail(html: str) -> dict:

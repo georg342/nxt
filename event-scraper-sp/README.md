@@ -10,6 +10,9 @@ Sources:
   lineup, description and organizer.
 - **Plurstation** (`plurstation.com.br/eventos`): listing cards only (detail pages
   are client-rendered), filtered by a city allowlist.
+- **RA** (`ra.co`): not a listing source. Event pages sit behind an anti-bot wall,
+  so lineups for rows whose ticket link is an RA event come from the public
+  GraphQL endpoint, and only when the row still has no lineup.
 
 ## Setup
 
@@ -43,6 +46,9 @@ Run from this directory: `config.py` reads `.env` relative to the cwd.
   scraped date window, plus duplicates inside the same run. No `source`/`external_id`
   columns exist in `events`, so `link` and the date pair are the identity.
 - Rows always land as `approved`; `location` follows the `Venue, City - ST` shape.
+- RA lineup: `POST https://ra.co/graphql` with `query { event(id:) { lineup } }`
+  for events whose `link` matches `ra.co/events/<id>`. Same robots check, delay
+  and retries as every other request; a failure only logs a warning.
 - One failing source never stops the others. Exit code is 1 if a source or an
   insert failed.
 - Polite fetching: `robots.txt` check, `REQUEST_DELAY_SECONDS` between requests,

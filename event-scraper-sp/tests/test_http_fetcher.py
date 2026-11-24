@@ -8,6 +8,7 @@ UA = "WNXT-Test/1.0"
 BASE = "https://fonte.example"
 ROBOTS_URL = f"{BASE}/robots.txt"
 PAGE_URL = f"{BASE}/eventos"
+GRAPHQL_URL = f"{BASE}/graphql"
 
 
 def make_fetcher(logger=None, retries: int = 3) -> HttpFetcher:
@@ -78,6 +79,29 @@ def test_raises_after_exhausting_retries():
     with pytest.raises(FetchError) as error:
         make_fetcher(retries=2).get(PAGE_URL)
     assert "after 2 attempts" in str(error.value)
+
+
+@respx.mock
+def test_post_sends_json_and_returns_parsed_body():
+    respx.get(ROBOTS_URL).mock(return_value=robots("User-agent: *\nDisallow: /private"))
+    route = respx.post(GRAPHQL_URL).mock(
+        return_value=httpx.Response(200, json={"data": {"event": {"lineup": "X"}}})
+    )
+
+    payload = make_fetcher().post(GRAPHQL_URL, {"query": "{ event(id: 1) { lineup } }"})
+
+    assert payload == {"data": {"event": {"lineup": "X"}}}
+    assert "event(id: 1)" in route.calls[0].request.content.decode()
+
+
+@respx.mock
+def test_post_refuses_when_robots_disallows():
+    respx.get(ROBOTS_URL).mock(return_value=robots("User-agent: *\nDisallow: /graphql"))
+    post = respx.post(GRAPHQL_URL).mock(return_value=httpx.Response(200, json={}))
+
+    with pytest.raises(FetchError):
+        make_fetcher().post(GRAPHQL_URL, {"query": "{ ping }"})
+    assert not post.called
 
 
 @respx.mock

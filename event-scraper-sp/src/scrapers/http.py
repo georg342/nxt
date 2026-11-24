@@ -95,14 +95,22 @@ class HttpFetcher:
         self._last_request_at = time.monotonic()
 
     def get(self, url: str) -> str:
+        return self._request("GET", url)
+
+    def post(self, url: str, payload: dict | None = None) -> dict:
+        """POST JSON (RA's GraphQL); same robots, delay and retry rules."""
+        return self._request("POST", url, payload)
+
+    def _request(self, method: str, url: str, payload: dict | None = None):
         if not self.robots_allows(url):
             raise FetchError(f"robots.txt disallows {url}")
 
+        body = {} if payload is None else {"json": payload}
         last_error: Exception | None = None
         for attempt in range(1, self._max_retries + 1):
             self._wait_turn()
             try:
-                response = self._client.get(url)
+                response = self._client.request(method, url, **body)
                 if response.status_code in RETRY_STATUS:
                     raise httpx.HTTPStatusError(
                         f"retryable status {response.status_code}",
@@ -110,7 +118,7 @@ class HttpFetcher:
                         response=response,
                     )
                 response.raise_for_status()
-                return response.text
+                return response.text if method == "GET" else response.json()
             except (httpx.TransportError, httpx.HTTPStatusError) as exc:
                 last_error = exc
                 if attempt >= self._max_retries:
@@ -128,7 +136,7 @@ class HttpFetcher:
                 self._sleep(backoff)
 
         raise FetchError(
-            f"GET {url} failed after {self._max_retries} attempts: {last_error}"
+            f"{method} {url} failed after {self._max_retries} attempts: {last_error}"
         ) from last_error
 
     def _log(self, level: str, message: str, **context) -> None:
