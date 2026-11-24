@@ -80,7 +80,7 @@ class ScrapedEvent(BaseModel):
 
     source: str
     title: str
-    source_url: str
+    source_url: str = Field(min_length=1)
     start_datetime: datetime
     end_datetime: datetime | None = None
     venue: str | None = None
@@ -147,7 +147,8 @@ class ScrapedEvent(BaseModel):
 
     @property
     def link(self) -> str:
-        return self.ticket_url or self.source_url
+        """Page where the event was found; `ticket_url` is enrichment only."""
+        return self.source_url
 
     @property
     def dedup_hash(self) -> str:

@@ -42,10 +42,13 @@ Run from this directory: `config.py` reads `.env` relative to the cwd.
 
 ## Behaviour
 
-- Dedup against the `link` and (`title`, `start_date`) of the events already in the
-  scraped date window, plus duplicates inside the same run. No `source`/`external_id`
-  columns exist in `events`, so `link` and the date pair are the identity.
-- Rows always land as `approved`; `location` follows the `Venue, City - ST` shape.
+- Dedup against the source page URL (stored as `link`) and (`title`, `start_date`)
+  of the events already in the scraped date window, plus duplicates inside the
+  same run. No `source`/`external_id` columns exist in `events`, so those are the
+  identity.
+- Rows always land as `approved`; `link` is the page where the event was found
+  (the source page, never the ticket URL); `location` follows the
+  `Venue, City - ST` shape.
 - RA lineup: `POST https://ra.co/graphql` with
   `query { event(id:) { lineup genres { name } } }` for events whose `link`
   matches `ra.co/events/<id>`. Same robots check, delay and retries as every

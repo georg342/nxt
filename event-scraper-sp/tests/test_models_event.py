@@ -62,15 +62,22 @@ def test_db_row_is_always_approved_and_maps_columns():
     assert row["title"] == "Tech House Party"
     assert row["location"] == "Komplexo Tempo, São Paulo - SP"
     assert row["lineup"] == ["DJ One", "DJ TWO"]
-    assert row["link"] == "https://tickets.example.com/1"
+    assert row["link"] == "https://example.com/evento/1"
     assert row["flyer"] == "https://cdn.example.com/poster.jpg"
     assert row["start_date"].startswith("2026-11-13T23:00:00")
     # events has no genres column; the relation lives in event_genres.
     assert "genres" not in row
 
 
-def test_link_falls_back_to_source_url():
-    assert make_event().link == "https://example.com/evento/1"
+def test_link_is_the_page_where_the_event_was_found():
+    event = make_event(ticket_url="https://ra.co/events/1")
+    assert event.link == "https://example.com/evento/1"
+    assert event.ticket_url == "https://ra.co/events/1"
+
+
+def test_source_url_cannot_be_empty():
+    with pytest.raises(ValidationError):
+        make_event(source_url="")
 
 
 def test_normalize_for_match_ignores_case_and_accents():

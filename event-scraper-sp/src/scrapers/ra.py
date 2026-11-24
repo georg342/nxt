@@ -47,7 +47,7 @@ def parse_genres(raw: list | None) -> list[str]:
 
 
 class RaLineupEnricher:
-    """Fills `event.lineup` from RA, only when the event still has none."""
+    """Fills `event.lineup` and `event.genres` from RA when the row still has none."""
 
     def __init__(self, fetcher, logger=None) -> None:
         self.fetcher = fetcher
@@ -56,7 +56,7 @@ class RaLineupEnricher:
     def enrich(self, event: ScrapedEvent) -> bool:
         if event.lineup and event.genres:
             return False
-        event_id = ra_event_id(event.link) or ra_event_id(event.source_url)
+        event_id = ra_event_id(event.ticket_url) or ra_event_id(event.source_url)
         if not event_id:
             return False
 
@@ -68,7 +68,7 @@ class RaLineupEnricher:
             self._log(
                 "warn",
                 "ra_lineup_failed",
-                url=event.link,
+                url=event.ticket_url or event.link,
                 event_title=event.title,
                 error_type=type(exc).__name__,
                 error_message=str(exc),
@@ -90,13 +90,18 @@ class RaLineupEnricher:
             filled = True
 
         if not filled:
-            self._log("debug", "ra_detail_empty", url=event.link, event_title=event.title)
+            self._log(
+                "debug",
+                "ra_detail_empty",
+                url=event.ticket_url or event.link,
+                event_title=event.title,
+            )
             return False
 
         self._log(
             "info",
             "ra_detail_filled",
-            url=event.link,
+            url=event.ticket_url or event.link,
             event_title=event.title,
             names=len(event.lineup),
             genres=len(event.genres),

@@ -120,10 +120,13 @@ const submitLabel = computed(() => {
 
 const INSTAGRAM_URL = /^(https?:\/\/)?(www\.|m\.)?instagram\.com\/.+/i
 
-// Empty link is allowed; anything else must point to instagram.com.
+// Empty link is allowed. New suggestions must point to instagram.com; an edit
+// accepts any http(s) URL because scraper rows link to the page they were found on.
 const isLinkValid = computed(() => {
   const link = form.value.link.trim()
-  return link === '' || INSTAGRAM_URL.test(link)
+  if (link === '') return true
+  if (INSTAGRAM_URL.test(link)) return true
+  return isEditing.value && /^https?:\/\//i.test(link)
 })
 
 // Rows may hold genres/lineup as JSON strings, { LABEL, COLOR } pills or

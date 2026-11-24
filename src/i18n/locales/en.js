@@ -49,7 +49,7 @@ export default {
     noEvents: 'No events for this day'
   },
   event: {
-    viewOnInstagram: 'View on Instagram',
+    viewLink: 'Open link',
   },
   calendar: {
     eventCount: 'no events | {count} event | {count} events',
