@@ -8,7 +8,9 @@ from pipeline import run_pipeline
 from scrapers.base import SAO_PAULO
 
 
-def make_event(title: str, day: int = 13, url: str = "https://src/1") -> ScrapedEvent:
+def make_event(
+    title: str, day: int = 13, url: str = "https://src/1", genres: list[str] | None = None
+) -> ScrapedEvent:
     return ScrapedEvent(
         source="fake",
         title=title,
@@ -16,6 +18,7 @@ def make_event(title: str, day: int = 13, url: str = "https://src/1") -> Scraped
         start_datetime=datetime(2026, 11, day, 23, 0, tzinfo=SAO_PAULO),
         venue="Club",
         city="São Paulo",
+        genres=genres or [],
     )
 
 
@@ -155,3 +158,68 @@ def test_dedup_index_failure_propagates(recording_logger):
 
     with pytest.raises(SupabaseError):
         run_pipeline([FakeSource([make_event("A")])], BrokenRepo(), recording_logger)
+
+
+class GenreRepo(FakeRepo):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.catalog = [
+            {
+                "id": "techno-id",
+                "name": "Techno",
+                "slug": "techno",
+                "color": "#5CE1E6",
+                "parent_id": None,
+            }
+        ]
+        self.created_genres: list[dict] = []
+        self.links: list[tuple[str, list[str]]] = []
+
+    def fetch_genres(self):
+        return self.catalog
+
+    def create_genre(self, row):
+        self.created_genres.append(row)
+        created = {"id": f"genre-{len(self.created_genres)}", **row}
+        self.catalog.append(created)
+        return created
+
+    def link_genres(self, event_id, genre_ids):
+        self.links.append((event_id, genre_ids))
+
+
+def test_inserted_events_link_genres_and_create_the_missing(recording_logger):
+    repo = GenreRepo()
+    source = FakeSource([make_event("A", genres=["Techno", "Hard Techno"])])
+
+    result = run_pipeline([source], repo, recording_logger)
+
+    assert repo.links == [("id-1", ["techno-id", "genre-1"])]
+    assert repo.created_genres[0]["parent_id"] == "techno-id"
+    assert result.total["genres_linked"] == 2
+    assert result.total["genre_errors"] == 0
+
+
+def test_genre_link_failure_is_counted_and_logged(recording_logger):
+    class BrokenGenreRepo(GenreRepo):
+        def link_genres(self, event_id, genre_ids):
+            raise SupabaseError("boom")
+
+    repo = BrokenGenreRepo()
+    source = FakeSource([make_event("A", genres=["Techno"])])
+
+    result = run_pipeline([source], repo, recording_logger)
+
+    assert result.total["inserted"] == 1
+    assert result.total["genre_errors"] == 1
+    assert "genre_link_failed" in recording_logger.messages("error")
+
+
+def test_events_without_genres_never_read_the_catalog(recording_logger):
+    class NoCatalogRepo(FakeRepo):
+        def fetch_genres(self):
+            raise AssertionError("catalog must not be read")
+
+    result = run_pipeline([FakeSource([make_event("A")])], NoCatalogRepo(), recording_logger)
+
+    assert result.total["genres_linked"] == 0

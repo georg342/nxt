@@ -20,13 +20,14 @@ def make_fetcher(logger=None) -> HttpFetcher:
     )
 
 
-def make_event(lineup=None, ticket_url=RA_EVENT_URL) -> ScrapedEvent:
+def make_event(lineup=None, genres=None, ticket_url=RA_EVENT_URL) -> ScrapedEvent:
     return ScrapedEvent(
         source="technoairlines",
         title="MOVING D-EDGE SP pres.: P1",
         source_url="https://www.technoairlines.com/event/moving-d-edge-2026-11-26",
         start_datetime=datetime(2026, 11, 26, 22, 0, tzinfo=SAO_PAULO),
         lineup=lineup or [],
+        genres=genres or [],
         ticket_url=ticket_url,
     )
 
@@ -57,21 +58,52 @@ def test_enrich_queries_ra_and_fills_the_lineup():
     allow_robots()
     route = respx.post(GRAPHQL_URL).mock(
         return_value=httpx.Response(
-            200, json={"data": {"event": {"lineup": "EHLLA\nCESAR NARDINI"}}}
+            200,
+            json={
+                "data": {
+                    "event": {
+                        "lineup": "EHLLA\nCESAR NARDINI",
+                        "genres": [{"name": "House"}, {"name": "Tech House"}],
+                    }
+                }
+            },
         )
     )
     event = make_event()
 
     assert RaLineupEnricher(make_fetcher()).enrich(event) is True
     assert event.lineup == ["EHLLA", "CESAR NARDINI"]
+    assert event.genres == ["House", "Tech House"]
     body = route.calls[0].request.content.decode()
     assert "event(id: 2579298)" in body
+    assert "genres { name }" in body
 
 
-def test_enrich_skips_events_that_already_have_a_lineup():
+@respx.mock
+def test_enrich_fills_genres_when_only_the_lineup_is_known():
+    allow_robots()
+    respx.post(GRAPHQL_URL).mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "data": {
+                    "event": {"lineup": "DJ One", "genres": [{"name": "Techno"}]}
+                }
+            },
+        )
+    )
     event = make_event(lineup=["DJ One"])
+
+    assert RaLineupEnricher(make_fetcher()).enrich(event) is True
+    assert event.lineup == ["DJ One"]
+    assert event.genres == ["Techno"]
+
+
+def test_enrich_skips_events_that_already_have_lineup_and_genres():
+    event = make_event(lineup=["DJ One"], genres=["Techno"])
     assert RaLineupEnricher(make_fetcher()).enrich(event) is False
     assert event.lineup == ["DJ One"]
+    assert event.genres == ["Techno"]
 
 
 def test_enrich_skips_events_without_an_ra_link():

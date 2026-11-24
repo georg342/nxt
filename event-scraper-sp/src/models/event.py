@@ -88,6 +88,7 @@ class ScrapedEvent(BaseModel):
     state: str | None = None
     address: str | None = None
     lineup: list[str] = Field(default_factory=list)
+    genres: list[str] = Field(default_factory=list)
     image_url: str | None = None
     ticket_url: str | None = None
     price: str | None = None
@@ -102,7 +103,7 @@ class ScrapedEvent(BaseModel):
             raise ValueError("title cannot be empty")
         return cleaned
 
-    @field_validator("lineup")
+    @field_validator("lineup", "genres")
     @classmethod
     def _clean_lineup(cls, value: list[str]) -> list[str]:
         seen: set[str] = set()

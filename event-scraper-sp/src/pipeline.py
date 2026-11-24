@@ -6,6 +6,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import timedelta
 from time import monotonic
 
+from db.genres import GenreCatalog
 from db.supabase import SupabaseError
 from models.event import ScrapedEvent
 
@@ -18,6 +19,8 @@ class StageStats:
     skipped_duplicates: int = 0
     inserted: int = 0
     insert_errors: int = 0
+    genres_linked: int = 0
+    genre_errors: int = 0
     duration_ms: int = 0
 
 
@@ -103,6 +106,19 @@ def run_pipeline(
                 )
                 raise
 
+    catalog = None
+    if repo is not None and not dry_run and any(event.genres for event in collected):
+        try:
+            catalog = GenreCatalog(repo.fetch_genres())
+        except SupabaseError as exc:
+            # Genres are secondary: events still get inserted, only the links are lost.
+            logger.error(
+                "genre_catalog_failed",
+                event_stage="insert",
+                error_type=type(exc).__name__,
+                error_message=str(exc),
+            )
+
     seen_hashes: set[str] = set()
     for event in collected:
         stats = result.sources[event.source]
@@ -135,6 +151,7 @@ def run_pipeline(
                 start_date=event.start_date_key,
                 location=row.get("location"),
                 lineup=row.get("lineup"),
+                genres=event.genres,
                 url=row.get("link"),
                 price=event.price,
                 organizer=event.organizer,
@@ -142,7 +159,7 @@ def run_pipeline(
             continue
 
         try:
-            repo.insert_event(row)
+            created = repo.insert_event(row)
         except SupabaseError as exc:
             stats["insert_errors"] += 1
             event_log.error(
@@ -155,6 +172,27 @@ def run_pipeline(
             continue
         stats["inserted"] += 1
 
+        event_id = (created or {}).get("id")
+        if catalog is not None and event_id and event.genres:
+            try:
+                genre_ids = [
+                    genre_id
+                    for genre_id in (catalog.resolve(name, repo) for name in event.genres)
+                    if genre_id
+                ]
+                repo.link_genres(event_id, genre_ids)
+                stats["genres_linked"] += len(genre_ids)
+            except SupabaseError as exc:
+                stats["genre_errors"] += 1
+                event_log.error(
+                    "genre_link_failed",
+                    event_stage="insert",
+                    event_id=event_id,
+                    genres=event.genres,
+                    error_type=type(exc).__name__,
+                    error_message=str(exc),
+                )
+
     total = StageStats()
     for stats in result.sources.values():
         for key in (
@@ -164,6 +202,8 @@ def run_pipeline(
             "skipped_duplicates",
             "inserted",
             "insert_errors",
+            "genres_linked",
+            "genre_errors",
         ):
             setattr(total, key, getattr(total, key) + stats[key])
         total.duration_ms = max(total.duration_ms, stats["duration_ms"])

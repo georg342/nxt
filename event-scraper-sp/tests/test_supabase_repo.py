@@ -89,3 +89,58 @@ def test_insert_event_raises_on_rls_error():
     with pytest.raises(SupabaseError) as error:
         make_repo().insert_event({"title": "X", "status": "pending"})
     assert "403" in str(error.value)
+
+
+GENRES_PAYLOAD = [
+    {"id": "g1", "name": "Techno", "slug": "techno", "color": "#5CE1E6", "parent_id": None}
+]
+
+
+@respx.mock
+def test_fetch_genres_returns_rows():
+    respx.get(f"{BASE}/genres").mock(
+        return_value=httpx.Response(200, json=GENRES_PAYLOAD)
+    )
+
+    assert make_repo().fetch_genres() == GENRES_PAYLOAD
+
+
+@respx.mock
+def test_fetch_genres_raises_on_error():
+    respx.get(f"{BASE}/genres").mock(return_value=httpx.Response(401, text="denied"))
+
+    with pytest.raises(SupabaseError) as error:
+        make_repo().fetch_genres()
+    assert "401" in str(error.value)
+
+
+@respx.mock
+def test_create_genre_returns_created_row():
+    route = respx.post(f"{BASE}/genres").mock(
+        return_value=httpx.Response(201, json=[{"id": "g2", "name": "Phonk"}])
+    )
+
+    created = make_repo().create_genre(
+        {"name": "Phonk", "slug": "phonk", "parent_id": None, "color": "#112233"}
+    )
+
+    assert created["id"] == "g2"
+    assert route.calls[0].request.headers["prefer"] == "return=representation"
+
+
+@respx.mock
+def test_link_genres_posts_one_pivot_row_per_genre():
+    route = respx.post(f"{BASE}/event_genres").mock(
+        return_value=httpx.Response(201, json=[])
+    )
+
+    make_repo().link_genres("evt-1", ["g1", "g2"])
+
+    body = route.calls[0].request.content.decode().replace(" ", "")
+    assert '"event_id":"evt-1"' in body
+    assert '"genre_id":"g1"' in body
+    assert '"genre_id":"g2"' in body
+
+
+def test_link_genres_without_ids_does_nothing():
+    make_repo().link_genres("evt-1", [])

@@ -141,7 +141,11 @@ def main(argv: list[str] | None = None) -> int:
             repo.close()
 
     logger.info("run_end", event_stage="summary", source="all", log_file=str(log_path))
-    has_failures = bool(result.failed_sources) or result.total.get("insert_errors", 0) > 0
+    has_failures = (
+        bool(result.failed_sources)
+        or result.total.get("insert_errors", 0) > 0
+        or result.total.get("genre_errors", 0) > 0
+    )
     return 1 if has_failures else 0
 
 

@@ -65,6 +65,8 @@ def test_db_row_is_always_approved_and_maps_columns():
     assert row["link"] == "https://tickets.example.com/1"
     assert row["flyer"] == "https://cdn.example.com/poster.jpg"
     assert row["start_date"].startswith("2026-11-13T23:00:00")
+    # events has no genres column; the relation lives in event_genres.
+    assert "genres" not in row
 
 
 def test_link_falls_back_to_source_url():

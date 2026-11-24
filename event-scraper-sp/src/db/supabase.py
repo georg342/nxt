@@ -116,6 +116,54 @@ class SupabaseEventsRepository:
         )
         return created_row or {}
 
+    # -- genres ----------------------------------------------------------
+    def fetch_genres(self) -> list[dict]:
+        response = self._client.get(
+            "/genres",
+            params=[("select", "id,name,slug,color,parent_id"), ("limit", "1000")],
+        )
+        if response.status_code >= 400:
+            raise SupabaseError(
+                f"genres read failed ({response.status_code}): {response.text[:300]}"
+            )
+        rows = response.json()
+        self._log("debug", "genre_catalog_loaded", rows=len(rows))
+        return rows
+
+    def create_genre(self, row: dict) -> dict:
+        response = self._client.post(
+            "/genres",
+            json=row,
+            headers={"Prefer": "return=representation"},
+        )
+        if response.status_code >= 400:
+            raise SupabaseError(
+                f"genre insert failed ({response.status_code}): {response.text[:300]}"
+            )
+        created = response.json()
+        created_row = created[0] if isinstance(created, list) and created else created
+        self._log(
+            "info",
+            "genre_created",
+            genre_name=row.get("name"),
+            genre_parent=row.get("parent_id"),
+            genre_color=row.get("color"),
+        )
+        return created_row or {}
+
+    def link_genres(self, event_id: str, genre_ids: list[str]) -> None:
+        if not genre_ids:
+            return
+        rows = [{"event_id": event_id, "genre_id": genre_id} for genre_id in genre_ids]
+        response = self._client.post("/event_genres", json=rows)
+        if response.status_code >= 400:
+            raise SupabaseError(
+                f"event_genres insert failed ({response.status_code}): {response.text[:300]}"
+            )
+        self._log(
+            "info", "event_genres_linked", event_id=event_id, genres=len(genre_ids)
+        )
+
     def _log(self, level: str, message: str, **context) -> None:
         if self._logger is None:
             return

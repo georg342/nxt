@@ -37,6 +37,15 @@ def parse_lineup(raw: str | None) -> list[str]:
     return names
 
 
+def parse_genres(raw: list | None) -> list[str]:
+    names = [
+        genre.get("name") or ""
+        for genre in raw or []
+        if isinstance(genre, dict)
+    ]
+    return parse_lineup("\n".join(names))
+
+
 class RaLineupEnricher:
     """Fills `event.lineup` from RA, only when the event still has none."""
 
@@ -45,14 +54,14 @@ class RaLineupEnricher:
         self.logger = logger
 
     def enrich(self, event: ScrapedEvent) -> bool:
-        if event.lineup:
+        if event.lineup and event.genres:
             return False
         event_id = ra_event_id(event.link) or ra_event_id(event.source_url)
         if not event_id:
             return False
 
         # `event_id` comes from `\d+` only, so string interpolation is safe here.
-        query = f"query {{ event(id: {event_id}) {{ lineup }} }}"
+        query = f"query {{ event(id: {event_id}) {{ lineup genres {{ name }} }} }}"
         try:
             payload = self.fetcher.post(GRAPHQL_URL, {"query": query})
         except Exception as exc:  # noqa: BLE001 - one event must not kill the source
@@ -67,18 +76,30 @@ class RaLineupEnricher:
             return False
 
         data = (payload or {}).get("data") or {}
-        lineup = parse_lineup((data.get("event") or {}).get("lineup"))
-        if not lineup:
-            self._log("debug", "ra_lineup_empty", url=event.link, event_title=event.title)
+        detail = data.get("event") or {}
+        filled = False
+
+        lineup = parse_lineup(detail.get("lineup"))
+        if lineup and not event.lineup:
+            event.lineup = lineup
+            filled = True
+
+        genres = parse_genres(detail.get("genres"))
+        if genres and not event.genres:
+            event.genres = genres
+            filled = True
+
+        if not filled:
+            self._log("debug", "ra_detail_empty", url=event.link, event_title=event.title)
             return False
 
-        event.lineup = lineup
         self._log(
             "info",
-            "ra_lineup_filled",
+            "ra_detail_filled",
             url=event.link,
             event_title=event.title,
-            names=len(lineup),
+            names=len(event.lineup),
+            genres=len(event.genres),
         )
         return True
 

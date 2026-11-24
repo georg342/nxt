@@ -11,8 +11,8 @@ Sources:
 - **Plurstation** (`plurstation.com.br/eventos`): listing cards only (detail pages
   are client-rendered), filtered by a city allowlist.
 - **RA** (`ra.co`): not a listing source. Event pages sit behind an anti-bot wall,
-  so lineups for rows whose ticket link is an RA event come from the public
-  GraphQL endpoint, and only when the row still has no lineup.
+  so lineups and genres for rows whose ticket link is an RA event come from the
+  public GraphQL endpoint, and only what the row does not have yet.
 
 ## Setup
 
@@ -46,9 +46,15 @@ Run from this directory: `config.py` reads `.env` relative to the cwd.
   scraped date window, plus duplicates inside the same run. No `source`/`external_id`
   columns exist in `events`, so `link` and the date pair are the identity.
 - Rows always land as `approved`; `location` follows the `Venue, City - ST` shape.
-- RA lineup: `POST https://ra.co/graphql` with `query { event(id:) { lineup } }`
-  for events whose `link` matches `ra.co/events/<id>`. Same robots check, delay
-  and retries as every other request; a failure only logs a warning.
+- RA lineup: `POST https://ra.co/graphql` with
+  `query { event(id:) { lineup genres { name } } }` for events whose `link`
+  matches `ra.co/events/<id>`. Same robots check, delay and retries as every
+  other request; a failure only logs a warning.
+- Genres: each scraped name is matched against `public.genres` by name or slug
+  (accent/case insensitive). A missing name becomes a child of an existing parent
+  whose words it contains (`Hard Techno` -> `Techno`); with no such parent it
+  becomes a new parent with a color derived from its own name. The event is then
+  linked through `event_genres`. The catalog is read once per run.
 - One failing source never stops the others. Exit code is 1 if a source or an
   insert failed.
 - Polite fetching: `robots.txt` check, `REQUEST_DELAY_SECONDS` between requests,
