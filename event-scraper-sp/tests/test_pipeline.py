@@ -59,7 +59,7 @@ def test_inserts_new_events(recording_logger):
     assert len(repo.inserted) == 2
     assert result.total["inserted"] == 2
     assert result.total["skipped_duplicates"] == 0
-    assert all(row["status"] == "pending" for row in repo.inserted)
+    assert all(row["status"] == "approved" for row in repo.inserted)
 
 
 def test_skips_duplicates_within_the_same_run(recording_logger):

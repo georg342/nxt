@@ -153,7 +153,7 @@ class ScrapedEvent(BaseModel):
         return dedup_hash(self.source, self.source_url, self.title, self.start_date_key)
 
     def to_db_row(self) -> dict:
-        """Payload for `public.events`. Status is always pending (RLS requires it)."""
+        """Payload for `public.events`. Status is always approved."""
         return {
             "title": self.title,
             "start_date": self.start_datetime.isoformat(),
@@ -164,5 +164,5 @@ class ScrapedEvent(BaseModel):
             "lineup": self.lineup,
             "link": self.link,
             "flyer": self.image_url,
-            "status": "pending",
+            "status": "approved",
         }

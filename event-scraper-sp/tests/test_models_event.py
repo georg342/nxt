@@ -51,14 +51,14 @@ def test_location_line_matches_nxt_shape():
     assert make_event(venue=None, city=None, address="Rua X, 10").location_line == "Rua X, 10"
 
 
-def test_db_row_is_always_pending_and_maps_columns():
+def test_db_row_is_always_approved_and_maps_columns():
     event = make_event(
         ticket_url="https://tickets.example.com/1",
         image_url="https://cdn.example.com/poster.jpg",
         end_datetime=datetime(2026, 11, 14, 5, 0, tzinfo=SAO_PAULO),
     )
     row = event.to_db_row()
-    assert row["status"] == "pending"
+    assert row["status"] == "approved"
     assert row["title"] == "Tech House Party"
     assert row["location"] == "Komplexo Tempo, São Paulo - SP"
     assert row["lineup"] == ["DJ One", "DJ TWO"]

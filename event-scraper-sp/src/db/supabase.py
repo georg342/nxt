@@ -1,9 +1,9 @@
 """Supabase writer for `public.events`.
 
-Talks to PostgREST with the service_role key: the table's RLS only lets
-authenticated users insert `pending` rows, and the scraper has no session.
-Reads also need the service key, otherwise `pending` rows are invisible and the
-dedup check would miss them.
+Talks to PostgREST with the service_role key: the scraper has no session and
+writes `approved` rows, which the table's RLS would not allow for an anonymous
+client. Reads also need the service key, otherwise `pending` rows are invisible
+and the dedup check would miss them.
 
 Schema discovered in the `nxt` repo (src/repositories/SupabaseEventRepository.js
 plus a REST probe of the real table):
