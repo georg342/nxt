@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -15,10 +16,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -41,6 +39,16 @@ jobs:
         uses: actions/upload-pages-artifact@v5
         with:
           path: './dist'
+  # Shortcut: deploy runs in its own job so a fresh runner starts a few seconds
+  # after the upload; deploy-pages 404s when it queries the run artifacts too
+  # early. Drop the split once the actions handle that race themselves.
+  deploy:
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
