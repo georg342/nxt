@@ -59,7 +59,7 @@ Neo-brutalism, mobile-first: 2px+ solid black borders, hard offset shadows (`var
 
 ## Read more
 
-- `.clinerules/` - behaviour rules: refactor safety, rtk, commits, motion, security, caveman.
+- `.clinerules/` - behaviour rules: refactor safety, rtk, commits, motion, security, caveman, deploy.
 - `AI_CONTEXT.md` - detailed spec (RLS matrix, UX patterns, admin flows). Read it before touching design, UX or admin.
 
 ## Verify
