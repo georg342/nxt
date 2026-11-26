@@ -26,9 +26,6 @@ export default {
     toDark: 'Mudar para tema escuro',
     toLight: 'Mudar para tema claro',
   },
-  gate: {
-    accessCode: 'Código de acesso',
-  },
   toast: {
     eventUpdated: 'Evento atualizado',
     eventUpdateFailed: 'Falha ao atualizar evento',

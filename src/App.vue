@@ -1,52 +1,26 @@
 <script setup>
-import { defineAsyncComponent, onMounted, ref } from 'vue'
-import { PhShieldCheck } from '@phosphor-icons/vue'
+import { defineAsyncComponent } from 'vue'
 import AuthModal from './components/auth/AuthModal.vue'
 import CreateEventModal from './components/events/CreateEventModal.vue'
 import ToastNotification from './components/ui/ToastNotification.vue'
-import AppGate from './components/layout/AppGate.vue'
 // Admin-only panel: loaded on first open, keeps it out of the initial bundle.
 const AdminGateway = defineAsyncComponent(
   () => import('./components/admin/AdminGateway.vue')
 )
 import { useUIStore } from './stores/uiStore'
 
-const GATE_STORAGE_KEY = 'wnxt_gate_unlocked'
-
 const uiStore = useUIStore()
-
-const isUnlocked = ref(false)
-
-function readGateState() {
-  try {
-    return sessionStorage.getItem(GATE_STORAGE_KEY) === '1'
-  } catch (err) {
-    return false
-  }
-}
-
-function handleUnlock() {
-  isUnlocked.value = true
-}
-
-onMounted(() => {
-  isUnlocked.value = readGateState()
-})
 </script>
 
 <template>
-  <AppGate v-if="!isUnlocked" @unlock="handleUnlock" />
+  <router-view />
+  <Transition name="admin-panel">
+    <AdminGateway v-if="uiStore.isAdminPanelOpen" />
+  </Transition>
 
-  <template v-else>
-    <router-view />
-    <Transition name="admin-panel">
-      <AdminGateway v-if="uiStore.isAdminPanelOpen" />
-    </Transition>
-
-    <AuthModal />
-    <CreateEventModal />
-    <ToastNotification />
-  </template>
+  <AuthModal />
+  <CreateEventModal />
+  <ToastNotification />
 </template>
 
 <style>

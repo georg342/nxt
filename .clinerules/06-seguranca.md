@@ -6,4 +6,4 @@
 - `.env` e `.env.local` nunca commitados nem lidos como texto no contexto.
 - nenhuma chave embutida no cliente. a anon key é pública por natureza: a segurança vem do RLS e das policies.
 - única API externa permitida é Nominatim (OpenStreetMap). qualquer outro serviço: pedir aprovação antes.
-- `localStorage`/`sessionStorage` só para preferência de UI; nunca para segredo ou permissão. (hoje `AppGate.vue` usa sessionStorage para o gate de entrada.)
+- `localStorage`/`sessionStorage` só para preferência de UI; nunca para segredo ou permissão.
