@@ -26,9 +26,6 @@ export default {
     toDark: 'Switch to dark theme',
     toLight: 'Switch to light theme',
   },
-  gate: {
-    accessCode: 'Access code',
-  },
   toast: {
     eventUpdated: 'Event updated',
     eventUpdateFailed: 'Failed to update event',
@@ -43,14 +40,16 @@ export default {
     close: 'Close search',
     placeholder: 'Search events...',
     hint: 'Type at least 3 characters to search.',
-    empty: 'No events found.',
   },
   dayView: {
     upcomingEvents: 'Upcoming events',
     noEvents: 'No events for this day'
   },
   event: {
-    viewOnInstagram: 'View on Instagram',
+    viewLink: 'Open link',
+  },
+  calendar: {
+    eventCount: 'no events | {count} event | {count} events',
   },
   shared: {
     dateTimePicker: {
@@ -124,6 +123,8 @@ export default {
       editTitle: 'Edit Genre',
       createBtn: 'Create Genre',
       empty: 'No genres registered.',
+      quickAddPlaceholder: 'New genre or subgenre',
+      quickAddBtn: 'Create',
       fields: {
         name: 'Name',
         slug: 'Slug',

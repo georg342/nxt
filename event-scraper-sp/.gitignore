@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.Python
+
+# Secrets
+.env
+
+# Runtime output
+logs/
+coverage.xml
+.coverage
+htmlcov/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+
+# OS
+.DS_Store
+Thumbs.db

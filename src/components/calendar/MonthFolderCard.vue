@@ -29,7 +29,8 @@ function handleClick() {
     v-motion
     type="button"
     class="month-folder"
-    :aria-label="`${month}, ${eventCount} events`"
+    :class="{ 'month-folder--empty': eventCount === 0 }"
+    :aria-label="`${month}, $t('calendar.eventCount', eventCount, { count: eventCount })`"
     :initial="{ scale: 1 }"
     :enter="{ scale: 1, transition: { type: 'spring', stiffness: 400, damping: 20 } }"
     :tapped="{ scale: 0.94, transition: { type: 'spring', stiffness: 400, damping: 20 } }"
@@ -97,5 +98,19 @@ function handleClick() {
   font-size: clamp(1.25rem, 5vw, 2rem);
   color: var(--text-color);
   line-height: 1;
+}
+
+/* Empty month: muted tab and count, same geometry, softer lift. */
+.month-folder--empty {
+  filter: drop-shadow(2px 2px 0px var(--shadow-color));
+}
+
+.month-folder--empty .month-folder__tab {
+  background-color: var(--surface-color);
+  color: var(--text-muted);
+}
+
+.month-folder--empty .month-folder__count {
+  color: var(--text-muted);
 }
 </style>

@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { PhCalendarBlank, PhClock, PhInstagramLogo, PhMapPin } from '@phosphor-icons/vue'
+import { PhCalendarBlank, PhClock, PhMapPin, PhPaperclip } from '@phosphor-icons/vue'
 import BrutalCard from '../ui/BrutalCard.vue'
 import { useCalendarStore } from '../../stores/calendarStore'
 import { useGenreStore } from '../../stores/genreStore'
@@ -115,11 +115,11 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
             :href="event.link"
             target="_blank"
             rel="noopener noreferrer"
-            class="event-card__instagram"
-            :aria-label="$t('event.viewOnInstagram')"
+            class="event-card__link"
+            :aria-label="$t('event.viewLink')"
             @click.stop
           >
-            <PhInstagramLogo :size="20" weight="bold" />
+            <PhPaperclip :size="20" weight="bold" />
           </a>
         </div>
       </div>
@@ -228,7 +228,7 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
   font-weight: 900;
 }
 
-.event-card__instagram {
+.event-card__link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -240,7 +240,7 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
   color: var(--text-color);
 }
 
-.event-card__instagram:active {
+.event-card__link:active {
   opacity: 0.6;
 }
 
