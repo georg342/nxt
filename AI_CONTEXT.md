@@ -23,6 +23,7 @@
 
 ## STATE
 - BOOTSTRAP: `main.js` awaits `authStore.initAuth()`, `genreStore.loadGenres()` and `router.isReady()` before `app.mount('#app')` to prevent FOUC.
+- ENTRY: no splash and no access gate — `App.vue` renders `router-view` immediately, and `/` (`HomeView`) boots on the `day` view for today.
 - Stores:
   - `useAuthStore`: session, `isAdmin`, `isSuperAdmin`, auth modal.
   - `useEventStore`: approved events page, admin list, filters, CRUD.
