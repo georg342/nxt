@@ -44,7 +44,7 @@ const displayTime = computed(() => props.time || formatTime(props.event.start_da
 
 <template>
   <BrutalCard
-    class="event-card"
+    class="event-card no-select"
     @click="emit('toggle')"
   >
     <div class="event-card__header">
